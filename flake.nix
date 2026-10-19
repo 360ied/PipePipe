@@ -5,13 +5,20 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
   };
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" ];
-      forEachSystem = f: nixpkgs.lib.genAttrs systems (system: f system);
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
-      devShells = forEachSystem (system:
+      devShells = forAllSystems (
+        system:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -20,53 +27,58 @@
               android_sdk.accept_license = true;
             };
           };
-          jdk = pkgs.temurin-bin-25;
+
+          # Centralized Android SDK configuration.
+          # AGP 9.2 uses build-tools 36.0.0 by default (its compat table);
+          # platform 37.0 matches compileSdk 37 in PipePipeClient.
+          buildToolsVersion = "37.0.0";
+          defaultBuildToolsVersion = "36.0.0";
+          platformVersions = [ "37.0" ];
+
           androidComposition = pkgs.androidenv.composeAndroidPackages {
-            platformVersions = [ "37.0" ];
-            # AGP's default build-tools (used when build.gradle doesn't pin one)
-            # plus the newest for good measure.
-            buildToolsVersions = [ "36.0.0" "37.0.0" ];
+            buildToolsVersions = [ defaultBuildToolsVersion buildToolsVersion ];
+            inherit platformVersions;
             includeNDK = false;
             includeEmulator = false;
             includeSystemImages = false;
           };
+
           androidSdk = androidComposition.androidsdk;
-          # AGP downloads its own aapt2 from Maven (unpatched ELF) which the
-          # NixOS stub loader refuses to run. Rewrite its interpreter/rpath.
-          aapt2FixRpath = pkgs.lib.makeLibraryPath [
-            pkgs.stdenv.cc.cc.lib
-            pkgs.stdenv.cc.libc
-            pkgs.zlib
-          ];
+          androidSdkRoot = "${androidSdk}/libexec/android-sdk";
+          # Use the nixpkgs-patched SDK aapt2 instead of the unpatched ELF
+          # AGP would otherwise fetch from Maven (fails on NixOS stub-ld).
+          aapt2Path = "${androidSdkRoot}/build-tools/${buildToolsVersion}/aapt2";
+          jdk = pkgs.temurin-bin-25;
         in
         {
           default = pkgs.mkShell {
-            name = "pipepipe-dev";
-            packages = [
+            name = "pipepipe-dev-shell";
+
+            buildInputs = [
               jdk
               androidSdk
-              pkgs.patchelf
             ];
 
             JAVA_HOME = jdk.home;
-            ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
-            ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
+            ANDROID_HOME = androidSdkRoot;
+            ANDROID_SDK_ROOT = androidSdkRoot;
+            GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${aapt2Path}";
 
             shellHook = ''
-              export PATH="$ANDROID_HOME/platform-tools:$PATH"
-              # Patch AGP-fetched aapt2 binaries (see above) so they run on NixOS.
-              # Runs on every shell entry to cover Gradle cache updates.
-              for aapt in "''${GRADLE_USER_HOME:-$HOME/.gradle}"/caches/*/transforms/*/transformed/aapt2-*-linux/aapt2; do
-                [ -e "$aapt" ] || continue
-                if ! "$aapt" version >/dev/null 2>&1; then
-                  echo "patching $aapt for NixOS"
-                  patchelf --set-interpreter "${pkgs.stdenv.cc.bintools.dynamicLinker}" \
-                    --set-rpath "${aapt2FixRpath}" "$aapt"
-                fi
-              done
-              echo "PipePipe devshell: java $(java -version 2>&1 | head -n 1), SDK $ANDROID_HOME"
+              REPO_ROOT="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null | sed -E 's#/\.git(/.*)?$##')"
+              if [ -z "$REPO_ROOT" ] || [ ! -d "$REPO_ROOT" ]; then
+                REPO_ROOT="''${PWD}"
+              fi
+              # Keep all Gradle/Android caches inside the repo, never ~/.gradle.
+              export GRADLE_USER_HOME="''${REPO_ROOT}/.gradle-home"
+              export ANDROID_USER_HOME="''${REPO_ROOT}/.gradle-home/android"
+              echo "PipePipe Development Environment Loaded"
+              echo "Java Version: $(${jdk}/bin/java -version 2>&1 | head -n 1)"
+              echo "ANDROID_HOME: $ANDROID_HOME"
+              echo "GRADLE_USER_HOME: $GRADLE_USER_HOME"
             '';
           };
-        });
+        }
+      );
     };
 }

@@ -2,3 +2,5 @@
 /web
 /nightly
 .claude/settings.local.json
+.gradle-home/
+local.properties
