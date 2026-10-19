@@ -26,8 +26,6 @@ jobs:
       files: ${{ steps.step-output.outputs.files }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - uses: gradle/actions/wrapper-validation@v4
 
