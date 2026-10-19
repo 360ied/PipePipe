@@ -4,3 +4,6 @@
 .claude/settings.local.json
 .gradle-home/
 local.properties
+# Release signing key material (generated locally, never commit)
+release.keystore
+keystore.properties

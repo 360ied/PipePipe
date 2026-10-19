@@ -30,3 +30,36 @@ cd PipePipeClient
 
 APKs land in `PipePipeClient/app/build/outputs/apk/debug/` (one per ABI).
 Always use the Gradle wrapper (`./gradlew`); never a system `gradle`.
+
+## Release signing
+
+`assembleRelease` signs automatically when key material is available.
+Resolution order: `KEY_PATH` / `KEY_STORE_PASSWORD` / `KEY_ALIAS` /
+`KEY_PASSWORD` env vars first (CI), otherwise
+`PipePipeClient/keystore.properties` (local dev fallback):
+
+```properties
+storeFile=release.keystore
+storePassword=<store password>
+keyAlias=pipepipefork
+keyPassword=<key password>
+```
+
+`release.keystore` and `keystore.properties` are gitignored — never commit
+them. Back up the keystore offline; losing it means the app can never be
+updated under the same package name. Regenerate with:
+
+```sh
+nix develop  # for keytool (openssl is NOT in the devshell; use /dev/urandom)
+keytool -genkeypair -keystore PipePipeClient/release.keystore \
+  -alias pipepipefork -keyalg RSA -keysize 4096 -validity 10950 \
+  -dname "CN=PipePipe Fork, O=ca.bualy.pipepipefork"
+```
+
+Note: the keystore is PKCS12, which requires store and key passwords to be
+identical. Verify a signed APK with:
+
+```sh
+$ANDROID_HOME/build-tools/37.0.0/apksigner verify --print-certs \
+  app/build/outputs/apk/release/<apk>
+```

@@ -6,10 +6,17 @@ plugins {
     id "org.jetbrains.kotlin.kapt"
 }
 
-def keyPath = System.getenv("KEY_PATH")
-def keyStorePassword = System.getenv("KEY_STORE_PASSWORD")
-def signingKeyAlias = System.getenv("KEY_ALIAS")
-def signingKeyPassword = System.getenv("KEY_PASSWORD")
+// Release signing: env vars take precedence (CI), otherwise fall back to
+// PipePipeClient/keystore.properties (gitignored, local dev key).
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file("keystore.properties")
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def keyPath = System.getenv("KEY_PATH") ?: keystoreProps.getProperty("storeFile")
+def keyStorePassword = System.getenv("KEY_STORE_PASSWORD") ?: keystoreProps.getProperty("storePassword")
+def signingKeyAlias = System.getenv("KEY_ALIAS") ?: keystoreProps.getProperty("keyAlias")
+def signingKeyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProps.getProperty("keyPassword")
 def baseVersionCode = 1109
 def appVersionName = "5.5.0-beta3"
 def abiCodes = ['armeabi-v7a': 1, 'x86': 2, 'x86_64': 3, 'arm64-v8a': 4]
@@ -48,7 +55,7 @@ android {
     signingConfigs {
         if (keyPath && keyStorePassword && signingKeyAlias && signingKeyPassword) {
             release {
-                storeFile file(keyPath)
+                storeFile rootProject.file(keyPath)
                 storePassword keyStorePassword
                 keyAlias signingKeyAlias
                 keyPassword signingKeyPassword
