@@ -20,7 +20,7 @@ android {
     compileSdk 37
 
     defaultConfig {
-        applicationId "InfinityLoop1309.NewPipeEnhanced"
+        applicationId "ca.bualy.pipepipefork"
         minSdk 23
         //noinspection OldTargetApi,ExpiredTargetSdkVersion
         targetSdk 36
