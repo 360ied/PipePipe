@@ -3,6 +3,7 @@
 /nightly
 .claude/settings.local.json
 .gradle-home/
+.worktrees/
 .direnv/
 .envrc.local
 local.properties
