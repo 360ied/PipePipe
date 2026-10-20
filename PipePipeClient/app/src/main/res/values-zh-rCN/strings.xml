@@ -813,7 +813,6 @@
 <string name="sponsor_promote">成为支持者</string>
 <string name="random_play_order_title">随机顺序</string>
 <string name="random_play_order_summary">在后台播放时自动随机播放您的本地播放列表</string>
-<string name="update_log">### 新功能\n\n- 大幅优化电视端控制\n- 新增支持直播画质选择\n- “下滑最小化”手势现在可在设置中配置\n- 优化内容过滤器的删除交互\n- 新增支持推荐/热门直播 (NicoNico)\n- 新增支持频道的直播标签页 (NicoNico)\n\n### 问题修复\n\n- 修复“全屏启动”设置无效的问题\n- 修复分屏模式不可用的问题\n- 修复进入全屏模式时字幕消失的问题\n- 修复内容屏蔽未应用于公开播放列表的问题\n- 修复直播暂停时仍继续获取数据的问题\n- 修复使用 SABR 协议的中断视频无法恢复播放的问题\n- 修复在特定条件下开始播放时可能发生的崩溃问题\n- 修复在某些场景下播放列表总时长会无限增加的问题\n- 修复在特定条件下删除观看历史记录导致的崩溃问题\n- 修复全新安装时点踩计数器未默认禁用的问题\n- 修复在特定条件下发生的下载失败问题 (Bilibili)\n- 修复推荐直播显示为空的问题 (Bilibili)</string>
 <string name="speeding_playback_title">长按以加快播放</string>
 <string name="view_on_github">在GitHub上查看</string>
 <string name="donation_dialog_title">支持该项目</string>
