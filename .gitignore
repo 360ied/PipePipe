@@ -1,12 +1,94 @@
-/.idea
+# --- Project roots (legacy placeholders) ---
 /web
 /nightly
-.claude/settings.local.json
-.gradle-home/
+
+# --- Local worktrees and agent tooling ---
 .worktrees/
+.claude/settings.local.json
+
+# --- IDEs and editors ---
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# --- OS and editor noise ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
+*.swn
+\#*\#
+.\#*
+
+# --- Nix ---
+result
+result-*
+
+# --- direnv / local env ---
 .direnv/
 .envrc.local
+.env
+.env.*
+
+# --- Gradle / Android ---
+.gradle/
+.gradle-home/
+build/
+out/
 local.properties
-# Release signing key material (generated locally, never commit)
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.hprof
+.externalNativeBuild/
+.cxx/
+captures/
+.navigation/
+*.keystore
+
+# --- Release signing key material (generated locally, never commit) ---
 release.keystore
 keystore.properties
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node (fastlane tooling, docs) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Logs and misc ---
+*.log
+*.tmp
+*.bak
