@@ -75,17 +75,10 @@ android {
         debug {
             debuggable true
 
-            // suffix the app id and the app name with git branch name
-            def workingBranch = getGitWorkingBranch()
-            def normalizedWorkingBranch = workingBranch.replaceFirst("^[^A-Za-z]+", "").replaceAll("[^0-9A-Za-z]+", "")
-            if (true) {
-                // default values when branch name could not be determined or is master or dev
-                applicationIdSuffix ".debug"
-                resValue "string", "app_name", "pipepipefork Debug"
-            } else {
-                applicationIdSuffix ".debug." + normalizedWorkingBranch
-                resValue "string", "app_name", "pipepipefork " + workingBranch
-            }
+            // Branch-specific suffixes stay disabled: probing git at
+            // configuration time breaks the configuration cache.
+            applicationIdSuffix ".debug"
+            resValue "string", "app_name", "pipepipefork Debug"
         }
 
         release {
@@ -313,20 +306,4 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'org.bouncycastle:bcprov-jdk18on:1.85'
-}
-
-static String getGitWorkingBranch() {
-    try {
-        def gitProcess = "git rev-parse --abbrev-ref HEAD".execute()
-        gitProcess.waitFor()
-        if (gitProcess.exitValue() == 0) {
-            return gitProcess.text.trim()
-        } else {
-            // not a git repository
-            return ""
-        }
-    } catch (IOException ignored) {
-        // git was not found
-        return ""
-    }
 }
