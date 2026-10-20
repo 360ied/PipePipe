@@ -47,8 +47,16 @@ android {
     splits {
         abi {
             reset()
-            enable true
-            include "armeabi-v7a", "arm64-v8a", "x86_64", "x86"
+            // Pass -PsingleAbi=<abi> (e.g. arm64-v8a) for fast single-APK
+            // device iteration builds. CI/release always build all four ABIs.
+            def singleAbi = project.findProperty('singleAbi')
+            if (singleAbi) {
+                enable true
+                include singleAbi
+            } else {
+                enable true
+                include "armeabi-v7a", "arm64-v8a", "x86_64", "x86"
+            }
         }
     }
 
