@@ -2,7 +2,7 @@
   description = "PipePipe Android development shell (JDK 25 + Android SDK 37)";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/unstable";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
   outputs =
