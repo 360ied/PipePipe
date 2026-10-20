@@ -10,9 +10,13 @@
 set -eo pipefail
 
 FULL_TEST=false
+QUICK=false
 for arg in "$@"; do
   if [ "$arg" == "--full" ]; then
     FULL_TEST=true
+  fi
+  if [ "$arg" == "--quick" ]; then
+    QUICK=true
   fi
 done
 
@@ -49,6 +53,11 @@ echo "========================================"
 if [ "$FULL_TEST" = true ]; then
   echo "Running full verification (assemble + lint + unit tests)..."
   (cd PipePipeClient && nix develop --command ./gradlew assembleDebug lintDebug testDebugUnitTest --stacktrace -DskipFormatKtlint)
+elif [ "$QUICK" = true ]; then
+  echo "Running quick verification (single-ABI assemble only, no lint)..."
+  echo "For iteration only; run the default gate before completing a task."
+  QUICK_ABI="${QUICK_ABI:-arm64-v8a}"
+  (cd PipePipeClient && nix develop --command ./gradlew assembleDebug -PsingleAbi="$QUICK_ABI" --stacktrace -DskipFormatKtlint)
 else
   echo "Running fast verification (mirrors CI: assemble + lint)..."
   (cd PipePipeClient && nix develop --command ./gradlew assembleDebug lintDebug --stacktrace -DskipFormatKtlint)
