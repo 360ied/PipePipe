@@ -813,7 +813,6 @@ Voulez-vous continuer?</string>
 <string name="failed_streams">Flux échoués</string>
 <string name="auto_ellipsize_summary">Raccourcir automatiquement le titre et les commentaires qui sont trop longs</string>
 <string name="auto_ellipsize_title">Ellipsage automatique</string>
-<string name="announcement">Annonce</string>
 <string name="remove_from_group">Retirer du groupe</string>
 <string name="channel_removed_from_group">Retiré du groupe</string>
 <string name="max_bullet_comments_rows_top_summary">Lignes max pour les danmaku en haut</string>

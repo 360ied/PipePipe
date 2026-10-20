@@ -20,7 +20,6 @@
 
 package org.schabi.newpipe;
 
-import static org.schabi.newpipe.util.AnnouncementParser.parseContentsBeforeId;
 import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 
 import android.app.AlertDialog;
@@ -229,27 +228,6 @@ public class MainActivity extends AppCompatActivity {
             dialog1.show();
             prefs.edit().putInt("version_code", currentVersionCode).apply();
         }
-        String lastAnnouncementId = prefs.getString("last_announcement_id", null);
-        try {
-            NewPipe.getDownloader().getAsync("https://github.com/InfinityLoop1308/PipePipe/wiki/Announcement", resp -> {
-                AnnouncementParser.ParsedResult result = parseContentsBeforeId(resp.responseBody(), lastAnnouncementId);
-                if(result.latestId != null) {
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(() -> {
-                        AlertDialog.Builder builder3 = new AlertDialog.Builder(this);
-                        builder3.setMessage(result.contents);
-                        builder3.setTitle(R.string.announcement);
-                        builder3.setPositiveButton(R.string.ok, (dialog, which) -> {
-                            prefs.edit().putString("last_announcement_id", result.latestId).apply();
-                        });
-                        builder3.show();
-                    });
-                }
-            });
-        } catch (Exception ignore) {
-        }
-
-
         int isFirstRun = prefs.getInt("isFirstRun", 0);
         if (isFirstRun == 0) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);

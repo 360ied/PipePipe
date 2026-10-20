@@ -960,7 +960,6 @@
 <string name="failed_streams">Başarısız Akışlar</string>
 <string name="auto_ellipsize_summary">Çok uzun başlıkları ve yorumları otomatik olarak kısalt</string>
 <string name="auto_ellipsize_title">Otomatik Kısaltma</string>
-<string name="announcement">Duyuru</string>
 <string name="remove_from_group">Gruptan kaldır</string>
 <string name="channel_removed_from_group">Gruptan kaldırıldı</string>
 <string name="enable_max_rows_customization_title">Maksimum Satırları Özelleştir</string>

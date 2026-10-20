@@ -964,7 +964,6 @@
     <string name="failed_streams">البثوث الفاشلة</string>
     <string name="auto_ellipsize_summary">اختصار العنوان والتعليقات الطويلة تلقائيًا</string>
     <string name="auto_ellipsize_title">اختصار تلقائي</string>
-    <string name="announcement">إعلان</string>
     <string name="remove_from_group">إزالة من المجموعة</string>
     <string name="channel_removed_from_group">تمت إزالتها من المجموعة</string>
     <string name="enable_max_rows_customization_title">تخصيص الحد الأقصى للصفوف</string>
