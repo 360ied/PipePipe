@@ -123,7 +123,6 @@
 <string name="settings_category_history_title">历史和缓存</string>
 <string name="settings_category_appearance_title">外观</string>
 <string name="settings_category_debug_title">调试</string>
-<string name="settings_category_updates_title">更新</string>
 <string name="settings_category_player_notification_title">播放器通知</string>
 <string name="settings_category_player_notification_summary">配置当前播放串流通知</string>
 <string name="background_player_playing_toast">后台播放</string>
@@ -157,8 +156,6 @@
 <string name="notifications">通知</string>
 <string name="notification_channel_name">PipePipe 通知</string>
 <string name="notification_channel_description">PipePipe 播放器通知</string>
-<string name="app_update_notification_channel_name">应用更新通知</string>
-<string name="app_update_notification_channel_description_new"> PipePipe 新版本通知</string>
 <string name="hash_channel_name">视频哈希通知</string>
 <string name="hash_channel_description">视频哈希进度通知</string>
 <string name="streams_notification_channel_name">新串流</string>
@@ -470,10 +467,6 @@
 <string name="streams_notifications_network_title">需要网络连接</string>
 <string name="any_network">任何网络</string>
 <!-- Updates Settings -->
-<string name="updates_setting_title">更新</string>
-<string name="updates_setting_description">当有新版本可用时显示通知提示应用更新</string>
-<string name="manual_update_title">检查更新</string>
-<string name="manual_update_description">手动检查更新</string>
 <!-- Minimize to exit action -->
 <string name="minimize_on_exit_title">切换应用时最小化</string>
 <string name="minimize_on_exit_summary">从主视频播放器切换到其他应用程序时的操作 — %s</string>
@@ -493,9 +486,6 @@
 <string name="low_quality_smaller">低质量（更小）</string>
 <string name="dont_show">不显示</string>
 <!-- App update notification -->
-<string name="app_update_unavailable_toast">您在使用的 PipePipe 是最新版</string>
-<string name="app_update_notification_content_title_new">PipePipe 有新更新！</string>
-<string name="app_update_notification_content_text">点击下载</string>
 <string name="missions_header_finished">完成</string>
 <string name="missions_header_pending">待办</string>
 <string name="paused">暂停</string>
@@ -504,7 +494,6 @@
 <string name="recovering">正在恢复</string>
 <string name="enqueue">加入队列</string>
 <string name="permission_denied">操作被系统拒绝</string>
-<string name="checking_updates_toast">正在检查更新…</string>
 <!-- download notifications -->
 <string name="download_failed">下载失败</string>
 <plurals name="download_finished_notification">
@@ -797,8 +786,6 @@
 <string name="navigate_to">导航至</string>
 <string name="sort_origin">原始</string>
 <string name="sort_origin_reverse">原始（逆向）</string>
-<string name="dialog_title_enable_update_checker">启用更新检查器</string>
-<string name="dialog_message_enable_update_checker">您要启用更新检查器吗？您可以在设置中禁用它。</string>
 <string name="error_priority_notice">优先级：GitHub/CodeBerg 上的问题 &gt; 标题清晰、内容礼貌且包含错误报告的邮件 &gt; 仅包含错误报告的邮件。\n仅包含错误报告的邮件将不会收到回复。</string>
 <string name="sleep_timer_length_title">睡眠定时器</string>
 <string name="error_match_notification_title">找到了您遇到的错误的匹配项</string>
@@ -849,8 +836,6 @@
 <string name="token_expired">令牌已过期</string>
 <string name="subscription_kofi_title">在 Ko-fi 上成为支持者</string>
 <string name="show_stream_details">显示流详情</string>
-<string name="show_prerelease_description">预发布版本更新较快，但可能包含一些错误</string>
-<string name="show_prerelease_title">显示预发行版本</string>
 <string name="temp">我们已经找到一种稳定的方法来解密 YouTube 针对已登录用户的新加密，因此已重新开放 YouTube 的登录功能。如有需要，请通过 设置 &gt; 账户 &gt; YouTube 重新登录。</string>
 <string name="show_dislike_title">显示不喜欢的计数</string>
 <string name="sponsor_block_category_highlight">亮点</string>

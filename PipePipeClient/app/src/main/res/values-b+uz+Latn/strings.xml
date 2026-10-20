@@ -85,8 +85,6 @@
     <string name="switch_to_popup">Pop-upga o\'tish</string>
     <string name="switch_to_background">Orqa fonga o\'tish</string>
     <string name="unknown_content">[Noma\'lum]</string>
-    <string name="app_update_notification_channel_description">NewPipe yangi versiyasi haqida bildirishnomalar</string>
-    <string name="app_update_notification_channel_name">Ilovani yangilash bildirishnomasi</string>
     <string name="notification_channel_description">NewPipe fon va popup pleyerlari uchun bildirishnomalar</string>
     <string name="notification_channel_name">NewPipe bildirishnomasi</string>
     <string name="file">Fayl</string>
@@ -118,7 +116,6 @@
     <string name="content">Tarkib</string>
     <string name="popup_playing_toast">Pop-up rejimda ijro etish</string>
     <string name="background_player_playing_toast">Ijro etish foni</string>
-    <string name="settings_category_updates_title">Yangilanishlar</string>
     <string name="settings_category_debug_title">Nosozliklarni tuzatish</string>
     <string name="settings_category_appearance_title">Tashqi ko\'rinish</string>
     <string name="settings_category_history_title">Tarix va kesh</string>
@@ -421,8 +418,6 @@
     <string name="paused">to\'xtatildi</string>
     <string name="missions_header_pending">Kutilmoqda</string>
     <string name="missions_header_finished">Tugatildi</string>
-    <string name="app_update_notification_content_text">Yuklash uchun bosing</string>
-    <string name="app_update_notification_content_title">NewPipe yangilanishi mavjud!</string>
     <string name="auto">Avto</string>
     <string name="grid">Tarmoq</string>
     <string name="list">Ro\'yxat</string>
@@ -435,8 +430,6 @@
     <string name="minimize_on_exit_none_description">Yo\'q</string>
     <string name="minimize_on_exit_summary">Asosiy video pleyerdan boshqa dasturga o\'tishda harakat - %s</string>
     <string name="minimize_on_exit_title">Ilovani almashtirishni minimallashtirish</string>
-    <string name="updates_setting_description">Yangi versiya mavjud bo\'lganda dasturni yangilashni so\'rash uchun bildirishnomani ko\'rsating</string>
-    <string name="updates_setting_title">Yangilanishlar</string>
     <string name="limit_mobile_data_usage_title">Mobil ma\'lumotlardan foydalanishda cheklovlarni cheklash</string>
     <string name="limit_data_usage_none_description">Limitsiz</string>
     <string name="start_accept_privacy_policy">Ma\'lumotlarni himoya qilish bo\'yicha Evropa umumiy qoidalariga (GDPR) rioya qilish uchun biz sizning e\'tiboringizni NewPipe-ning maxfiylik siyosatiga qaratamiz. Iltimos, uni diqqat bilan o\'qing.

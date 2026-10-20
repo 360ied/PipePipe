@@ -135,7 +135,6 @@
 <string name="settings_category_history_title">History and cache</string>
 <string name="settings_category_appearance_title">Appearance</string>
 <string name="settings_category_debug_title">Debug</string>
-<string name="settings_category_updates_title">Updates</string>
 <string name="settings_category_player_notification_title">Player notification</string>
 <string name="settings_category_player_notification_summary">Configure current playing stream notification</string>
 <string name="background_player_playing_toast">Playing in background</string>
@@ -169,8 +168,6 @@
 <string name="notifications">Notifications</string>
 <string name="notification_channel_name">PipePipe notification</string>
 <string name="notification_channel_description">Notifications for PipePipe\'s player</string>
-<string name="app_update_notification_channel_name">App update notification</string>
-<string name="app_update_notification_channel_description_new">Notifications for new PipePipe versions</string>
 <string name="hash_channel_name">Video hash notification</string>
 <string name="hash_channel_description">Notifications for video hashing progress</string>
 <string name="streams_notification_channel_name">New streams</string>
@@ -508,10 +505,6 @@
 <string name="streams_notifications_network_title">Required network connection</string>
 <string name="any_network">Any network</string>
 <!-- Updates Settings -->
-<string name="updates_setting_title">Updates</string>
-<string name="updates_setting_description">Show a notification to prompt app update when a new version is available</string>
-<string name="manual_update_title">Check for updates</string>
-<string name="manual_update_description">Manually check for new versions</string>
 <!-- Minimize to exit action -->
 <string name="minimize_on_exit_title">Minimize on app switch</string>
 <string name="minimize_on_exit_summary">Action when switching to other app from main video player — %s</string>
@@ -533,9 +526,6 @@
 <string name="low_quality_smaller">Low quality (smaller)</string>
 <string name="dont_show">Don\'t show</string>
 <!-- App update notification -->
-<string name="app_update_unavailable_toast">You are running the latest version of PipePipe</string>
-<string name="app_update_notification_content_title_new">PipePipe update is available!</string>
-<string name="app_update_notification_content_text">Tap to download</string>
 <string name="missions_header_finished">Finished</string>
 <string name="missions_header_pending">Pending</string>
 <string name="paused">paused</string>
@@ -544,7 +534,6 @@
 <string name="recovering">recovering</string>
 <string name="enqueue">Enqueue</string>
 <string name="permission_denied">Action denied by the system</string>
-<string name="checking_updates_toast">Checking for updates…</string>
 <!-- download notifications -->
 <string name="download_failed">Download failed</string>
 <plurals name="download_finished_notification">
@@ -897,8 +886,6 @@
 <string name="navigate_to">Navigate</string>
 <string name="sort_origin">Original</string>
 <string name="sort_origin_reverse">Original (reverse)</string>
-<string name="dialog_title_enable_update_checker">Enable update checker</string>
-<string name="dialog_message_enable_update_checker">Do you want to enable update checker? You can disable it in settings.</string>
 <string name="title_staff_list">Staff List</string>
 <string name="av_num">av</string>
 <string name="stat_view">View</string>
@@ -967,8 +954,6 @@
 <string name="token_expired">Token expired</string>
 <string name="subscription_kofi_title">Become a supporter on Ko-fi</string>
 <string name="show_stream_details">Show stream details</string>
-<string name="show_prerelease_description">Pre-releases update faster, but may contain some bugs</string>
-<string name="show_prerelease_title">Show pre-releases</string>
 <string name="temp">We have found a stable method to decrypt YouTube\'s new encryption for logged-in users, so the login feature for YouTube is reopened. If you need it, please re-login via Settings &gt; Accounts &gt; YouTube.</string>
 <string name="show_dislike_title">Show dislike count</string>
 <string name="video_not_released">The video has not released yet.</string>

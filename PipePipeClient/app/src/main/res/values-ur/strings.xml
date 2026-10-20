@@ -308,10 +308,7 @@
     <string name="volume_gesture_control_summary">پلیئر کی آواز کنٹرول کرنے کے لیے اشاروں کا استعمال کریں</string>
     <string name="brightness_gesture_control_title">چمک کا متحرک کنٹرول</string>
     <string name="brightness_gesture_control_summary">پلیئرکی چمک کو کنٹرول کرنے کیلئے اشاروں کا استعمال کریں</string>
-    <string name="settings_category_updates_title">تازہ کاریاں</string>
     <string name="file_deleted">فائل حذف ہوگئی</string>
-    <string name="app_update_notification_channel_name">ایپ کی تازہ کاری کی اطلاع</string>
-    <string name="app_update_notification_channel_description">جدید نیو پائپ ورژن کیلئے اطلاعات</string>
     <string name="download_to_sdcard_error_title">بیرونی ذخیرہ دستیاب نہیں</string>
     <string name="download_to_sdcard_error_message">بیرونی ایسڈی کارڈ پر ڈاؤن لوڈ ممکن نہیں۔ ڈاؤن لوڈ فولڈر کے مقام کو دوبارہ ترتیب دیں؟</string>
     <string name="saved_tabs_invalid_json">محفوظ شدہ ٹیبز نہیں پڑھ سکے لہذا پہلے سے طے شدہ کا استعمال کر رہے ہیں</string>
@@ -319,14 +316,10 @@
     <string name="restore_defaults_confirmation">کیا آپ پہلے سے طے شدہ کو بحال کرنا چاہتے ہیں؟</string>
     <string name="subscribers_count_not_available">صارفین کا شمار دستیاب نہیں</string>
     <string name="main_page_content_summary">مرکزی صفحہ پر کون کون سے ٹیبز دکھائے جاہیں</string>
-    <string name="updates_setting_title">تازہ کاری</string>
-    <string name="updates_setting_description">نیا ورژن دستیاب ہونے پر ایپ کی تازہ کاری کے لیے اجازتی اطلاع دکھائیں</string>
     <string name="list_view_mode">فہرست نما اسلوب</string>
     <string name="list">فہرست</string>
     <string name="grid">گرڈ</string>
     <string name="auto">خودکار</string>
-    <string name="app_update_notification_content_title">نیو پائپ کی تازہ کاری دستیاب!</string>
-    <string name="app_update_notification_content_text">ڈاؤن لوڈ کرنے کے لئے کلک کریں</string>
     <string name="missions_header_finished">ختم</string>
     <string name="missions_header_pending">ملتوی</string>
     <string name="paused">توقف</string>

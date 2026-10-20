@@ -73,7 +73,6 @@
     <string name="settings_category_history_title">इतिहास र क्यास</string>
     <string name="settings_category_appearance_title">रूप</string>
     <string name="settings_category_debug_title">डिबग</string>
-    <string name="settings_category_updates_title">अपडेट</string>
     <string name="background_player_playing_toast">पृष्ठभूमिमा प्ले</string>
     <string name="popup_playing_toast">पपअप मोडमा बजाईदै छ</string>
     <string name="content">सामग्री</string>
@@ -102,8 +101,6 @@
     <string name="file">फाइल</string>
     <string name="notification_channel_name">NewPipe सूचना</string>
     <string name="notification_channel_description">NewPipe पृष्ठभूमि र पपअप प्लेयरहरू लागि सूचनाहरू</string>
-    <string name="app_update_notification_channel_name">एप अपडेट सूचना</string>
-    <string name="app_update_notification_channel_description">नयाँ NewPipe संस्करण लागि सूचनाहरू</string>
     <string name="unknown_content">[अज्ञात]</string>
     <string name="switch_to_background">पृष्ठभूमि स्विच गर्नुहोस्</string>
     <string name="switch_to_popup">पपअप स्विच गर्नुहोस्</string>
@@ -318,8 +315,6 @@
 \nतपाईंले हामीलाई बग रिपोर्ट पठाउन यसलाई स्वीकार्नुपर्दछ।</string>
     <string name="limit_data_usage_none_description">असीमित</string>
     <string name="limit_mobile_data_usage_title">मोबाइल डाटा प्रयोग गर्दा रिजोलुशन सिमित गर</string>
-    <string name="updates_setting_title">अपडेटहरु</string>
-    <string name="updates_setting_description">नयाँ संस्करण उपलब्ध हुने बित्तिकै शीघ्र एप अपडेट गर्न एक सूचना देखाउ</string>
     <string name="minimize_on_exit_title">अन्य एपमा जादा सानो बनाउ</string>
     <string name="minimize_on_exit_summary">मुख्य भिडियो प्लेयरबाट अन्य ऐपहरुमा जादा गरिने कार्य -%s</string>
     <string name="minimize_on_exit_none_description">केहि पनि नगर</string>
@@ -329,8 +324,6 @@
     <string name="list">सूची</string>
     <string name="grid">ग्रिड</string>
     <string name="auto">स्वतः</string>
-    <string name="app_update_notification_content_title">NewPipe अपडेट उपलब्ध छ!</string>
-    <string name="app_update_notification_content_text">डाउनलोड गर्न ट्याप गर्नुहोस्</string>
     <string name="missions_header_finished">समाप्त</string>
     <string name="missions_header_pending">रोकिएको</string>
     <string name="paused">पज</string>

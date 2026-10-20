@@ -308,11 +308,8 @@
     <string name="volume_gesture_control_summary">Gunakan gestur untuk mengontrol volume pemutar</string>
     <string name="brightness_gesture_control_title">Kontrol gestur kecerahan</string>
     <string name="brightness_gesture_control_summary">Gunakan gestur untuk mengontrol kecerahan pemutar</string>
-    <string name="settings_category_updates_title">Pembaruan</string>
     <string name="events">Acara</string>
     <string name="file_deleted">Berkas dihapus</string>
-    <string name="app_update_notification_channel_name">Notifikasi pembaruan apl</string>
-    <string name="app_update_notification_channel_description">Notifikasi untuk versi-versi NewPipe baru</string>
     <string name="download_to_sdcard_error_title">Penyimpanan eksternal tidak tersedia</string>
     <string name="download_to_sdcard_error_message">Tidak bisa mengunduh ke kartu SD eksternal. Atur ulang lokasi folder unduhan\?</string>
     <string name="saved_tabs_invalid_json">Tidak bisa membaca tab yang disimpan, beralih menggunakan tab bawaan</string>
@@ -321,14 +318,10 @@
     <string name="subscribers_count_not_available">Jumlah pelanggan tidak tersedia</string>
     <string name="main_page_content_summary">Tab apa yang ditampilkan di halaman utama</string>
     <string name="conferences">Konferensi</string>
-    <string name="updates_setting_title">Pembaruan</string>
-    <string name="updates_setting_description">Tampilkan pemberitahuan untuk meminta pembaruan aplikasi saat versi baru tersedia</string>
     <string name="list_view_mode">Mode tampilan daftar</string>
     <string name="list">Daftar</string>
     <string name="grid">Kisi</string>
     <string name="auto">Otomatis</string>
-    <string name="app_update_notification_content_title">Pembaruan NewPipe telah tersedia!</string>
-    <string name="app_update_notification_content_text">Ketuk untuk mengunduh</string>
     <string name="missions_header_finished">Selesai</string>
     <string name="missions_header_pending">Tertunda</string>
     <string name="paused">dijeda</string>
@@ -613,9 +606,6 @@
     <string name="show_image_indicators_summary">Tampilkan Ribon bewarna Picasso di atas gambar yang mengindikasikan asalnya: merah untuk jaringan, biru untuk disk dan hijau untuk memori</string>
     <string name="start_main_player_fullscreen_summary">Jangan memulai memutar video di mini player, tapi nyalakan langsung di mode layar penuh, jika rotasi otomatis terkunci. Anda tetap dapat mengakses mini player dengan keluar dari layar penuh</string>
     <string name="processing_may_take_a_moment">Memproses… Mungkin butuh waktu sebentar</string>
-    <string name="manual_update_title">Periksa Pembaruan</string>
-    <string name="manual_update_description">Periksa manual untuk versi baru</string>
-    <string name="checking_updates_toast">Memeriksa pembaruan…</string>
     <string name="feed_new_items">Item feed baru</string>
     <string name="show_crash_the_player_title">Tampilkan \"Mogokkan pemutar\"</string>
     <string name="show_crash_the_player_summary">Menampilkan opsi penghentian ketika menggunakan pemain video</string>

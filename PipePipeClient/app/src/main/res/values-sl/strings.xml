@@ -208,9 +208,7 @@
     <string name="download_failed">Prenos spodletel</string>
     <string name="paused">Pavza</string>
     <string name="missions_header_finished">Končano</string>
-    <string name="app_update_notification_content_text">Tapnite da prenesete</string>
     <string name="list">Seznam</string>
-    <string name="updates_setting_title">Posodobitve</string>
     <string name="playback_reset">Resetiraj</string>
     <string name="subscriptions_export_unsuccessful">Ni mogoče izvoziti naročnine</string>
     <string name="subscriptions_import_unsuccessful">Ni mogoče uvoziti naročnine</string>
@@ -258,13 +256,11 @@
     <string name="delete_view_history_alert">Izbrišem vso zgodovino gledanja\?</string>
     <string name="clear_views_history_title">Izbriši zgodovino gledanja</string>
     <string name="export_data_summary">Izvozi zgodovino, naročnine, sezname predvajanj in nastavitve</string>
-    <string name="app_update_notification_channel_name">Obvestila posodobitve aplikacije</string>
     <string name="file">Datoteka</string>
     <string name="file_deleted">Datoteka izbrisana</string>
     <string name="users">Uporabniki</string>
     <string name="playlists">Seznami predvajanja</string>
     <string name="channels">Kanali</string>
-    <string name="settings_category_updates_title">Posodobitve</string>
     <string name="peertube_instance_add_https_only">Samo HTTPS URL-ji so podprti</string>
     <string name="settings_category_clear_data_title">Počisti podatke</string>
     <string name="auto_queue_title">Samodejno predvajaj naslednji video</string>
@@ -383,7 +379,6 @@
     <string name="recaptcha_cookies_cleared">Piškotki reCAPTCHA so bili izbrisani</string>
     <string name="hash_channel_description">Obvestila za zgoščevanje videa v teku</string>
     <string name="hash_channel_name">Obvestilo hash-a videa</string>
-    <string name="app_update_notification_channel_description">Obvestila za nove verzije NewPipe</string>
     <string name="artists">Izvajalci</string>
     <string name="albums">Albumi</string>
     <string name="songs">Pesmi</string>
@@ -410,7 +405,6 @@
     <string name="search_showing_result_for">Prikazujem rezultate za %s</string>
     <string name="enqueue">Vrsta</string>
     <string name="queued">V vrsti</string>
-    <string name="app_update_notification_content_title">NewPipe posodobitve so na voljo!</string>
     <string name="auto">Avtomatsko</string>
     <string name="grid">Mreža</string>
     <string name="never">Nikoli</string>

@@ -307,10 +307,7 @@
     <string name="volume_gesture_control_summary">שימוש במחוות כדי לשלוט בעצמת השמע של הנגן</string>
     <string name="brightness_gesture_control_title">מחוות בקרת בהירות</string>
     <string name="brightness_gesture_control_summary">שימוש במחוות כדי לשלוט בבהירות הנגן</string>
-    <string name="settings_category_updates_title">עדכונים</string>
     <string name="file_deleted">קובץ נמחק</string>
-    <string name="app_update_notification_channel_name">התראת עדכון יישומון</string>
-    <string name="app_update_notification_channel_description">התראות על גרסאות חדשות של NewPipe</string>
     <string name="download_to_sdcard_error_title">האחסון החיצוני אינו זמין</string>
     <string name="download_to_sdcard_error_message">אין אפשרות להוריד לכרטיס SD. לאפס את מיקום תיקיית ההורדה\?</string>
     <string name="saved_tabs_invalid_json">לא ניתן לקרוא לשוניות שמורות, לכן נעשה שימוש באלו של ברירת המחדל</string>
@@ -333,14 +330,10 @@
     <string name="limit_mobile_data_usage_title">הגבלת הרזולוציה בעת שימוש בנתונים סלולריים</string>
     <string name="start_accept_privacy_policy">כדי לעמוד בדרישות האסדרה הכללית להגנה על מידע (GDPR), אנו מפנים את תשומת לבך למדיניות הפרטיות של NewPipe. נא לקרוא אותה בעיון רב.
 \nעליך לאשר את הסכמתך למדיניות כדי לשלוח לנו דיווחים על תקלות.</string>
-    <string name="updates_setting_title">עדכונים</string>
-    <string name="updates_setting_description">הצגת התראה כדי להודיע על עדכון ליישומון כשיוצאת גרסה חדשה לאור</string>
     <string name="list_view_mode">מצב תצוגת רשימה</string>
     <string name="list">רשימה</string>
     <string name="grid">טבלה</string>
     <string name="auto">אוטומטית</string>
-    <string name="app_update_notification_content_title">יצא עדכון ל־NewPipe!</string>
-    <string name="app_update_notification_content_text">יש לגעת כדי להוריד</string>
     <string name="missions_header_finished">הסתיים</string>
     <string name="paused">מושהה</string>
     <string name="queued">בתור</string>
@@ -649,9 +642,6 @@
     <string name="enqueued_next">נוסף כהבא בתור</string>
     <string name="enqueue_next_stream">הוספה כהבא בתור</string>
     <string name="processing_may_take_a_moment">מתבצע עיבוד… נא להמתין רגע קט</string>
-    <string name="manual_update_title">איתור עדכונים</string>
-    <string name="checking_updates_toast">מתבצע איתור עדכונים…</string>
-    <string name="manual_update_description">לנסות לאתר גרסאות חדשות ידנית</string>
     <string name="feed_new_items">פריטים חדשים בהזנה</string>
     <string name="crash_the_player">להקריס את הנגן</string>
     <string name="show_crash_the_player_title">הצגת „להקריס את הנגן”</string>

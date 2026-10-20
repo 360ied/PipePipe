@@ -44,7 +44,6 @@
     <string name="open_in_popup_mode">Բացել լողացող պատուհանում</string>
     <string name="no_player_found_toast">Նվագարկիչ չի գտնվել (դուք կարող եք լբեռնել VLC և դիտել)։</string>
     <string name="no_player_found">Նվագարկիչ չի գտնվել, ցանկանո՞ւմ եք բեռնել VLC։</string>
-    <string name="updates_setting_title">Թարմացումներ</string>
     <string name="feed_update_threshold_option_always_update">Միշտ թարմացնել</string>
     <plurals name="feed_group_dialog_selection_count">
         <item quantity="one">%d նշված</item>
@@ -56,7 +55,6 @@
     <string name="channels">Ալիքներ</string>
     <string name="all">Ամենը</string>
     <string name="settings_category_appearance_title">Տեսք</string>
-    <string name="settings_category_updates_title">Թարմացումներ</string>
     <string name="enable_watch_history_title">Դիտման պատմություն</string>
     <string name="file_deleted">Ֆայլը ջնջվեց</string>
     <string name="file">Ֆայլ</string>
@@ -80,7 +78,6 @@
         <item quantity="other">%d րոպե</item>
     </plurals>
     <string name="feed_groups_header_title">Ալիքների խմբեր</string>
-    <string name="app_update_notification_content_title">NewPipe֊ի նոր թարմացում է հասանելի</string>
     <string name="list">Ցանկ</string>
     <string name="never">Երբեք</string>
     <string name="minimize_on_exit_none_description">Ոչինչ</string>

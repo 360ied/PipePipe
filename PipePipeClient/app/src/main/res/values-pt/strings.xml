@@ -314,10 +314,7 @@
     <string name="volume_gesture_control_summary">Utilizar gestos para controlar o volume do reprodutor</string>
     <string name="brightness_gesture_control_title">Gestos para controle de brilho</string>
     <string name="brightness_gesture_control_summary">Utilizar gestos para controlar o brilho do reprodutor</string>
-    <string name="settings_category_updates_title">Atualizações</string>
     <string name="file_deleted">Ficheiro eliminado</string>
-    <string name="app_update_notification_channel_name">Notificação de nova versão</string>
-    <string name="app_update_notification_channel_description">Notificações para novas versões do NewPipe</string>
     <string name="download_to_sdcard_error_title">Armazenamento externo indisponível</string>
     <string name="download_to_sdcard_error_message">Não é possível guardar no cartão SD. Repor pasta de descargas\?</string>
     <string name="saved_tabs_invalid_json">Não foi possível ler as guias gravadas, portanto usando as guias predefinidas</string>
@@ -325,14 +322,10 @@
     <string name="restore_defaults_confirmation">Deseja repor as predefinições\?</string>
     <string name="subscribers_count_not_available">Contagem de subscrições indisponível</string>
     <string name="main_page_content_summary">Separadores mostrados na página principal</string>
-    <string name="updates_setting_title">Atualizações</string>
-    <string name="updates_setting_description">Mostrar uma notificação para pedir a atualização da aplicação se existir uma nova versão</string>
     <string name="list_view_mode">Modo de exibição</string>
     <string name="list">Lista</string>
     <string name="grid">Grelha</string>
     <string name="auto">Automático</string>
-    <string name="app_update_notification_content_title">Atualização NewPipe disponível!</string>
-    <string name="app_update_notification_content_text">Toque para descarregar</string>
     <string name="missions_header_finished">Terminada</string>
     <string name="paused">em pausa</string>
     <string name="queued">na fila</string>
@@ -625,9 +618,6 @@
     <string name="enqueued_next">Enfileirado o próximo</string>
     <string name="enqueue_next_stream">Enfileirar o próximo</string>
     <string name="processing_may_take_a_moment">A processar… Pode demorar um momento</string>
-    <string name="manual_update_title">Procurar atualizações</string>
-    <string name="manual_update_description">Verificar manualmente se existe uma nova versão</string>
-    <string name="checking_updates_toast">A procurar atualizações…</string>
     <string name="feed_new_items">Novos itens</string>
     <string name="crash_the_player">Travar o reprodutor</string>
     <string name="show_crash_the_player_title">Mostrar \"Travar o reprodutor\"</string>

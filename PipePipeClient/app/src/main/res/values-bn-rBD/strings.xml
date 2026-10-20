@@ -158,7 +158,6 @@
     <string name="show_error">এরর দেখান</string>
     <string name="download_failed">ডাউন লোড হয় নি</string>
     <string name="paused">পজ হয়েছে</string>
-    <string name="app_update_notification_content_text">ডাউন লোড করার জন্য চাপ দিন</string>
     <string name="auto">অটো</string>
     <string name="limit_data_usage_none_description">কোন সীমা নেই</string>
     <string name="caption_none">কোন ক্যাপশন নেই</string>
@@ -226,8 +225,6 @@
     <string name="switch_to_main">মেন এ ফিরে যান</string>
     <string name="switch_to_popup">পপ-আপ এ খুলুন</string>
     <string name="switch_to_background">পেছনে নিয়ে যান</string>
-    <string name="app_update_notification_channel_description">নিউ পাইপ এর নতুন ভার্সন এর সূচনা</string>
-    <string name="app_update_notification_channel_name">অ্যাপ আপডেট এর সূচনা</string>
     <string name="notification_channel_name">নিউ পাইপ এর সূচনা</string>
     <string name="play_all">সব চালু করুন</string>
     <string name="file_deleted">ফাইল ডিলিট হয়েছে</string>
@@ -245,7 +242,6 @@
     <string name="local">স্থানীয়</string>
     <string name="recaptcha_done_button">হয়েছে</string>
     <string name="events">ইভেন্টগুলো</string>
-    <string name="settings_category_updates_title">আপডেট</string>
     <string name="minimize_on_exit_none_description">কোনোটি না</string>
     <string name="caption_setting_title">ক্যাপশন</string>
     <string name="caption_auto_generated">স্বয়ংক্রিয়ভাবে-তৈরিকৃত</string>

@@ -86,7 +86,6 @@
     <string name="delete_search_history_alert">Kkes amzruy n urezzu maṛṛa\?</string>
     <string name="clear_search_history_title">Sfeḍ amzruy n urezzu</string>
     <string name="delete_view_history_alert">Kkes amzruy n wannay maṛṛa\?</string>
-    <string name="app_update_notification_channel_description">Tineɣmisin i tleqqimt tamaynut n NewPipe</string>
     <string name="play_all">Γer maṛṛa</string>
     <string name="file_deleted">Ittwakkes ufaylu</string>
     <string name="content">Akettur</string>
@@ -96,7 +95,6 @@
     <string name="grid">Aẓeṭṭa</string>
     <string name="list">Talgamet</string>
     <string name="minimize_on_exit_none_description">Walu</string>
-    <string name="updates_setting_title">Tisdɣiwin</string>
     <string name="mute">Ẓẓiẓen</string>
     <string name="name">Isem</string>
     <string name="local">Adɣran</string>
@@ -128,7 +126,6 @@
     <string name="downloads_title">Tagamin</string>
     <string name="downloads">Tagamin</string>
     <string name="duration_live">Usrid</string>
-    <string name="settings_category_updates_title">Tisdɣiwin</string>
     <string name="settings_category_player_title">Ameɣri</string>
     <string name="download_dialog_title">Agem</string>
     <string name="subscribe_button_title">Lteɣ</string>

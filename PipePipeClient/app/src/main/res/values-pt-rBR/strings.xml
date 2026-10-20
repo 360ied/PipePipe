@@ -123,7 +123,6 @@
     <string name="settings_category_history_title">Histórico de cache</string>
     <string name="settings_category_appearance_title">Aparência</string>
     <string name="settings_category_debug_title">Debug</string>
-    <string name="settings_category_updates_title">Atualizações</string>
     <string name="settings_category_player_notification_title">Notificações do reprodutor</string>
     <string name="settings_category_player_notification_summary">Configure o reprodutor de notificações atuais</string>
     <string name="background_player_playing_toast">Reproduzir em segundo plano</string>
@@ -157,8 +156,6 @@
     <string name="notifications">Notificações</string>
     <string name="notification_channel_name">Notificação PipePipe</string>
     <string name="notification_channel_description">Notificações para reprodutor do PipePipe</string>
-    <string name="app_update_notification_channel_name">Atualizar notificações do app</string>
-    <string name="app_update_notification_channel_description">Notificações para novas versões do PipePipe</string>
     <string name="hash_channel_name">Notificações de Hash de Vídeo</string>
     <string name="hash_channel_description">Notificações para o progresso do hashing de vídeo</string>
     <string name="streams_notification_channel_name">Novos vídeos</string>
@@ -488,10 +485,6 @@
     <string name="streams_notifications_network_title">Necessita de coneção com a internet</string>
     <string name="any_network">Qualquer rede</string>
     <!-- Updates Settings -->
-    <string name="updates_setting_title">Atualizações</string>
-    <string name="updates_setting_description">Exibir uma notificação perguntando por uma atualização do aplicativo quando uma nova versão está disponível</string>
-    <string name="manual_update_title">Verificar por atualizações</string>
-    <string name="manual_update_description">Manualmente verificar por novas versões</string>
     <!-- Minimize to exit action -->
     <string name="minimize_on_exit_title">Minimizar ao trocar de aplicativo</string>
     <string name="minimize_on_exit_summary">Ação ao trocar para outro aplicativo a partir do reprodutor principal</string>
@@ -511,9 +504,6 @@
     <string name="low_quality_smaller">Baixa qualidade (menor)</string>
     <string name="dont_show">Não exibir</string>
     <!-- App update notification -->
-    <string name="app_update_unavailable_toast">Você está rodando a última versão do PipePipe</string>
-    <string name="app_update_notification_content_title_new">Atualização do PipePipe disponível!</string>
-    <string name="app_update_notification_content_text">Toque para baixar</string>
     <string name="missions_header_finished">Terminado</string>
     <string name="missions_header_pending">Pendente</string>
     <string name="paused">pausado</string>
@@ -522,7 +512,6 @@
     <string name="recovering">recuperando</string>
     <string name="enqueue">Adicionar à fila</string>
     <string name="permission_denied">Ação negada pelo sistema</string>
-    <string name="checking_updates_toast">Verificando por atualizações...</string>
     <!-- download notifications -->
     <string name="download_failed">Falha ao baixar</string>
     <plurals name="download_finished_notification">
@@ -728,7 +717,6 @@
     <string name="search_suggestions_count_title">Quantidade de sugestões de pesquisa</string>
     <string name="search_suggestions_count_summary">Número de sugestões de pesquisas anteriores a exibir</string>
     <string name="restricted_video_no_stream_new">Este vídeo tem restrição de idade. \nFaça login nas Configurações se quiser assisti-lo.</string>
-    <string name="app_update_notification_channel_description_new">Notificações de novas versões do PipePipe</string>
     <string name="clear_cookie_summary_new">Limpa os cookies que o PipePipe armazena quando você resolve um reCAPTCHA</string>
     <string name="donation_title">Doar</string>
     <string name="aspect_ratio_custom">Personalizada…</string>
@@ -878,8 +866,6 @@
     <string name="navigate_to">Navegar</string>
     <string name="sort_origin">Original</string>
     <string name="sort_origin_reverse">Original (inverso)</string>
-    <string name="dialog_title_enable_update_checker">Ativar verificador de atualizações</string>
-    <string name="dialog_message_enable_update_checker">Deseja ativar o verificador de atualizações? Você pode desativá-lo nas configurações.</string>
     <string name="title_staff_list">Equipe</string>
     <string name="av_num">av</string>
     <string name="stat_view">Visualizações</string>
@@ -942,8 +928,6 @@
     <string name="token_expired">Token expirado</string>
     <string name="subscription_kofi_title">Torne-se um apoiador no Ko-fi</string>
     <string name="show_stream_details">Mostrar detalhes do stream</string>
-    <string name="show_prerelease_description">Pré-lançamentos são atualizados mais rápido, mas podem conter alguns bugs</string>
-    <string name="show_prerelease_title">Mostrar pré-lançamentos</string>
     <string name="temp">Encontramos um método estável para descriptografar a nova criptografia do YouTube para usuários logados, então o login do YouTube foi reaberto. Se precisar, faça login novamente em Configurações &gt; Contas &gt; YouTube.</string>
     <string name="show_dislike_title">Mostrar contagem de não curtidas</string>
     <string name="video_not_released">O vídeo ainda não foi lançado.</string>

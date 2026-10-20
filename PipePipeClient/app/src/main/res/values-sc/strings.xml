@@ -214,7 +214,6 @@
 \nDuncas s\'issèberu dipendet dae su chi preferis tue: sa lestresa o sas informatziones a sa minuda.</string>
     <string name="downloads_storage_use_saf_summary">Sa \'Storage Access Framework\' (Istrutura de Atzessu a s\'Archiviatzione) permitet sos iscarrigamentos in un\'ischeda SD esterna</string>
     <string name="queued">postu in lista</string>
-    <string name="updates_setting_description">Ammustra una notìfica pro cussigiare un\'agiornamentu de s\'aplicatzione cando b\'est una versione noa a disponimentu</string>
     <string name="import_soundcloud_instructions">Importa unu profilu de SoundCloud iscriende o s\'URL o su còdighe identificativu (ID) tuo:
 \n
 \n 1. Abìlita sa modalidade \"pro elaboradores de iscrivania\" in unu navigadore web (custu situ no est a disponimentu pro dispositivos mòbiles)
@@ -338,8 +337,6 @@
     <string name="paused">in pàusa</string>
     <string name="missions_header_pending">In isetu</string>
     <string name="missions_header_finished">Acabadu</string>
-    <string name="app_update_notification_content_text">Toca pro iscarrigare</string>
-    <string name="app_update_notification_content_title">B\'est un\'agiornamentu de NewPipe disponìbile!</string>
     <string name="auto">Automàtica</string>
     <string name="grid">Grìllia</string>
     <string name="list">Lista</string>
@@ -349,7 +346,6 @@
     <string name="minimize_on_exit_none_description">Nudda</string>
     <string name="minimize_on_exit_summary">Atzione cando colas a un\'àtera aplicatzione dae su riproduidore de vìdeos printzipale — %s</string>
     <string name="minimize_on_exit_title">Mìnima mudende aplicatzione</string>
-    <string name="updates_setting_title">Agiornamentos</string>
     <string name="limit_mobile_data_usage_title">Lìmita sa risolutzione durante s\'impreu de sos datos mòbiles</string>
     <string name="limit_data_usage_none_description">Perunu lìmite</string>
     <string name="start_accept_privacy_policy">Pro pòdere rispetare su Regulamentu Europeu Generale de Amparu de sos Datos (GDPR) ti pedimus de dare cara a sa polìtica de riservadesa de NewPipe.
@@ -394,8 +390,6 @@
     <string name="switch_to_popup">Cola a sa ventanedda</string>
     <string name="switch_to_background">Cola a s\'isfundu</string>
     <string name="unknown_content">[Disconnotu]</string>
-    <string name="app_update_notification_channel_description">Notìficas pro sas versiones noas de NewPipe</string>
-    <string name="app_update_notification_channel_name">Notìfica de agiornamentu de s\'aplicatzione</string>
     <string name="notification_channel_description">Notìficas pro su riproduidore de NewPipe</string>
     <string name="notification_channel_name">Notìficas de NewPipe</string>
     <string name="file">Documentu</string>
@@ -424,7 +418,6 @@
     <string name="content">Cuntenutos</string>
     <string name="popup_playing_toast">Riproduende in modalidade a ventanedda</string>
     <string name="background_player_playing_toast">Riproduende in s\'isfundu</string>
-    <string name="settings_category_updates_title">Agiornamentos</string>
     <string name="settings_category_debug_title">Depuratzione de errores</string>
     <string name="settings_category_appearance_title">Aparèntzia</string>
     <string name="settings_category_history_title">Cronologia e memòria temporànea</string>
@@ -625,9 +618,6 @@
     <string name="enqueued_next">Postu in lista comente imbeniente</string>
     <string name="enqueue_next_stream">Pone in lista comente imbeniente</string>
     <string name="processing_may_take_a_moment">Protzessende… Bi diat pòdere chèrrere unu pagu de tempus</string>
-    <string name="manual_update_title">Chirca agiornamentos</string>
-    <string name="manual_update_description">Verìfica in manera manuale pro versiones noas</string>
-    <string name="checking_updates_toast">Controllende sos agiornamentos…</string>
     <string name="error_report_notification_title">NewPipe at rilevadu un\'errore, toca pro lu sinnalare</string>
     <string name="error_report_notification_toast">B\'at àpidu un\'errore, pòmpia sa notìfica</string>
     <string name="show_error_snackbar">Ammustra una barra de errore</string>

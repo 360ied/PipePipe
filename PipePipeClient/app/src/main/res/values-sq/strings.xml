@@ -106,8 +106,6 @@
     <string name="queued">e shtuar në radhë</string>
     <string name="paused">ndalur</string>
     <string name="missions_header_finished">Përfunduar</string>
-    <string name="app_update_notification_content_text">Shtyp për të shkarkuar</string>
-    <string name="app_update_notification_content_title">Përditësim i ri i NewPipe është i disponueshëm!</string>
     <string name="auto">Automatike</string>
     <string name="list">Listë</string>
     <string name="list_view_mode">Pamja e listës</string>
@@ -117,8 +115,6 @@
     <string name="minimize_on_exit_none_description">Asnjë</string>
     <string name="minimize_on_exit_summary">Veprimi që ndërmerret kur kalohet në aplikacione të tjera nga luajtësi kryesor i videove — %s</string>
     <string name="minimize_on_exit_title">Minimizoje kur kalon midis aplikacioneve</string>
-    <string name="updates_setting_description">Shfaq një njoftim për të përditësuar menjëherë aplikacionin kur një version i ri është i disponueshëm</string>
-    <string name="updates_setting_title">Përditësimet</string>
     <string name="limit_mobile_data_usage_title">Limitoje rezolucionin kur je duke përdorur internetin nga SIM</string>
     <string name="limit_data_usage_none_description">Pa limit</string>
     <string name="start_accept_privacy_policy">Për të qenë në përputhje me Rregulloren e Përgjithshme Evropiane për Mbrojtjen e të Dhënave (GDPR), ne ju tërheqim vëmendjen tek politika e privatësisë së NewPipe. Ju lutemi lexojeni me kujdes.
@@ -417,8 +413,6 @@
     <string name="switch_to_popup">Kaloje në Popup</string>
     <string name="switch_to_background">Kaloje në Sfond</string>
     <string name="unknown_content">[E panjohur]</string>
-    <string name="app_update_notification_channel_description">Njoftimet për versionet e reja të NewPipe</string>
-    <string name="app_update_notification_channel_name">Njoftimi për Përditësime të Aplikacionit</string>
     <string name="notification_channel_description">Njoftimet për luajtësit në sfond dhe popup të NewPipe</string>
     <string name="notification_channel_name">Njoftim nga NewPipe</string>
     <string name="file">Skedar</string>
@@ -444,7 +438,6 @@
 \nAktivizoni \"%1$s\" tek aranzhimet nëse doni ta shihni.</string>
     <string name="popup_playing_toast">Duke luajtur në modalitetin popup</string>
     <string name="background_player_playing_toast">Duke luajtur në sfond</string>
-    <string name="settings_category_updates_title">Përditësimet</string>
     <string name="settings_category_debug_title">Rregullo</string>
     <string name="peertube_instance_add_exists">Instanca ekziston tashmë</string>
     <string name="peertube_instance_add_https_only">Vetëm URL-të HTTPS janë të mbështetura</string>

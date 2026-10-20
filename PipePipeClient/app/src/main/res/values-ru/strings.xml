@@ -336,14 +336,7 @@
     <string name="unsubscribe">Отписаться</string>
     <string name="volume_gesture_control_summary">Менять громкость плеера жестом</string>
     <string name="volume_gesture_control_title">Жест громкости</string>
-    <string name="settings_category_updates_title">Обновления</string>
     <string name="file_deleted">Файл удалён</string>
-    <string name="app_update_notification_channel_name">Уведомление об обновлении приложения</string>
-    <string name="app_update_notification_channel_description">Уведомления о новых версиях NewPipe</string>
-    <string name="updates_setting_title">Обновления</string>
-    <string name="updates_setting_description">Показать уведомление при наличии новой версии</string>
-    <string name="app_update_notification_content_title">Доступно обновление NewPipe!</string>
-    <string name="app_update_notification_content_text">Нажмите для загрузки</string>
     <string name="missions_header_finished">Завершено</string>
     <string name="paused">приостановлено</string>
     <string name="queued">в очереди</string>
@@ -649,9 +642,6 @@
     <string name="enqueued_next">Добавлено следующим</string>
     <string name="enqueue_next_stream">Добавить следующим</string>
     <string name="processing_may_take_a_moment">Обработка… Подождите немного</string>
-    <string name="manual_update_description">Проверить обновления вручную</string>
-    <string name="manual_update_title">Проверить обновления</string>
-    <string name="checking_updates_toast">Проверка обновлений…</string>
     <string name="feed_new_items">Новое на канале</string>
     <string name="notifications">Уведомления</string>
     <string name="streams_notification_channel_name">Новые видео</string>
@@ -706,7 +696,6 @@
     </plurals>
     <string name="restricted_video_no_stream_new">Это видео имеет возрастные ограничения.
 Войдите в аккаунт через «Настройки», чтобы посмотреть его.</string>
-    <string name="app_update_notification_channel_description_new">Уведомления о новых версиях PipePipe</string>
     <string name="clear_cookie_summary_new">Очистить cookies, сохранённые PipePipe при решении reCAPTCHA</string>
     <string name="error_report_notification_title_new">В PipePipe произошла ошибка. Нажмите, чтобы сообщить о ней</string>
     <string name="error_report_open_issue_button_text_new">Сообщить на GitHub</string>
@@ -733,8 +722,6 @@
     </string-array>
     <string name="large_grid">Крупная сетка</string>
     <string name="card">Карточки</string>
-    <string name="app_update_unavailable_toast">У вас установлена последняя версия PipePipe</string>
-    <string name="app_update_notification_content_title_new">Доступно обновление PipePipe!</string>
     <string name="error_postprocessing_stopped_new">Приложение PipePipe было закрыто во время обработки файла</string>
     <string name="feed_load_error_terminated_new">Аккаунт автора был удалён.
 PipePipe больше не сможет загружать эту подписку.
@@ -934,8 +921,6 @@ PipePipe предлагает две стратегии загрузки лен�
     <string name="navigate_to">Навигация</string>
     <string name="sort_origin">Исходный порядок</string>
     <string name="sort_origin_reverse">Исходный порядок (в обратном порядке)</string>
-    <string name="dialog_title_enable_update_checker">Проверка обновлений</string>
-    <string name="dialog_message_enable_update_checker">Хотите включить автоматическую проверку обновлений? Вы сможете отключить её в настройках.</string>
     <string name="title_staff_list">Список авторов</string>
     <string name="av_num">av</string>
     <string name="stat_view">Просмотры</string>
@@ -1000,8 +985,6 @@ PipePipe предлагает две стратегии загрузки лен�
     <string name="token_expired">Токен истёк</string>
     <string name="subscription_kofi_title">Стать спонсором на Ko-fi</string>
     <string name="show_stream_details">Подробнее о стриме</string>
-    <string name="show_prerelease_description">Предварительные версии обновляются быстрее, но могут содержать ошибки</string>
-    <string name="show_prerelease_title">Показывать предварительные версии</string>
     <string name="temp">Найден стабильный метод расшифровки данных YouTube для авторизованных пользователей, поэтому вход в аккаунты YouTube снова доступен. При необходимости выполните повторный вход через Настройки &gt; Аккаунты &gt; YouTube.</string>
     <string name="show_dislike_title">Показывать количество дизлайков</string>
     <string name="video_not_released">Видео ещё не вышло.</string>

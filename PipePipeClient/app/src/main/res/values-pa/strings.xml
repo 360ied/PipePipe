@@ -308,10 +308,7 @@
     <string name="volume_gesture_control_summary">ਆਵਾਜ਼ ਕੰਟਰੋਲ ਕਰਨ ਲਈ ਸ਼ਵਾਵਾਂ ਦੀ ਵਰਤੋਂ ਕਰੋ</string>
     <string name="brightness_gesture_control_title">ਸਕ੍ਰੀਨ ਲਾਈਟ gesture ਕੰਟਰੋਲ</string>
     <string name="brightness_gesture_control_summary">ਵੀਡੀਓ ਸਕ੍ਰੀਨ ਦੀ ਚਮਕ ਕੰਟਰੋਲ ਕਰਨ ਲਈ ਸ਼ਵਾਵਾਂ ਦੀ ਵਰਤੋਂ ਕਰੋ</string>
-    <string name="settings_category_updates_title">ਅਪਡੇਟਾਂ</string>
     <string name="file_deleted">ਫਾਈਲ ਮਿਟਾ ਦਿੱਤੀ ਗਈ ਹੈ</string>
-    <string name="app_update_notification_channel_name">ਐਪ ਅੱਪਡੇਟ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
-    <string name="app_update_notification_channel_description">ਨਵੇਂ NewPipe ਸੰਸਕਰਣ ਲਈ ਸੂਚਨਾਵਾਂ</string>
     <string name="download_to_sdcard_error_title">ਬਾਹਰੀ ਸਟੋਰੇਜ ਉਪਲਬਧ ਨਹੀਂ ਹੈ</string>
     <string name="download_to_sdcard_error_message">ਬਾਹਰੀ SD ਕਾਰਡ ਤੇ ਡਾਊਨਲੋਡ ਕਰਨਾ ਸੰਭਵ ਨਹੀਂ ਹੈ. ਕੀ ਡਾਊਨਲੋਡ ਫੋਲਡਰ ਦੀ ਸਥਿਤੀ ਨੂੰ ਰੀਸੈਟ ਕੀਤਾ ਜਾਵੇ \?</string>
     <string name="saved_tabs_invalid_json">ਸਾਂਭੀਆਂ ਟੈਬਾਂ ਨਹੀਂ ਪੜ੍ਹ ਹੋਈਆਂ, ਇਸ ਲਈ ਡਿਫਾਲਟ ਟੈਬਾਂ ਦੀ ਵਰਤੋਂ ਹੋ ਰਹੀ ਹੈ</string>
@@ -319,14 +316,10 @@
     <string name="restore_defaults_confirmation">ਕੀ ਤੁਸੀਂ ਡਿਫਾਲਟ ਮੁੜ-ਸਥਾਪਤ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ\?</string>
     <string name="subscribers_count_not_available">ਸਬਸਕ੍ਰਾਇਬਰਾਂ ਦੀ ਗਿਣਤੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ</string>
     <string name="main_page_content_summary">ਮੁੱਖ ਪੰਨੇ ਤੇ ਕਿਹੜੇ ਟੈਬ ਦਿਖਾਏ ਜਾਣਗੇ</string>
-    <string name="updates_setting_title">ਅਪਡੇਟਾਂ</string>
-    <string name="updates_setting_description">ਜਦੋਂ ਨਵਾਂ ਸੰਸਕਰਣ ਉਪਲਬਧ ਹੁੰਦਾ ਹੈ ਤਾਂ ਐਪ ਅਪਡੇਟ ਨੂੰ ਪੁੱਛਣ ਲਈ ਇੱਕ ਨੋਟੀਫਿਕੇਸ਼ਨ ਦਿਖਾਓ</string>
     <string name="list_view_mode">ਲਿਸਟ view ਮੋਡ</string>
     <string name="list">ਲਿਸਟ</string>
     <string name="grid">ਗਰਿੱਡ</string>
     <string name="auto">ਆਟੋ</string>
-    <string name="app_update_notification_content_title">ਨਿਊ-ਪਾਈਪ ਦੀ ਅਪਡੇਟ ਉਪਲਬੱਧ ਹੈ!</string>
-    <string name="app_update_notification_content_text">ਡਾਊਨਲੋਡ ਕਰਨ ਲਈ ਦਬਾਓ</string>
     <string name="missions_header_finished">ਮੁਕੰਮਲ ਹੋਇਆ</string>
     <string name="missions_header_pending">ਬਕਾਇਆ</string>
     <string name="paused">ਰੁਕਿਆ</string>

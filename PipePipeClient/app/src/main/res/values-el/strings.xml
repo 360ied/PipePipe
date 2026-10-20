@@ -314,11 +314,8 @@
     <string name="volume_gesture_control_summary">Χρησιμοποιήστε χειρονομίες για τον έλεγχο της έντασης του ήχου</string>
     <string name="brightness_gesture_control_title">Έλεγχος φωτεινότητας με χειρονομίες</string>
     <string name="brightness_gesture_control_summary">Χρησιμοποιήστε χειρονομίες για τον έλεγχο φωτεινότητας</string>
-    <string name="settings_category_updates_title">Ενημερώσεις</string>
     <string name="events">Συμβάντα</string>
     <string name="file_deleted">Το αρχείο διαγράφηκε</string>
-    <string name="app_update_notification_channel_name">Ειδοποίηση ενημέρωσης εφαρμογής</string>
-    <string name="app_update_notification_channel_description">Ειδοποίηση για νεότερη έκδοση του NewPipe</string>
     <string name="download_to_sdcard_error_title">Εξωτερική μνήμη αποθήκευσης μη διαθέσιμη</string>
     <string name="download_to_sdcard_error_message">Η αποθήκευση στην SD κάρτα δεν είναι δυνατή. Επαναφορά στην αρχική τοποθεσία λήψης;</string>
     <string name="saved_tabs_invalid_json">Δεν ήταν δυνατή η ανάγνωση των αποθηκευμένων καρτελών. Θα γίνει χρήση των προεπιλεγμένων</string>
@@ -327,14 +324,10 @@
     <string name="subscribers_count_not_available">Το πλήθος των συνδρομητών δεν είναι διαθέσιμο</string>
     <string name="main_page_content_summary">Ποιές καρτέλες θα εμφανίζονται στην αρχική σελίδα</string>
     <string name="conferences">Συνέδρια</string>
-    <string name="updates_setting_title">Ενημερώσεις</string>
-    <string name="updates_setting_description">Εμφάνιση ειδοποίησης όταν μια υπάρχει μια νεότερη έκδοση</string>
     <string name="list_view_mode">Προβολή λίστας</string>
     <string name="list">Λίστα</string>
     <string name="grid">Πλέγμα</string>
     <string name="auto">Αυτόματα</string>
-    <string name="app_update_notification_content_title">Μια νέα έκδοση του NewPipe είναι διαθέσιμη!</string>
-    <string name="app_update_notification_content_text">Πατήστε για λήψη</string>
     <string name="missions_header_finished">Ολοκληρώθηκε</string>
     <string name="missions_header_pending">Εκκρεμεί</string>
     <string name="paused">σε παύση</string>
@@ -625,9 +618,6 @@
     <string name="enqueued_next">Προστέθηκε το επόμενο στην ουρά</string>
     <string name="enqueue_next_stream">Προσθήκη επόμενου στην ουρά</string>
     <string name="processing_may_take_a_moment">Επεξεργασία... Μπορεί να πάρει λίγο χρόνο</string>
-    <string name="checking_updates_toast">Έλεγχος αναβάθμισης…</string>
-    <string name="manual_update_description">Χειροκίνητος έλεγχος για νέα έκδοση</string>
-    <string name="manual_update_title">Έλεγχος αναβάθμισης</string>
     <string name="feed_new_items">Νέα αντικείμενα τροφοδοσίας</string>
     <string name="show_crash_the_player_title">Εμφάνιση «Κατάρρευσης αναπαραγωγέα»</string>
     <string name="show_crash_the_player_summary">Εμφανίζει μια επιλογή κατάρρευσης κατά τη χρήση του αναπαραγωγέα</string>

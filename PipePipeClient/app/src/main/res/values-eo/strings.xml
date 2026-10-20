@@ -189,10 +189,7 @@
     <string name="volume_gesture_control_summary">Uzi gestojn por kontroli la volumon</string>
     <string name="brightness_gesture_control_title">Kontrolo de gesto de brilo</string>
     <string name="brightness_gesture_control_summary">Uzi gestojn por kontroli la brilon</string>
-    <string name="settings_category_updates_title">Ĝisdatigoj</string>
     <string name="file_deleted">Dosiero forviŝita</string>
-    <string name="app_update_notification_channel_name">Sciigo por ĝisdatigi apon</string>
-    <string name="app_update_notification_channel_description">Sciigo por nova versio de NewPipe</string>
     <string name="download_to_sdcard_error_title">Ekstera konservejo malhavebla</string>
     <string name="download_to_sdcard_error_message">Elŝuti al ekstera SD-karto ne eblas. Ĉu vi volas restarigi la elŝutan dosierujon \?</string>
     <string name="queued">viciĝita</string>
@@ -353,14 +350,10 @@
     <string name="restore_defaults_confirmation">Ĉu vi volas restaŭri la defaŭltojn valorojn\?</string>
     <string name="subscribers_count_not_available">Abonantoj kalkulo malhaveblas</string>
     <string name="main_page_content_summary">Kioj ongletoj estas montritaj en la ĉefpaĝo</string>
-    <string name="updates_setting_title">Ĝisdatigoj</string>
-    <string name="updates_setting_description">Montri sciigon por proponi ĝisdatigon de la apo kiam nova versio estas havebla</string>
     <string name="list_view_mode">Lista vido maniero</string>
     <string name="list">Listo</string>
     <string name="grid">Krado</string>
     <string name="auto">Aŭto</string>
-    <string name="app_update_notification_content_title">Ĝisdatigo de NewPipe havebla!</string>
-    <string name="app_update_notification_content_text">Premi por elŝuti</string>
     <string name="missions_header_finished">Finita</string>
     <string name="missions_header_pending">Pritraktata</string>
     <string name="paused">Paŭzigita</string>

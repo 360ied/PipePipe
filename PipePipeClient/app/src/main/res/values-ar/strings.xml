@@ -313,9 +313,7 @@
     <string name="volume_gesture_control_summary">استخدم إيماءات التحكم في صوت المشغّل</string>
     <string name="brightness_gesture_control_title">التحكم بإيماءات السطوع</string>
     <string name="brightness_gesture_control_summary">استخدام الإيماءات للتحكم بسطوع المشغّل</string>
-    <string name="settings_category_updates_title">التحديثات</string>
     <string name="file_deleted">تم حذف الملف</string>
-    <string name="app_update_notification_channel_name">تنبيه تحديث التطبيق</string>
     <string name="volume_gesture_control_title">إيماء التحكم بالصوت</string>
     <string name="events">الأحداث</string>
     <string name="download_to_sdcard_error_title">وحدة التخزين الخارجية غير متوفرة</string>
@@ -326,13 +324,10 @@
     <string name="subscribers_count_not_available">عدد المشتركين غير متاح</string>
     <string name="main_page_content_summary">ما هي التبويبات التي تظهر على الصفحة الرئيسية</string>
     <string name="conferences">المؤتمرات</string>
-    <string name="updates_setting_title">التحديثات</string>
-    <string name="updates_setting_description">إظهار تنبيه للمطالبة بتحديث التطبيق عندما يتوفر إصدار جديد</string>
     <string name="list_view_mode">وضع عرض قائمة</string>
     <string name="list">القائمة</string>
     <string name="grid">الشبكة</string>
     <string name="auto">تلقائي</string>
-    <string name="app_update_notification_content_text">اضغط لتنزيل</string>
     <string name="missions_header_finished">انتهى</string>
     <string name="missions_header_pending">ريثما</string>
     <string name="paused">متوقف</string>
@@ -632,9 +627,6 @@
     <string name="enqueue_next_stream">وضع التالي على قائمة الانتظار</string>
     <string name="enqueued_next">تم وضع التالي على قائمة الانتظار</string>
     <string name="processing_may_take_a_moment">جاري المعالجة ... قد يستغرق لحظة</string>
-    <string name="manual_update_title">التحقق من وجود تحديثات</string>
-    <string name="manual_update_description">التحقق يدويا من وجود إصدارات جديدة</string>
-    <string name="checking_updates_toast">جاري التحقق من وجود تحديثات…</string>
     <string name="feed_new_items">عناصر تغذية جديدة</string>
     <string name="show_crash_the_player_summary">إظهار خيار تعطل عند استخدام المشغل</string>
     <string name="show_crash_the_player_title">إظهار \"تعطل المشغل\"</string>
@@ -709,7 +701,6 @@
     <string name="semitone">نصف نغمة</string>
     <string name="large_grid">شبكة كبيرة</string>
     <string name="card">بطاقة</string>
-    <string name="app_update_unavailable_toast">أنت تستخدم أحدث إصدار من PipePipe</string>
     <string name="error_sabr_download_failed">فشل تنزيل SABR</string>
     <string name="error_sabr_download_format">لا يمكن تنزيل تنسيق SABR هذا</string>
     <string name="error_sabr_download_initialization">فشل تهيئة SABR</string>
@@ -878,8 +869,6 @@
     <string name="navigate_to">الانتقال إلى</string>
     <string name="sort_origin">الأصلي</string>
     <string name="sort_origin_reverse">الأصلي (عكسي)</string>
-    <string name="dialog_title_enable_update_checker">تفعيل فاحص التحديثات</string>
-    <string name="dialog_message_enable_update_checker">هل تريد تفعيل فاحص التحديثات؟ يمكنك تعطيله من الإعدادات.</string>
     <string name="title_staff_list">قائمة الطاقم</string>
     <string name="stat_view">مشاهدة</string>
     <string name="stat_danmaku">Danmaku</string>
@@ -939,8 +928,6 @@
     <string name="token_expired">انتهت صلاحية الرمز</string>
     <string name="subscription_kofi_title">كن داعمًا على Ko-fi</string>
     <string name="show_stream_details">عرض تفاصيل البث</string>
-    <string name="show_prerelease_description">يتم تحديث الإصدارات التجريبية بشكل أسرع، لكنها قد تحتوي أخطاءً</string>
-    <string name="show_prerelease_title">عرض الإصدارات التجريبية المسبقة</string>
     <string name="temp">وجدنا طريقة مستقرة لفك تشفير يوتيوب الجديد للمستخدمين المسجلين، لذا أعيد فتح ميزة تسجيل الدخول ليوتيوب. إذا احتجتها، يرجى إعادة تسجيل الدخول من الإعدادات &gt; الحسابات &gt; يوتيوب.</string>
     <string name="show_dislike_title">عرض عدد عدم الإعجاب</string>
     <string name="video_not_released">الفيديو لم يُنشر بعد.</string>
@@ -1041,7 +1028,6 @@
     <string name="sabr_backoff_notification_title">في انتظار يوتيوب</string>
     <string name="sabr_backoff_notification_content">يفرض يوتيوب علينا الانتظار %1$d ثانية قبل الاستمرار بالتشغيل</string>
     <string name="restricted_video_no_stream_new">هذا الفيديو مقيد بالفئة العمرية.\nقم بتسجيل الدخول من الإعدادات إذا كنت تريد مشاهدته.</string>
-    <string name="app_update_notification_channel_description_new">إشعارات لإصدارات PipePipe الجديدة</string>
     <string name="clear_cookie_summary_new">امسح ملفات تعريف الارتباط التي يخزنها PipePipe عند حل reCAPTCHA</string>
     <string name="error_report_notification_title_new">واجه PipePipe خطأ، اضغط للتقرير</string>
     <string name="error_report_open_issue_button_text_new">تقرير على GitHub</string>
@@ -1049,7 +1035,6 @@
     <string name="title_activity_about_new">حول PipePipe</string>
     <string name="app_description_new">تطبيق أندرويد مجاني ومفتوح المصدر (FLOSS) يتيح لك تصفح يوتيوب وNicoNico وBiliBili بحرية</string>
     <string name="app_license_title_new">ترخيص NewPipe (المصدر الأساسي)</string>
-    <string name="app_update_notification_content_title_new">تحديث PipePipe متاح!</string>
     <string name="error_postprocessing_stopped_new">تم إغلاق PipePipe أثناء العمل على الملف</string>
     <string name="feed_load_error_terminated_new">حساب منشئ المحتوى قد تم إنهاؤه.\nلن يتمكن PipePipe من تحميل هذه الخلاصة في المستقبل.\nهل تريد إلغاء الاشتراك من هذه القناة؟</string>
     <string name="feed_use_dedicated_fetch_method_help_text_new">هل تعتقد أن تحميل الخلاصة بطيء جدًا؟ إذا كان الأمر كذلك، فحاول تفعيل التحميل السريع (يمكنك تغييره من الإعدادات أو بالضغط على الزر أدناه).\n\nيقدم PipePipe استراتيجيتين لتحميل الخلاصة:\n• جلب قناة الاشتراك بأكملها، وهي بطيئة لكنها كاملة.\n• استخدام نقطة نهاية خدمة مخصصة، وهي سريعة لكنها عادةً غير كاملة.\n\nالفرق بين الاثنين أن الطريقة السريعة عادةً تفتقر إلى بعض المعلومات، مثل مدة العنصر أو نوعه (لا يمكن التمييز بين البث المباشر والفيديوهات العادية) وقد تُعيد عناصر أقل.\n\nيوتيوب مثال على خدمة تقدّم هذه الطريقة السريعة عبر خلاصة RSS الخاصة بها.\n\nلذا يتلخص الاختيار في ما تفضله: السرعة أو دقة المعلومات.</string>

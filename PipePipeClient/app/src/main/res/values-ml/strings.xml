@@ -251,8 +251,6 @@
     <string name="switch_to_popup">പോപ്പപ്പിലേക്ക് മാറുക</string>
     <string name="switch_to_background">ബാക്ക്ഗ്രൗണ്ടിലേക്ക്‌ മാറുക</string>
     <string name="unknown_content">[അജ്ഞാതം]</string>
-    <string name="app_update_notification_channel_description">പുതിയ ന്യൂപൈപ്പ് പതിപ്പിന് വേണ്ടിയുള്ള അറിയിപ്പ്</string>
-    <string name="app_update_notification_channel_name">അപ്ഡേറ്റ് അറിയിപ്പ്</string>
     <string name="notification_channel_description">ന്യൂപൈപ്പ് ബാക്ക്ഗ്രൗണ്ട്, പോപ്പപ്പ് പ്ലയറുകൾക്ക് വേണ്ടിയുള്ള അറിയിപ്പുകൾ</string>
     <string name="notification_channel_name">ന്യൂപൈപ്പ് അറിയിപ്പ്</string>
     <string name="file">ഫയൽ</string>
@@ -284,7 +282,6 @@
     <string name="content">കന്റെന്റ്</string>
     <string name="popup_playing_toast">പോപ്പപ്പ് മോഡിൽ പ്ലേ ചെയ്യുന്നു</string>
     <string name="background_player_playing_toast">പശ്ചാത്തലത്തിൽ പ്ലേ ചെയ്യുന്നു</string>
-    <string name="settings_category_updates_title">അപ്ഡേറ്റുകൾ</string>
     <string name="settings_category_debug_title">ഡീബഗ്</string>
     <string name="settings_category_appearance_title">രൂപഭംഗി</string>
     <string name="settings_category_history_title">ചരിത്രവും കാഷെയും</string>
@@ -392,8 +389,6 @@
     <string name="paused">താൽക്കാലികമായി നിർത്തി</string>
     <string name="missions_header_pending">ശേഷിക്കുന്നു</string>
     <string name="missions_header_finished">പൂർത്തിയായി</string>
-    <string name="app_update_notification_content_text">ഡൗൺലോഡുചെയ്യാൻ ടാപ്പുചെയ്യുക</string>
-    <string name="app_update_notification_content_title">ന്യൂപൈപ്പ് അപ്‌ഡേറ്റ് ലഭ്യമാണ്!</string>
     <string name="auto">ഓട്ടോ</string>
     <string name="grid">ഗ്രിഡ്</string>
     <string name="list">ലിസ്റ്റ്</string>
@@ -403,8 +398,6 @@
     <string name="minimize_on_exit_none_description">ഒന്നുമില്ല</string>
     <string name="minimize_on_exit_summary">പ്രധാന വീഡിയോ പ്ലെയറിൽ നിന്ന് മറ്റ് അപ്ലിക്കേഷനിലേക്ക് മാറുമ്പോഴുള്ള പ്രവർത്തനം — %s</string>
     <string name="minimize_on_exit_title">ആപ് മാറ്റുമ്പോൾ മിനിമൈസ് ചെയ്യുക</string>
-    <string name="updates_setting_description">ഒരു പുതിയ പതിപ്പ് ലഭ്യമാകുമ്പോൾ അപ്ലിക്കേഷൻ അപ്‌ഡേറ്റ് ആവശ്യപ്പെടുന്നതിന് ഒരു അറിയിപ്പ് കാണിക്കുക</string>
-    <string name="updates_setting_title">അപ്ഡേറ്റുകൾ</string>
     <string name="limit_mobile_data_usage_title">മൊബൈൽ ഡാറ്റ ഉപയോഗിക്കുമ്പോൾ മിഴിവ് പരിമിതപ്പെടുത്തുക</string>
     <string name="limit_data_usage_none_description">പരിധിയില്ല</string>
     <string name="feed_use_dedicated_fetch_method_enable_button">വേഗത്തിലുള്ള മോഡ് പ്രവർത്തനക്ഷമമാക്കുക</string>

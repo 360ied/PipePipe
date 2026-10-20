@@ -258,11 +258,8 @@
     <string name="volume_gesture_control_summary">Utilizați gesturi pentru a controla volumul</string>
     <string name="brightness_gesture_control_title">Controlul prin gesturi a luminozității</string>
     <string name="brightness_gesture_control_summary">Utilizați gesturi pentru a controla luminozitatea</string>
-    <string name="settings_category_updates_title">Actualizări</string>
     <string name="events">Evenimente</string>
     <string name="file_deleted">Fișier șters</string>
-    <string name="app_update_notification_channel_name">Notificare de actualizare a aplicației</string>
-    <string name="app_update_notification_channel_description">Notificări pentru noi versiuni NewPipe</string>
     <string name="watch_history_deleted">Istoricul de vizionări a fost șters</string>
     <string name="clear_search_history_title">Ștergeți istoricul căutărilor</string>
     <string name="clear_search_history_summary">Șterge istoricul cuvintelor cheie de căutare</string>
@@ -476,8 +473,6 @@
     <string name="paused">Întrerupt</string>
     <string name="missions_header_pending">În așteptare</string>
     <string name="missions_header_finished">Finalizat</string>
-    <string name="app_update_notification_content_text">Atingeți pentru a descărca</string>
-    <string name="app_update_notification_content_title">Actualizare NewPipe disponibilă!</string>
     <string name="auto">Automat</string>
     <string name="grid">Grilă</string>
     <string name="list">Listă</string>
@@ -490,8 +485,6 @@
     <string name="minimize_on_exit_none_description">Niciuna</string>
     <string name="minimize_on_exit_summary">Acțiune la trecerea la altă aplicație de la playerul video principal - %s</string>
     <string name="minimize_on_exit_title">Minimalizați la comutarea aplicației</string>
-    <string name="updates_setting_description">Afișați o notificare pentru a solicita actualizarea aplicației atunci când este disponibilă o nouă versiune</string>
-    <string name="updates_setting_title">Actualizări</string>
     <string name="limit_data_usage_none_description">Fără limită</string>
     <string name="start_accept_privacy_policy">Pentru a respecta Regulamentul general european privind protecția datelor (GDPR), vă atragem atenția asupra politicii de confidențialitate a NewPipe. Vă rugăm să o citiți cu atenție.
 \nTrebuie să o acceptați pentru a ne trimite raportul de eroare.</string>
@@ -637,14 +630,11 @@
     <string name="show_image_indicators_title">Afișați indicatorii de imagine</string>
     <string name="disable_media_tunneling_summary">Dezactivați tunelarea media dacă întâmpinați un ecran negru sau blocaje la redarea video</string>
     <string name="processing_may_take_a_moment">Procesarea.. Poate dura un moment</string>
-    <string name="manual_update_title">Verifică dacă există actualizări</string>
-    <string name="manual_update_description">Verifică manual dacă există versiuni noi</string>
     <string name="detail_pinned_comment_view_description">Comentariu lipit</string>
     <string name="error_report_channel_name">Notificare cu raport de eroare</string>
     <string name="show_crash_the_player_summary">Afișează opțiunea de a întrerupe atunci când utilizați playerul</string>
     <string name="error_report_notification_toast">A apărut o eroare, verifică notificarea</string>
     <string name="error_report_notification_title">NewPipe a întămpinat o eroare, apăsați ca să raportați</string>
-    <string name="checking_updates_toast">Se verifică actualizări…</string>
     <string name="error_report_channel_description">Notificări pentru a raporta erori</string>
     <string name="create_error_notification">Crează o notificare de eroare</string>
     <string name="show_crash_the_player_title">Arată \"închiderea bruscă a player-ului video\"</string>

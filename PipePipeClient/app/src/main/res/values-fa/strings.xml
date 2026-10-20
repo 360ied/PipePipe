@@ -208,7 +208,6 @@
     <string name="enable_watch_history_title">تاریخچه تماشا</string>
     <string name="settings_category_history_title">تاریخچه و حافظه نهان</string>
     <string name="settings_category_debug_title">اشکال‌زدایی</string>
-    <string name="settings_category_updates_title">به‌روزرسانی‌ها</string>
     <string name="open_in_popup_mode">گشودن در حالت تصویردرتصویر</string>
     <string name="default_popup_resolution_title">وضوح پیش‌گزیدهٔ تصویردرتصویر</string>
     <string name="controls_popup_title">تصویردرتصویر</string>
@@ -223,17 +222,12 @@
     <string name="import_settings">می‌خواهید تنظیمات را نیز وارد کنید؟</string>
     <string name="playback_step">گام</string>
     <string name="file_deleted">پرونده پاک شد</string>
-    <string name="app_update_notification_channel_name">آگاهی به‌روزرسانی کاره</string>
-    <string name="app_update_notification_channel_description">آگاهی‌ها برای نگارش‌های جدید نیوپایپ</string>
     <string name="restore_defaults">بازنشانی پیش‌فرض‌ها</string>
     <string name="restore_defaults_confirmation">می‌خواهید پیش‌فرض‌ها را بازنشانی کنید؟</string>
-    <string name="updates_setting_title">به‌روزرسانی‌ها</string>
     <string name="list_view_mode">حالت نمایش سیاهه</string>
     <string name="list">سیاهه</string>
     <string name="grid">شبکه</string>
     <string name="auto">خودکار</string>
-    <string name="app_update_notification_content_title">به‌روزرسانی برای نیوپایپ موجود است!</string>
-    <string name="app_update_notification_content_text">برای بارگیری، لمس کنید</string>
     <string name="missions_header_finished">تمام</string>
     <string name="missions_header_pending">در انتظار</string>
     <string name="enqueue">صف‌گذاری</string>
@@ -336,7 +330,6 @@
     <string name="saved_tabs_invalid_json">به دلیل ناتوانی در خواندن برگه‌های ذخیره شده، برگه‌های پیش‌فرض استفاده می‌شوند</string>
     <string name="subscribers_count_not_available">تعداد مشترک‌شدگان دردسترس نیست</string>
     <string name="main_page_content_summary">چه برگه‌هایی در صفحه اصلی نمایش پیدا کنند</string>
-    <string name="updates_setting_description">زمانی که نسخه جدید برنامه دردسرس است، اعلانی برای به‌روزرسانی نمایش بده</string>
     <string name="paused">متوقف</string>
     <string name="queued">در صف</string>
     <string name="post_processing">در حال پساپردازش</string>
@@ -625,9 +618,6 @@
     <string name="enqueued_next">بعدی در صف گذاشته شد</string>
     <string name="enqueue_next_stream">در صف گذاشتن بعدی</string>
     <string name="processing_may_take_a_moment">در حال پردازش… ممکن است کمی طول بکشد</string>
-    <string name="manual_update_title">بررسی به‌روز رسانی‌ها</string>
-    <string name="manual_update_description">بررسی دستی برای نگارش‌های جدید</string>
-    <string name="checking_updates_toast">بررسی کردن به‌روز رسانی‌ها…</string>
     <string name="feed_new_items">موارد خوراک جدید</string>
     <string name="crash_the_player">فروپاشی پخش‌کننده</string>
     <string name="show_crash_the_player_summary">نمایش یک گزینهٔ فروپاشی هنگام استفاده از پخش کننده</string>

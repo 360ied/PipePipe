@@ -130,8 +130,6 @@
     <string name="unknown_content">[Nenas]</string>
     <string name="hash_channel_description">Agahdarî ji bo pêşveçûna heşandina vîdyoyê</string>
     <string name="hash_channel_name">Dîtina Agahdariya Vîdyoyê</string>
-    <string name="app_update_notification_channel_description">Notifications ji bo guhertoya nû ya NewPipe</string>
-    <string name="app_update_notification_channel_name">Nûvekirina Agahdariyê Appê</string>
     <string name="notification_channel_description">Agahdarî ji bo lîstikvanên paşnav û popup ên NewPipe</string>
     <string name="notification_channel_name">Agahdariya NewPipe</string>
     <string name="file">Dosî</string>
@@ -189,7 +187,6 @@
     <string name="content">Dilşad</string>
     <string name="popup_playing_toast">Di moda popupê de dilîzin</string>
     <string name="background_player_playing_toast">Di paşayê de dilîzin</string>
-    <string name="settings_category_updates_title">Nûvekirin</string>
     <string name="settings_category_debug_title">Xeletkirin</string>
     <string name="settings_category_appearance_title">Xuyabûnî</string>
     <string name="settings_category_history_title">Dîrok û kaş</string>
@@ -393,8 +390,6 @@
     <string name="paused">sekinî</string>
     <string name="missions_header_pending">Nexelas</string>
     <string name="missions_header_finished">Qediya</string>
-    <string name="app_update_notification_content_text">Tap bikin dakêşin</string>
-    <string name="app_update_notification_content_title">Nûvekirina NewPipe heye!</string>
     <string name="auto">Jixweber</string>
     <string name="grid">Qefes</string>
     <string name="list">Rêzok</string>
@@ -407,8 +402,6 @@
     <string name="minimize_on_exit_none_description">Netû</string>
     <string name="minimize_on_exit_summary">Çalakiya dema ku ji bernameya sereke ya vîdyoyê veguherîne ser sepana din — %s</string>
     <string name="minimize_on_exit_title">Li ser veguherîna sepanê kêm bikin</string>
-    <string name="updates_setting_description">Dema ku guhertoyek nû heye, agahdariyek nîşanî nûvekirina bernameyê bide</string>
-    <string name="updates_setting_title">Nûvekirin</string>
     <string name="limit_mobile_data_usage_title">Dema ku daneyên mobîl bikar tînin çareseriyê sînor bikin</string>
     <string name="limit_data_usage_none_description">Sînor tune</string>
     <string name="start_accept_privacy_policy">Ji bo ku em rêzê li Rêziknameya Parastina Daneya Giştî ya Ewropî (GDPR) bigirin, em herby bala we dikişînin ser siyaseta nepeniya NewPipe. Ji kerema xwe bi baldarî bixwînin.

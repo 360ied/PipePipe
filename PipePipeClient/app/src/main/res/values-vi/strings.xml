@@ -125,7 +125,6 @@
 <string name="settings_category_history_title">Lịch sử và bộ đệm</string>
 <string name="settings_category_appearance_title">Ngoại hình</string>
 <string name="settings_category_debug_title">Gỡ lỗi</string>
-<string name="settings_category_updates_title">Cập nhật</string>
 <string name="settings_category_player_notification_title">Thông báo của trình phát</string>
 <string name="settings_category_player_notification_summary">Định cấu hình thông báo luồng phát hiện tại</string>
 <string name="settings_category_sponsor_block_title">ChặnNhàTàiTrợ (Thử nghiệm, Dịch vụ của bên thứ ba)</string>
@@ -174,8 +173,6 @@ của YouTube
 <string name="notifications">Thông báo</string>
 <string name="notification_channel_name">Thông báo PipePipe</string>
 <string name="notification_channel_description">Thông báo cho trình phát của PipePipe</string>
-<string name="app_update_notification_channel_name">Thông báo cập nhật ứng dụng</string>
-<string name="app_update_notification_channel_description_new">Thông báo về phiên bản PipePipe mới</string>
 <string name="hash_channel_name">Thông báo băm băng hình</string>
 <string name="hash_channel_description">Thông báo về tiến trình băm băng hình</string>
 <string name="streams_notification_channel_name">Luồng mới</string>
@@ -510,10 +507,6 @@ của YouTube
 <string name="streams_notifications_network_title">Yêu cầu kết nối mạng</string>
 <string name="any_network">Bất kỳ mạng nào</string>
 <!-- Updates Settings -->
-<string name="updates_setting_title">Cập nhật</string>
-<string name="updates_setting_description">Hiển thị thông báo nhắc cập nhật ứng dụng khi có phiên bản mới</string>
-<string name="manual_update_title">Kiểm tra cập nhật</string>
-<string name="manual_update_description">Kiểm tra phiên bản mới theo cách thủ công</string>
 <!-- Minimize to exit action -->
 <string name="minimize_on_exit_title">Giảm thiểu chuyển đổi ứng dụng</string>
 <string name="minimize_on_exit_summary">Hành động khi chuyển sang ứng dụng khác từ trình phát băng hình chính — %s</string>
@@ -533,9 +526,6 @@ của YouTube
 <string name="low_quality_smaller">Chất lượng thấp (nhỏ hơn)</string>
 <string name="dont_show">Đừng hiển thị</string>
 <!-- App update notification -->
-<string name="app_update_unavailable_toast">Bạn đang chạy phiên bản mới nhất của PipePipe</string>
-<string name="app_update_notification_content_title_new">Đã có bản cập nhật PipePipe!</string>
-<string name="app_update_notification_content_text">Nhấn để tải xuống</string>
 <string name="missions_header_finished">Đã hoàn tất</string>
 <string name="missions_header_pending">Đang chờ xử lý</string>
 <string name="paused">đã tạm dừng</string>
@@ -544,7 +534,6 @@ của YouTube
 <string name="recovering">đang phục hồi</string>
 <string name="enqueue">Xếp hàng</string>
 <string name="permission_denied">Hành động bị hệ thống từ chối</string>
-<string name="checking_updates_toast">Đang kiểm tra cập nhật…</string>
 <!-- download notifications -->
 <string name="download_failed">Tải xuống không được</string>
 <plurals name="download_finished_notification">
@@ -825,8 +814,6 @@ nSự khác biệt giữa hai loại này là cái nào nhanh thường thiếu 
 <string name="navigate_to">Điều hướng</string>
 <string name="sort_origin">Nguyên gốc</string>
 <string name="sort_origin_reverse">Nguyên bản (đảo ngược)</string>
-<string name="dialog_title_enable_update_checker">Bật trình kiểm tra cập nhật</string>
-<string name="dialog_message_enable_update_checker">Bạn có muốn bật trình kiểm tra cập nhật không? Bạn có thể tắt nó trong thiết đặt.</string>
 <string name="title_staff_list">Danh sách nhân viên</string>
 <string name="av_num">av</string>
 <string name="stat_view">Xem</string>
@@ -892,8 +879,6 @@ nSự khác biệt giữa hai loại này là cái nào nhanh thường thiếu 
 <string name="token_expired">Token đã hết hạn</string>
 <string name="subscription_kofi_title">Trở thành người hỗ trợ trên Ko-fi</string>
 <string name="show_stream_details">Hiển thị chi tiết luồng</string>
-<string name="show_prerelease_description">Các phiên bản phát hành trước cập nhật nhanh hơn, nhưng có thể chứa một số lỗi</string>
-<string name="show_prerelease_title">Hiển thị các bản phát hành trước</string>
 <string name="temp">Chúng tôi đã tìm ra một phương pháp ổn định để giải mã lớp mã hóa mới của YouTube dành cho người dùng đã đăng nhập, vì vậy tính năng đăng nhập YouTube đã được mở lại. Nếu cần, vui lòng đăng nhập lại qua Cài đặt &gt; Tài khoản &gt; YouTube.</string>
 <string name="show_dislike_title">Hiển thị số lượt không thích</string>
 <string name="sponsor_block_category_highlight">Nổi bật</string>

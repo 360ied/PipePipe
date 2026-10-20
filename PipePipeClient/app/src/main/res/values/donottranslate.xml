@@ -5,7 +5,6 @@
     <string name="kore_package">org.xbmc.kore</string>
     <string name="peertube_instance_list_url">https://joinpeertube.org/instances#instances-list</string>
     <string name="notification_channel_id">PipePipe</string>
-    <string name="app_update_notification_channel_id">PipePipeAppUpdate</string>
     <string name="hash_channel_id">PipePipeHash</string>
     <string name="error_report_channel_id">PipePipeErrorReport</string>
     <string name="streams_notification_channel_id" translatable="false">PipePipeNewStreams</string>

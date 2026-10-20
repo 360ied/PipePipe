@@ -426,15 +426,11 @@
     <string name="paused">pausado</string>
     <string name="missions_header_pending">Pendente</string>
     <string name="missions_header_finished">Rematado</string>
-    <string name="app_update_notification_content_text">Prema para descargar</string>
-    <string name="app_update_notification_content_title">A actualización de NewPipe está dispoñible!</string>
     <string name="auto">Automático</string>
     <string name="brightness_gesture_control_summary">Use xestos para controlar o brillo do reprodutor</string>
     <string name="grid">Rede</string>
     <string name="list">Lista</string>
     <string name="list_view_mode">Modo de visualización da lista</string>
-    <string name="updates_setting_description">Amosar unha notificación para solicitar a actualización do aplicativo cando unha nova versión estea dispoñible</string>
-    <string name="updates_setting_title">Actualizacións</string>
     <string name="show_original_time_ago_summary">Os textos orixinais dos servizos serán visibles nos elementos do fluxo</string>
     <string name="show_original_time_ago_title">Amosar o tempo orixinal anterior nos elementos</string>
     <string name="playlist_no_uploader">Xerado automaticamente (non se atopou ningún cargador)</string>
@@ -481,8 +477,6 @@
     <string name="delete_playback_states_alert">Eliminas todas as posicións de reprodución\?</string>
     <string name="clear_playback_states_summary">Elimina todas as posicións de reprodución</string>
     <string name="clear_playback_states_title">Elimina as posicións de reprodución</string>
-    <string name="app_update_notification_channel_description">Notificacións para as novas versións de NewPipe</string>
-    <string name="app_update_notification_channel_name">Notificación da actualización do aplicativo</string>
     <string name="file_deleted">Ficheiro eliminado</string>
     <string name="artists">Artistas</string>
     <string name="albums">Álbumes</string>
@@ -492,7 +486,6 @@
     <string name="restricted_video">Este vídeo está restrinxido por idade.
 \n
 \nSe desexa visualizalo, habilite \"%1$s\" nas opcións.</string>
-    <string name="settings_category_updates_title">Actualizacións</string>
     <string name="peertube_instance_add_exists">A instancia xa existe</string>
     <string name="peertube_instance_add_fail">Non se puido validar a instancia</string>
     <string name="peertube_instance_add_help">Introduza o URL da instancia</string>
@@ -631,9 +624,6 @@
     <string name="error_report_notification_title">NewPipe atopou un erro, presione para reportar</string>
     <string name="detail_pinned_comment_view_description">Comentario fixado</string>
     <string name="enqueued_next">Enfileirado</string>
-    <string name="manual_update_title">Procurar actualizacións</string>
-    <string name="manual_update_description">Procurar manualmente novas versións</string>
-    <string name="checking_updates_toast">A procurar actualizacións…</string>
     <string name="progressive_load_interval_summary">Cambia o tamaño do intervalo de carga (actualmente %s). Un valor menor pode acelerar o carregamento do vídeo. Cambios poden precisar un reinicio do reprodutor.</string>
     <string name="processing_may_take_a_moment">Procesando... Pode devagar un momento</string>
     <string name="create_error_notification">Crear unha notificación de erro</string>

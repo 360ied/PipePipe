@@ -216,8 +216,6 @@
     <string name="switch_to_popup">Pārslēgt uz Popup</string>
     <string name="switch_to_background">Pārslēgt uz Fonu</string>
     <string name="unknown_content">[Nezināms]</string>
-    <string name="app_update_notification_channel_description">Notifikācijas priekš NewPipe versijas</string>
-    <string name="app_update_notification_channel_name">Aplikācijas Atjauninājuma Notifikācija</string>
     <string name="notification_channel_description">Notifikācijas priekš NewPipe fona un popup atskaņotājiem</string>
     <string name="notification_channel_name">NewPipe Notifikācija</string>
     <string name="file">Fails</string>
@@ -249,7 +247,6 @@
     <string name="content">Saturs</string>
     <string name="popup_playing_toast">Atskaņo popup režīmā</string>
     <string name="background_player_playing_toast">Atskaņo fonā</string>
-    <string name="settings_category_updates_title">Atjauninājumi</string>
     <string name="settings_category_debug_title">Atkļūdošana</string>
     <string name="settings_category_appearance_title">Izskats</string>
     <string name="settings_category_history_title">Vēsture un kešatmiņa</string>
@@ -433,8 +430,6 @@
     <string name="paused">Pausēts</string>
     <string name="missions_header_pending">Gaida</string>
     <string name="missions_header_finished">Pabeigts</string>
-    <string name="app_update_notification_content_text">Nospiediet, lai lejupielādētu</string>
-    <string name="app_update_notification_content_title">Ir pieejams Newpipe atjauninājums!</string>
     <string name="auto">Automātiski</string>
     <string name="grid">Tīkls</string>
     <string name="list">Saraksts</string>
@@ -443,8 +438,6 @@
     <string name="minimize_on_exit_popup_description">Minimizēt uz popup atskaņotāju</string>
     <string name="minimize_on_exit_background_description">Minimizēt uz fona atskaņotāju</string>
     <string name="minimize_on_exit_none_description">Nav</string>
-    <string name="updates_setting_description">Rādīt paziņojumu, kad ir pieejama jauna aplikācijas versija</string>
-    <string name="updates_setting_title">Atjauninājumi</string>
     <string name="limit_mobile_data_usage_title">Ierobežots izšķirtspēju, izmantojot mobilos datus</string>
     <string name="limit_data_usage_none_description">Nav ierobežojuma</string>
     <string name="start_accept_privacy_policy">Lai ievērotu Eiropas Vispārējās datu aizsardzības regulu (GDPR), mēs pievēršam jūsu uzmanību NewPipe privātuma politikai. Lūdzu, rūpīgi izlasiet to.
@@ -606,9 +599,6 @@
     <string name="local_search_suggestions">Lokālie meklēšanas ieteikumi</string>
     <string name="show_image_indicators_title">Rādīt attēlu indikatorus</string>
     <string name="high_quality_larger">Augstas kvalitātes (lielāks)</string>
-    <string name="manual_update_title">Pārbaudīt atjauninājumus</string>
-    <string name="manual_update_description">Manuāli pārbaudīt, vai ir atjauninājumi</string>
-    <string name="checking_updates_toast">Pārbauda, vai ir atjauninājumi…</string>
     <string name="feed_load_error_account_info">Nevarēja ielādēt straumi priekš \'%s\'.</string>
     <string name="feed_load_error">Kļūda lādējot plūsmu</string>
     <string name="feed_load_error_terminated">Autora konts tika slēgts.

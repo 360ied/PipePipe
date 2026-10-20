@@ -35,7 +35,6 @@ import org.schabi.newpipe.settings.preferencesearch.PreferenceSearchResultListen
 import org.schabi.newpipe.settings.preferencesearch.PreferenceSearcher;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.KeyboardUtil;
-import org.schabi.newpipe.util.ReleaseVersionUtil;
 import org.schabi.newpipe.util.ThemeHelper;
 import org.schabi.newpipe.views.FocusOverlayView;
 

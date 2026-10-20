@@ -131,7 +131,6 @@
 <string name="settings_category_history_title">Geçmiş ve önbellek</string>
 <string name="settings_category_appearance_title">Görünüm</string>
 <string name="settings_category_debug_title">Hata Ayıklama</string>
-<string name="settings_category_updates_title">Güncellemeler</string>
 <string name="settings_category_player_notification_title">Oynatıcı bildirimi</string>
 <string name="settings_category_player_notification_summary">Çalınan mevcut akış bildirimini yapılandır</string>
 <string name="background_player_playing_toast">Arka planda oynatılıyor</string>
@@ -165,8 +164,6 @@
 <string name="notifications">Bildirimler</string>
 <string name="notification_channel_name">PipePipe bildirimi</string>
 <string name="notification_channel_description">PipePipe oynatıcısı için bildirimler</string>
-<string name="app_update_notification_channel_name">Uygulama güncelleme bildirimi</string>
-<string name="app_update_notification_channel_description_new">Yeni PipePipe sürümleri için bildirimler</string>
 <string name="hash_channel_name">Video hash bildirimi</string>
 <string name="hash_channel_description">Video hash ilerlemesi için bildirimler</string>
 <string name="streams_notification_channel_name">Yeni akışlar</string>
@@ -500,10 +497,6 @@
 <string name="streams_notifications_network_title">Gerekli ağ bağlantısı</string>
 <string name="any_network">Herhangi bir ağ</string>
 <!-- Updates Settings -->
-<string name="updates_setting_title">Güncellemeler</string>
-<string name="updates_setting_description">Yeni bir sürüm mevcut olduğunda uygulama güncellemesini istemek için bir bildirim göster</string>
-<string name="manual_update_title">Güncellemeleri kontrol et</string>
-<string name="manual_update_description">Yeni sürümleri manuel olarak kontrol et</string>
 <!-- Minimize to exit action -->
 <string name="minimize_on_exit_title">Uygulama geçişinde küçült</string>
 <string name="minimize_on_exit_summary">Ana video oynatıcıdan başka bir uygulamaya geçerken yapılacak eylem — %s</string>
@@ -525,9 +518,6 @@
 <string name="low_quality_smaller">Düşük kalite (daha küçük)</string>
 <string name="dont_show">Gösterme</string>
 <!-- App update notification -->
-<string name="app_update_unavailable_toast">PipePipe\'ın en son sürümünü kullanıyorsunuz</string>
-<string name="app_update_notification_content_title_new">PipePipe güncellemesi mevcut!</string>
-<string name="app_update_notification_content_text">İndirmek için dokunun</string>
 <string name="missions_header_finished">Bitti</string>
 <string name="missions_header_pending">Bekliyor</string>
 <string name="paused">duraklatıldı</string>
@@ -536,7 +526,6 @@
 <string name="recovering">kurtarılıyor</string>
 <string name="enqueue">Sıraya al</string>
 <string name="permission_denied">Eylem sistem tarafından reddedildi</string>
-<string name="checking_updates_toast">Güncellemeler kontrol ediliyor…</string>
 <!-- download notifications -->
 <string name="download_failed">İndirme başarısız</string>
 <plurals name="download_finished_notification">
@@ -872,8 +861,6 @@
 <string name="navigate_to">Git</string>
 <string name="sort_origin">Orijinal</string>
 <string name="sort_origin_reverse">Orijinal (ters)</string>
-<string name="dialog_title_enable_update_checker">Güncelleme denetleyicisini etkinleştir</string>
-<string name="dialog_message_enable_update_checker">Güncelleme denetleyicisini etkinleştirmek istiyor musunuz? Ayarlardan devre dışı bırakabilirsiniz.</string>
 <string name="title_staff_list">Personel Listesi</string>
 <string name="av_num">av</string>
 <string name="stat_view">Görüntüleme</string>
@@ -935,8 +922,6 @@
 <string name="token_expired">Token süresi doldu</string>
 <string name="subscription_kofi_title">Ko-fi\'de destekçi olun</string>
 <string name="show_stream_details">Akış ayrıntılarını göster</string>
-<string name="show_prerelease_description">Ön sürümler daha hızlı güncellenir ancak bazı hatalar içerebilir</string>
-<string name="show_prerelease_title">Ön sürümleri göster</string>
 <string name="temp">Giriş yapmış kullanıcılar için YouTube\'un yeni şifrelemesini çözmek için kararlı bir yöntem bulduk, bu nedenle YouTube için giriş özelliği yeniden açıldı. İhtiyacınız varsa, lütfen Ayarlar &gt; Hesaplar &gt; YouTube üzerinden yeniden giriş yapın.</string>
 <string name="show_dislike_title">Beğenmeme sayısını göster</string>
 <string name="video_not_released">Video henüz yayınlanmadı.</string>

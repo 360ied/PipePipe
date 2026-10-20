@@ -138,8 +138,6 @@
     <string name="brightness_gesture_control_summary">Usa xestos pa controlar el brillu del reproductor</string>
     <string name="restore_defaults">Reafitamientu de valores</string>
     <string name="subscribers_count_not_available">El númberu de soscriptores nun ta disponible</string>
-    <string name="updates_setting_title">Anovamientos</string>
-    <string name="updates_setting_description">Amuesa un avisu qu\'apaez cuando hai disponible una versión nueva</string>
     <string name="list">Llista</string>
     <string name="grid">Rexáu</string>
     <string name="missions_header_finished">Finó</string>
@@ -217,8 +215,6 @@
     <string name="subscribed_button_title">Soscribiéstite</string>
     <string name="no_videos">Nun hai vídeos</string>
     <string name="delete_search_history_alert">¿Desaniciar tol historial de busques\?</string>
-    <string name="app_update_notification_content_title">¡Hai un anovamientu pa NewPipe!</string>
-    <string name="app_update_notification_content_text">Toca pa baxalu</string>
     <string name="error_progress_lost">Perdióse\'l progresu porque se desanició\'l ficheru</string>
     <string name="peertube_instance_url_title">Instancies de PeerTube</string>
     <string name="peertube_instance_add_exists">La instancia yá esiste</string>
@@ -239,7 +235,6 @@
     <string name="export_complete_toast">Esportóse</string>
     <string name="import_complete_toast">Importóse</string>
     <string name="could_not_import_all_files">Alvertencia: nun pudieron importase tolos ficheros.</string>
-    <string name="settings_category_updates_title">Anovamientos</string>
     <string name="peertube_instance_add_fail">Nun pudo validase la instancia</string>
     <plurals name="minutes">
         <item quantity="one">%d minutu</item>
@@ -474,8 +469,6 @@
     <string name="switch_to_main">Cambiar al reproductor principal</string>
     <string name="switch_to_popup">Cambiar al reproductor en ventanu</string>
     <string name="switch_to_background">Cambiar al reproductor en segundu planu</string>
-    <string name="app_update_notification_channel_description">Anovamientos pa NewPipe</string>
-    <string name="app_update_notification_channel_name">Avisos d\'anovamientos</string>
     <string name="notification_channel_description">Avisos de los reproductores en segundu planu y en ventanu de NewPipe</string>
     <string name="just_once">Namás una vegada</string>
     <string name="file_deleted">Desanicióse\'l ficheru</string>

@@ -124,7 +124,6 @@
     <string name="no_subscribers">Sem subscritores</string>
     <string name="download_thumbnail_summary">Desative para parar o carregamento de miniaturas, poupar dados e utilização da memória. As alterações limpam a cache de imagens do disco e da memória</string>
     <string name="did_you_mean">Será que queria dizer \"%1$s\"\?</string>
-    <string name="updates_setting_description">Mostrar uma notificação para pedir a atualização da aplicação se existir uma nova versão</string>
     <string name="enqueue">Enfileirar</string>
     <string name="no_one_watching">Ninguém está a ver</string>
     <string name="delete_downloaded_files">Remover ficheiros descarregados</string>
@@ -137,7 +136,6 @@
         <item quantity="other">%s a ver</item>
     </plurals>
     <string name="msg_wait">Por favor aguarde…</string>
-    <string name="app_update_notification_content_text">Toque para descarregar</string>
     <string name="clear">Limpar</string>
     <string name="unsubscribe">Cancelar subscrição</string>
     <string name="content">Conteúdo</string>
@@ -199,7 +197,6 @@
     <string name="open_in_browser">Abrir no navegador</string>
     <string name="new_and_hot">Novos e tendências</string>
     <string name="clear_search_history_summary">Remove o histórico de pesquisas</string>
-    <string name="app_update_notification_channel_name">Notificação de nova versão</string>
     <string name="youtube_signature_deobfuscation_error">Não foi possível decifrar a assinatura do URL</string>
     <string name="select_a_playlist">Selecione uma lista de reprodução</string>
     <string name="feed_oldest_subscription_update">Última atualização: %s</string>
@@ -227,7 +224,6 @@
     <string name="grid">Grelha</string>
     <string name="export_complete_toast">Exportado</string>
     <string name="download_path_audio_dialog_title">Escolha a pasta para colocar os ficheiros de áudio</string>
-    <string name="app_update_notification_content_title">Atualização NewPipe disponível!</string>
     <string name="events">Eventos</string>
     <string name="privacy_policy_title">Política de privacidade do NewPipe</string>
     <string name="could_not_load_thumbnails">Não foi possível carregar todas as miniaturas</string>
@@ -264,7 +260,6 @@
     <string name="post_processing">pós-processamento</string>
     <string name="overwrite_failed">não é possível sobrescrever o ficheiro</string>
     <string name="invalid_source">Fonte de conteúdo/ficheiro inexistente</string>
-    <string name="app_update_notification_channel_description">Notificações para novas versões do NewPipe</string>
     <string name="action_history">Histórico</string>
     <string name="list">Lista</string>
     <string name="remove_watched_popup_title">Remover vídeos visualizados\?</string>
@@ -419,8 +414,6 @@
     <string name="share_dialog_title">Partilhar com</string>
     <string name="feed_update_threshold_summary">Tempo após a última atualização antes de a subscrição ser considerada desatualizada - %s</string>
     <string name="search">Pesquisar</string>
-    <string name="settings_category_updates_title">Atualizações</string>
-    <string name="updates_setting_title">Atualizações</string>
     <string name="start_downloads">Iniciar transferências</string>
     <string name="enable_search_history_summary">Guardar termos de pesquisa localmente</string>
     <string name="unsupported_url">URL não suportado</string>
@@ -625,9 +618,6 @@
     <string name="enqueued_next">Enfileirado o próximo</string>
     <string name="enqueue_next_stream">Enfileirar o próximo</string>
     <string name="processing_may_take_a_moment">A processar… Pode demorar um momento</string>
-    <string name="manual_update_title">Procurar atualizações</string>
-    <string name="manual_update_description">Verificar manualmente se existe uma nova versão</string>
-    <string name="checking_updates_toast">A procurar atualizações…</string>
     <string name="feed_new_items">Novos itens</string>
     <string name="crash_the_player">Travar o reprodutor</string>
     <string name="show_crash_the_player_title">Mostrar \"travar o reprodutor\"</string>

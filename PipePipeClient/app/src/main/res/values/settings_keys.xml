@@ -463,13 +463,6 @@
         <item>@string/always_ask_open_action_key</item>
     </string-array>
 
-    <!-- Updates -->
-    <string name="update_app_key">update_app_key</string>
-    <string name="manual_update_key">manual_update_key</string>
-    <string name="update_pref_screen_key">update_pref_screen_key</string>
-    <string name="update_expiry_key">update_expiry_key</string>
-
-
     <!-- SponsorBlock -->
     <string name="sponsor_block_home_page_key" translatable="false">sponsor_block_home_page</string>
     <string name="sponsor_block_enable_key" translatable="false">sponsor_block_enable</string>
@@ -1648,7 +1641,6 @@
     <string name="enable_proxy_key">enable_proxy_key</string>
     <string name="check_token_validity_key">check_token_validity_key</string>
     <string name="donation_encouragement_key">donation_encouragement_key</string>
-    <string name="show_prerelease_key">show_prerelease_key</string>
     <string name="show_dislike_key">show_dislike_key</string>
     <string name="filter_shorts_key">filter_shorts_key</string>
     <string name="filter_paid_contents_key">filter_paid_contents_key</string>

@@ -243,8 +243,6 @@
     <string name="paused">паузирано</string>
     <string name="missions_header_pending">На чекању</string>
     <string name="missions_header_finished">Завршено</string>
-    <string name="app_update_notification_content_text">Тапните за преузимање</string>
-    <string name="app_update_notification_content_title">Доступно је ажурирање за ЊуПајп!</string>
     <string name="auto">аутоматски</string>
     <string name="grid">мрежа</string>
     <string name="list">листа</string>
@@ -257,8 +255,6 @@
     <string name="minimize_on_exit_none_description">ништа</string>
     <string name="minimize_on_exit_summary">Радња при преласку на другу апликацију са главног видео плејера — %s</string>
     <string name="minimize_on_exit_title">Умањи при мењању апликације</string>
-    <string name="updates_setting_description">Прикажи обавештење када постоји нова верзија апликације</string>
-    <string name="updates_setting_title">Ажурирања</string>
     <string name="limit_mobile_data_usage_title">Ограничити резолуцију на мобилној мрежи</string>
     <string name="limit_data_usage_none_description">без ограничења</string>
     <string name="start_accept_privacy_policy">Да бисмо били у складу са Европском општом уредбом о заштити података („GDPR“), скрећемо вам пажњу на политику приватности апликације ЊуПајпа. Пажљиво је прочитајте.
@@ -435,8 +431,6 @@
     <string name="switch_to_background">Пребаци у позадину</string>
     <string name="hash_channel_description">Обавештења о напретку хеширања видео записа</string>
     <string name="hash_channel_name">Обавештење о видео хешу</string>
-    <string name="app_update_notification_channel_description">Обавештења о новој верзији ЊуПајпа</string>
-    <string name="app_update_notification_channel_name">Обавештење о ажурирању апликације</string>
     <string name="file">Фајл</string>
     <string name="file_deleted">Фајл избрисан</string>
     <string name="artists">Извођачи</string>
@@ -453,7 +447,6 @@
     <string name="restricted_video">Овај видео је старосно ограничен.
 \n
 \nУкључите „%1$s“ у поставкама ако желите да га видите.</string>
-    <string name="settings_category_updates_title">Ажурирања</string>
     <string name="peertube_instance_add_exists">Инстанца већ постоји</string>
     <string name="peertube_instance_add_https_only">Подржане су само HTTPS УРЛ адресе</string>
     <string name="peertube_instance_add_fail">Не могу да потврдим инстанцу</string>

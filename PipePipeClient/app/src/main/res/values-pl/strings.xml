@@ -351,9 +351,7 @@
 <string name="volume_gesture_control_summary">Używaj gestów do sterowania głośnością odtwarzacza</string>
 <string name="brightness_gesture_control_title">Kontrola jasności gestami</string>
 <string name="brightness_gesture_control_summary">Używaj gestów do sterowania jasnością odtwarzacza</string>
-<string name="settings_category_updates_title">Aktualizacje</string>
 <string name="file_deleted">Usunięto plik</string>
-<string name="app_update_notification_channel_name">Powiadomienie o aktualizacji aplikacji</string>
 <string name="download_to_sdcard_error_title">Pamięć zewnętrzna niedostępna</string>
 <string name="download_to_sdcard_error_message">Pobieranie na kartę SD nie jest możliwe. Zresetować lokalizację folderu zapisywania\?</string>
 <string name="saved_tabs_invalid_json">Nie udało się odczytać zapisanych kart, więc będą używane domyślne</string>
@@ -361,15 +359,11 @@
 <string name="restore_defaults_confirmation">Czy chcesz przywrócić ustawienia domyślne\?</string>
 <string name="subscribers_count_not_available">Liczba subskrybentów niedostępna</string>
 <string name="main_page_content_summary">Karty wyświetlane na stronie głównej</string>
-<string name="updates_setting_title">Aktualizacje</string>
-<string name="updates_setting_description">Pokazuj powiadomienie zachęcające do pobrania aktualizacji aplikacji, gdy jest dostępna nowa wersja</string>
 <string name="list_view_mode">Tryb widoku listy</string>
 <string name="list">Lista</string>
 <string name="grid">Siatka</string>
 <string name="card">Karta</string>
 <string name="auto">Automatyczny</string>
-<string name="app_update_notification_content_title_new">Jest dostępna aktualizacja PipePipe.</string>
-<string name="app_update_notification_content_text">Naciśnij, aby pobrać</string>
 <string name="missions_header_finished">Zakończone</string>
 <string name="paused">wstrzymane</string>
 <string name="queued">w kolejce</string>
@@ -584,7 +578,6 @@
 <string name="recent">Ostatnie</string>
 <string name="msg_calculating_hash">Obliczanie skrótu</string>
 <string name="hash_channel_description">Powiadomienia o postępie tworzenia skrótów wideo</string>
-<string name="app_update_notification_channel_description_new">Powiadomienia o nowych wersjach PipePipe</string>
 <string name="hash_channel_name">Powiadomienie o obliczaniu skrótu wideo</string>
 <string name="show_meta_info_summary">Wyłącz, aby ukryć pola z dodatkowymi informacjami o twórcy strumienia, zawartości strumienia lub żądaniu wyszukiwania</string>
 <string name="show_meta_info_title">Pokazuj metadane</string>
@@ -667,9 +660,6 @@
 <string name="enqueued_next">Dodano do kolejki (następny)</string>
 <string name="enqueue_next_stream">Dodaj do kolejki (następny)</string>
 <string name="processing_may_take_a_moment">Przetwarzanie… Może to chwilę potrwać</string>
-<string name="checking_updates_toast">Sprawdzanie aktualizacji…</string>
-<string name="manual_update_description">Ręcznie sprawdź dostępność nowych wersji</string>
-<string name="manual_update_title">Sprawdź dostępność aktualizacji</string>
 <string name="feed_new_items">Nowe pozycje kanału</string>
 <string name="show_crash_the_player_summary">Pokazuje opcję psucia podczas korzystania z odtwarzacza</string>
 <string name="crash_the_player">Zepsuj odtwarzacz</string>
@@ -723,7 +713,6 @@
 <string name="youtube_visitor_data_title">Dane odwiedzania YouTube</string>
 <string name="percent">Procent</string>
 <string name="large_grid">Duża siatka</string>
-<string name="app_update_unavailable_toast">Masz najnowszą wersję PipePipe.</string>
 <string name="feed_fetch_channel_tabs">Pobieranie kart kanału</string>
 <string name="feed_fetch_channel_tabs_summary">Wybór kart do pobrania podczas uaktualniania kanału. Ta opcja nie ma wpływu na kanały uaktualnione za pomocą szybkiego trybu.</string>
 <string name="sponsor_block_category_sponsor">Sponsor</string>
@@ -932,8 +921,6 @@
 <string name="token_expired">Token wygasł</string>
 <string name="subscription_kofi_title">Zostań wspierającym na Ko-fi</string>
 <string name="show_stream_details">Pokaż szczegóły strumienia</string>
-<string name="show_prerelease_description">Wczesne wydania dostają aktualizacje szybciej, ale mogą zawierać błędy</string>
-<string name="show_prerelease_title">Pokaż wczesne wydania</string>
 <string name="temp">Znaleźliśmy nowy stabilny sposób na deszyfrowanie nowego szyfrowania YouTube\'a dla zalogowanych użytkowników, więc funkcja logowania dla YouTube została ponownie otwarta. Jeżeli jej potrzebujesz, zaloguj się pownie przez Ustawienia &gt; Konta &gt; YouTube.</string>
 <string name="show_dislike_title">Pokaż licznik łapek w dół</string>
 <string name="video_not_released">Ten film nie jest jeszcze wydany.</string>
@@ -1002,8 +989,6 @@
 <string name="navigate_to">Nawiguj</string>
 <string name="sort_origin">Oryginalny</string>
 <string name="sort_origin_reverse">Oryginalny (odwrócony)</string>
-<string name="dialog_title_enable_update_checker">Włącz sprawdzanie aktualizacji</string>
-<string name="dialog_message_enable_update_checker">Chcesz włączyć sprawdzanie aktualizacji? Możesz wyłączyć je w ustawieniach.</string>
 <string name="title_staff_list">Lista twórców</string>
 <string name="av_num">av</string>
 <string name="stat_view">Wyświetlenia</string>

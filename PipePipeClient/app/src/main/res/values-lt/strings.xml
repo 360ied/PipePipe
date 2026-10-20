@@ -285,8 +285,6 @@
     <string name="clear_cookie_title">Išvalyti reCAPTCHA slapukus</string>
     <string name="hash_channel_description">Pranešimas apie video maišos progresą</string>
     <string name="hash_channel_name">Video maišos pranešimas</string>
-    <string name="app_update_notification_channel_description">Pranešimas apie naują NewPipe versiją</string>
-    <string name="app_update_notification_channel_name">Programos atnaujinimo pranešimas</string>
     <string name="file">Failą</string>
     <string name="file_deleted">Failas pašalintas</string>
     <string name="artists">Atlikėjai</string>
@@ -303,7 +301,6 @@
     <string name="restricted_video">Šiam video taikomas amžiaus apribojimas
 \n
 \nĮjunkite \"%1$s\" norėdami peržiūrėti.</string>
-    <string name="settings_category_updates_title">Atnaujinimai</string>
     <string name="peertube_instance_add_exists">Kopija jau yra</string>
     <string name="peertube_instance_add_https_only">Palaikomi tik HTTPS adresai</string>
     <string name="peertube_instance_add_title">Pridėti kopiją</string>
@@ -443,7 +440,6 @@
     <string name="auto">Auto</string>
     <string name="grid">Tinklelis</string>
     <string name="list">Sąrašas</string>
-    <string name="updates_setting_title">Atnaujinimai</string>
     <string name="playback_reset">Atstatyti</string>
     <string name="playback_step">Žingsnis</string>
     <string name="minimize_on_exit_none_description">Nieko</string>
@@ -505,7 +501,6 @@
     <string name="import_network_expensive_warning">Atminkite, kad ši operacija gali brangiai kainuoti tinkle.
 \n
 \nAr norite tęsti\?</string>
-    <string name="updates_setting_description">Rodyti pranešimą, kuriame raginama atnaujinti programą, kai yra nauja versija</string>
     <string name="pause_downloads_on_mobile_desc">Naudinga pereinant prie mobiliųjų duomenų, nors kai kurių atsisiuntimų sustabdyti negalima</string>
     <string name="minimize_on_exit_summary">Veiksmas, kai iš pagrindinio vaizdo įrašų grotuvo pereinama į kitą programą — %s</string>
     <string name="show_original_time_ago_summary">Srauto elementuose bus matomi orginalūs tekstai iš paslaugų</string>
@@ -531,7 +526,6 @@
     <string name="feed_oldest_subscription_update">Paskutinis atnaujinimas: %s</string>
     <string name="downloads_storage_ask_title">Klausti kur parsiųsti</string>
     <string name="overwrite_failed">failo perrašyti nepavyko</string>
-    <string name="app_update_notification_content_title">Prieinamas NewPipe atnaujinimas!</string>
     <string name="minimize_on_exit_title">Perjungiant programą sumažinti</string>
     <string name="unhook_checkbox">Atkabinti (gali iškraipyti)</string>
     <string name="subscriptions_export_unsuccessful">Nepavyko eksportuoti prenumeratų</string>
@@ -547,7 +541,6 @@
     <string name="delete_downloaded_files">Pašalinti parsiųstus failus</string>
     <string name="choose_instance_prompt">Pasirinkite kopiją</string>
     <string name="enable_queue_limit">Riboti parsiuntimų eilę</string>
-    <string name="app_update_notification_content_text">Paspauskite parsiuntimui</string>
     <string name="list_view_mode">Sąrašo rodinio režimas</string>
     <string name="skip_silence_checkbox">Prasukti kai nieko negroja</string>
     <string name="playlist_page_summary">Grojaraščio puslapis</string>
@@ -637,9 +630,6 @@
     <string name="enqueued_next">Sekantis pridėtas į eilę</string>
     <string name="enqueue_next_stream">Įtraukti į eilę sekantį</string>
     <string name="processing_may_take_a_moment">Apdorojama… tai gali užtrukti</string>
-    <string name="manual_update_title">Tikrinti ar yra atnaujinimų</string>
-    <string name="manual_update_description">Tikrinti ar yra atnaujinimų rankiniu būdu</string>
-    <string name="checking_updates_toast">Tikrinti ar yra atnaujinimų…</string>
     <string name="feed_new_items">Nauji sklaidos kanalo elementai</string>
     <string name="leak_canary_not_available">LeakCanary neprieinama</string>
     <string name="show_crash_the_player_summary">Naudojant grotuvą rodo lūžio parinkty</string>

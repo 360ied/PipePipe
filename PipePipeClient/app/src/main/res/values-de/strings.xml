@@ -120,7 +120,6 @@
 <string name="settings_category_history_title">Verlauf und Cache</string>
 <string name="settings_category_appearance_title">Aussehen</string>
 <string name="settings_category_debug_title">Debug</string>
-<string name="settings_category_updates_title">Updates</string>
 <string name="settings_category_player_notification_title">Player-Benachrichtigung</string>
 <string name="settings_category_player_notification_summary">Benachrichtigung für den aktuellen Stream einstellen</string>
 <string name="settings_category_sponsor_block_title">SponsorBlock (Beta, Drittanbieterdienst)</string>
@@ -168,8 +167,6 @@
 <string name="notifications">Benachrichtigungen</string>
 <string name="notification_channel_name">PipePipe-Benachrichtigung</string>
 <string name="notification_channel_description">Benachrichtigungen für PipePipes Player</string>
-<string name="app_update_notification_channel_name">App-Aktualisierungsbenachrichtigung</string>
-<string name="app_update_notification_channel_description_new">Benachrichtigungen für neue PipePipe-Versionen</string>
 <string name="hash_channel_name">Video-Hash-Benachrichtigung</string>
 <string name="hash_channel_description">Benachrichtigungen für Fortschritt bei der Video-Hash-Erstellung</string>
 <string name="streams_notification_channel_name">Neue Streams</string>
@@ -444,10 +441,6 @@
 <string name="streams_notifications_interval_title">Prüfungsfrequenz</string>
 <string name="streams_notifications_network_title">Erforderliche Netzwerkverbindung</string>
 <string name="any_network">Jedes Netzwerk</string>
-<string name="updates_setting_title">Aktualisierungen</string>
-<string name="updates_setting_description">Zeigen Sie eine Benachrichtigung an, um ein App-Update zu veranlassen, wenn eine neue Version verfügbar ist</string>
-<string name="manual_update_title">Auf Updates prüfen</string>
-<string name="manual_update_description">Manuell nach neuen Versionen suchen</string>
 <string name="minimize_on_exit_title">Beim App-Wechsel minimieren</string>
 <string name="minimize_on_exit_summary">Aktion beim Wechsel zu einer anderen App vom Hauptvideoplayer — %s</string>
 <string name="minimize_on_exit_none_description">Keine</string>
@@ -463,9 +456,6 @@
 <string name="high_quality_larger">Hohe Qualität (größer)</string>
 <string name="low_quality_smaller">Niedrige Qualität (kleiner)</string>
 <string name="dont_show">Nicht anzeigen</string>
-<string name="app_update_unavailable_toast">Sie verwenden die neueste Version von PipePipe</string>
-<string name="app_update_notification_content_title_new">PipePipe-Update ist verfügbar!</string>
-<string name="app_update_notification_content_text">Tippen Sie, um herunterzuladen</string>
 <string name="missions_header_finished">Abgeschlossen</string>
 <string name="missions_header_pending">Ausstehend</string>
 <string name="paused">pausiert</string>
@@ -474,7 +464,6 @@
 <string name="recovering">wiederherstellen</string>
 <string name="enqueue">In die Warteschlange stellen</string>
 <string name="permission_denied">Aktion vom System verweigert</string>
-<string name="checking_updates_toast">Suche nach Updates…</string>
 <string name="download_failed">Download fehlgeschlagen</string>
 <string name="generate_unique_name">Eindeutigen Namen generieren</string>
 <string name="overwrite">Überschreiben</string>
@@ -717,8 +706,6 @@
 <string name="navigate_to">Navigieren</string>
 <string name="sort_origin">Original</string>
 <string name="sort_origin_reverse">Original (umgekehrt)</string>
-<string name="dialog_title_enable_update_checker">Update-Checker aktivieren</string>
-<string name="dialog_message_enable_update_checker">Möchten Sie den Update-Checker aktivieren? Sie können ihn in den Einstellungen deaktivieren.</string>
 <string name="title_staff_list">Mitarbeiterliste</string>
 <string name="av_num">av</string>
 <string name="stat_view">Ansehen</string>
@@ -784,8 +771,6 @@
 <string name="token_expired">Token abgelaufen</string>
 <string name="subscription_kofi_title">Unterstützer auf Ko-fi werden</string>
 <string name="show_stream_details">Streamdetails anzeigen</string>
-<string name="show_prerelease_description">Vorabversionen werden schneller aktualisiert, können jedoch einige Fehler enthalten</string>
-<string name="show_prerelease_title">Vorabversionen anzeigen</string>
 <string name="temp">Wir haben eine stabile Methode gefunden, YouTubes neue Verschlüsselung für angemeldete Nutzer zu entschlüsseln, daher ist die Login-Funktion für YouTube wieder verfügbar. Wenn Sie sie benötigen, melden Sie sich bitte über Einstellungen &gt; Konten &gt; YouTube erneut an.</string>
 <string name="show_dislike_title">Anzahl der Dislikes anzeigen</string>
 <string name="sponsor_block_category_highlight">Hervorheben</string>

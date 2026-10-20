@@ -73,7 +73,6 @@
     <string name="settings_category_history_title">Sejarah dan cache</string>
     <string name="settings_category_appearance_title">Penampilan</string>
     <string name="settings_category_debug_title">Nyahpepijat</string>
-    <string name="settings_category_updates_title">Kemas kini</string>
     <string name="background_player_playing_toast">Bermain di latar belakang</string>
     <string name="popup_playing_toast">Bermain dalam mod popup</string>
     <string name="content">Kandungan</string>
@@ -98,8 +97,6 @@
     <string name="file">Fail</string>
     <string name="notification_channel_name">Pemberitahuan NewPipe</string>
     <string name="notification_channel_description">Pemberitahuan untuk pemain latar belakang dan pemain popup NewPipe</string>
-    <string name="app_update_notification_channel_name">Pemberitahuan Kemas Kini App</string>
-    <string name="app_update_notification_channel_description">Pemberitahuan untuk versi NewPipe baru</string>
     <string name="unknown_content">[Tidak diketahui]</string>
     <string name="switch_to_background">Beralih ke Latar Belakang</string>
     <string name="switch_to_popup">Beralih ke Popup</string>
@@ -312,8 +309,6 @@
 \nAnda mesti menerimanya untuk menghantar laporan bug kepada kami.</string>
     <string name="limit_data_usage_none_description">Tiada had</string>
     <string name="limit_mobile_data_usage_title">Had resolusi apabila menggunakan data mudah alih</string>
-    <string name="updates_setting_title">Kemas kini</string>
-    <string name="updates_setting_description">Tunjukkan pemberitahuan untuk mengemaskini aplikasi apabila versi baru tersedia</string>
     <string name="minimize_on_exit_title">Kurangkan apabila beralih app</string>
     <string name="minimize_on_exit_summary">Tindakan apabila beralih ke app lain dari pemain video utama — %s</string>
     <string name="minimize_on_exit_none_description">Tiada</string>
@@ -323,8 +318,6 @@
     <string name="list">Senarai</string>
     <string name="grid">Grid</string>
     <string name="auto">Auto</string>
-    <string name="app_update_notification_content_title">Kemas kini NewPipe Tersedia!</string>
-    <string name="app_update_notification_content_text">Ketik untuk muat turun</string>
     <string name="missions_header_finished">Selesai</string>
     <string name="paused">dijeda</string>
     <string name="queued">telah beratur</string>

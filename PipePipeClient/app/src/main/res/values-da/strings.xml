@@ -73,7 +73,6 @@
     <string name="settings_category_history_title">Historik og cache</string>
     <string name="settings_category_appearance_title">Udseende</string>
     <string name="settings_category_debug_title">Fejlretning</string>
-    <string name="settings_category_updates_title">Opdateringer</string>
     <string name="background_player_playing_toast">Afspiller i baggrunden</string>
     <string name="popup_playing_toast">Afspiller i pop op-tilstand</string>
     <string name="content">Indhold</string>
@@ -101,8 +100,6 @@
     <string name="file">Fil</string>
     <string name="notification_channel_name">NewPipe-notifikation</string>
     <string name="notification_channel_description">Notifikationer for NewPipes baggrunds- og pop op-afspillere</string>
-    <string name="app_update_notification_channel_name">Notifikation om opdatering af app</string>
-    <string name="app_update_notification_channel_description">Notifikationer for nye NewPipe-versioner</string>
     <string name="unknown_content">[Ukendt]</string>
     <string name="switch_to_background">Skift til baggrund</string>
     <string name="switch_to_popup">Skift til pop op</string>
@@ -258,12 +255,10 @@
     <string name="playback_reset">Nulstil</string>
     <string name="limit_data_usage_none_description">Ingen begrænsning</string>
     <string name="limit_mobile_data_usage_title">Begræns opløsning når der bruges mobildata</string>
-    <string name="updates_setting_title">Opdateringer</string>
     <string name="list_view_mode">Listevisning</string>
     <string name="list">Liste</string>
     <string name="grid">Gitter</string>
     <string name="auto">Automatisk</string>
-    <string name="app_update_notification_content_text">Tryk for at downloade</string>
     <string name="missions_header_finished">Færdig</string>
     <string name="missions_header_pending">Afventning</string>
     <string name="post_processing">efterbehandling</string>
@@ -333,13 +328,11 @@
     <string name="playback_pitch">Tonehøjde</string>
     <string name="skip_silence_checkbox">Spol forbi stilhed</string>
     <string name="playback_step">Skridt</string>
-    <string name="updates_setting_description">Vis en notifikation for at foreslå opdatering af appen, når en ny version er tilgængelig</string>
     <string name="minimize_on_exit_title">Minimer ved appskift</string>
     <string name="minimize_on_exit_summary">Handling når der skiftes til en anden app fra hovedvideoafspilleren — %s</string>
     <string name="minimize_on_exit_none_description">Ingen</string>
     <string name="minimize_on_exit_background_description">Minimer til baggrundsafspiller</string>
     <string name="minimize_on_exit_popup_description">Minimer til pop op-afspiller</string>
-    <string name="app_update_notification_content_title">NewPipe-opdatering tilgængelig!</string>
     <string name="paused">sat på pause</string>
     <string name="queued">sat i kø</string>
     <string name="max_retry_msg">Maksimalt antal genforsøg</string>

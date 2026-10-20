@@ -121,7 +121,6 @@
 <string name="settings_category_history_title">Storia e cache</string>
 <string name="settings_category_appearance_title">Aspetto</string>
 <string name="settings_category_debug_title">Debug</string>
-<string name="settings_category_updates_title">Aggiornamenti</string>
 <string name="settings_category_player_notification_title">Notifica del lettore</string>
 <string name="settings_category_player_notification_summary">Configura la notifica del flusso corrente in riproduzione</string>
 <string name="settings_category_sponsor_block_title">SponsorBlock (Beta, Servizio di Terze Parti)</string>
@@ -169,8 +168,6 @@
 <string name="notifications">Notifiche</string>
 <string name="notification_channel_name">Notifica PipePipe</string>
 <string name="notification_channel_description">Notifiche per il player di PipePipe</string>
-<string name="app_update_notification_channel_name">Notifica aggiornamento app</string>
-<string name="app_update_notification_channel_description_new">Notifiche per le nuove versioni di PipePipe</string>
 <string name="hash_channel_name">Notifica hash video</string>
 <string name="hash_channel_description">Notifiche sul progresso dell\'hashing video</string>
 <string name="streams_notification_channel_name">Nuovi stream</string>
@@ -373,10 +370,6 @@
 <string name="streams_notifications_interval_title">Frequenza di controllo</string>
 <string name="streams_notifications_network_title">Connessione di rete richiesta</string>
 <string name="any_network">Qualsiasi rete</string>
-<string name="updates_setting_title">Aggiornamenti</string>
-<string name="updates_setting_description">Mostra una notifica per suggerire l\'aggiornamento dell\'app quando è disponibile una nuova versione</string>
-<string name="manual_update_title">Controlla aggiornamenti</string>
-<string name="manual_update_description">Controlla manualmente le nuove versioni</string>
 <string name="minimize_on_exit_title">Minimizza al cambio app</string>
 <string name="minimize_on_exit_summary">Azione quando si passa a un\'altra app dal lettore video principale — %s</string>
 <string name="minimize_on_exit_none_description">Nessuno</string>
@@ -392,9 +385,6 @@
 <string name="high_quality_larger">Alta qualità (più grande)</string>
 <string name="low_quality_smaller">Bassa qualità (più piccolo)</string>
 <string name="dont_show">Non mostrare</string>
-<string name="app_update_unavailable_toast">Stai utilizzando l\'ultima versione di PipePipe</string>
-<string name="app_update_notification_content_title_new">È disponibile un aggiornamento di PipePipe!</string>
-<string name="app_update_notification_content_text">Tocca per scaricare</string>
 <string name="missions_header_finished">Finito</string>
 <string name="missions_header_pending">In sospeso</string>
 <string name="paused">in pausa</string>
@@ -403,7 +393,6 @@
 <string name="recovering">recupero</string>
 <string name="enqueue">Accodare</string>
 <string name="permission_denied">Azione negata dal sistema</string>
-<string name="checking_updates_toast">Controllo aggiornamenti…</string>
 <string name="download_failed">Download fallito</string>
 <string name="generate_unique_name">Genera nome unico</string>
 <string name="overwrite">Sovrascrivere</string>
@@ -646,8 +635,6 @@
 <string name="navigate_to">Naviga a</string>
 <string name="sort_origin">Originale</string>
 <string name="sort_origin_reverse">Originale (invertito)</string>
-<string name="dialog_title_enable_update_checker">Abilita il controllo aggiornamenti</string>
-<string name="dialog_message_enable_update_checker">Vuoi abilitare il controllo aggiornamenti? Puoi disabilitarlo nelle impostazioni.</string>
 <string name="title_staff_list">Lista del personale</string>
 <string name="av_num">av</string>
 <string name="stat_view">Visualizza</string>
@@ -713,8 +700,6 @@
 <string name="token_expired">Token scaduto</string>
 <string name="subscription_kofi_title">Diventa un sostenitore su Ko-fi</string>
 <string name="show_stream_details">Mostra i dettagli del flusso</string>
-<string name="show_prerelease_description">Gli aggiornamenti delle versioni pre-rilasciate sono più veloci, ma possono contenere alcuni bug</string>
-<string name="show_prerelease_title">Mostra le versioni pre-release</string>
 <string name="temp">Abbiamo trovato un metodo stabile per decifrare la nuova crittografia di YouTube per gli utenti che hanno effettuato l\'accesso, quindi la funzionalità di accesso a YouTube è nuovamente attiva. Se ne hai bisogno, effettua di nuovo l\'accesso tramite Impostazioni &gt; Account &gt; YouTube.</string>
 <string name="show_dislike_title">Mostra il conteggio dei non mi piace</string>
 <string name="sponsor_block_category_highlight">Evidenziare</string>

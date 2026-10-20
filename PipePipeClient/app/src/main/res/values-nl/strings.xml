@@ -314,10 +314,7 @@
     <string name="volume_gesture_control_summary">Gebruik gebaren om het volume van de speler aan te passen</string>
     <string name="brightness_gesture_control_title">Gebaarbesturing voor helderheid</string>
     <string name="brightness_gesture_control_summary">Gebruik gebaren om de helderheid van de speler aan te passen</string>
-    <string name="settings_category_updates_title">Bijwerken</string>
     <string name="file_deleted">Bestand verwijderd</string>
-    <string name="app_update_notification_channel_name">App update melding</string>
-    <string name="app_update_notification_channel_description">Meldingen voor nieuwe New Pipe versies</string>
     <string name="download_to_sdcard_error_title">Externe opslag niet beschikbaar</string>
     <string name="download_to_sdcard_error_message">Downloaden naar externe SD-kaart is niet mogelijk. Download map opnieuw instellen\?</string>
     <string name="saved_tabs_invalid_json">Fout bij het lezen van de opgeslagen tabbladen, waardoor standaardtabbladen worden gebruikt</string>
@@ -325,14 +322,10 @@
     <string name="restore_defaults_confirmation">Wil je de standaardinstellingen herstellen\?</string>
     <string name="subscribers_count_not_available">Aantal abonnees niet beschikbaar</string>
     <string name="main_page_content_summary">Welke tabbladen worden weergegeven op de hoofdpagina</string>
-    <string name="updates_setting_title">Bijwerken</string>
-    <string name="updates_setting_description">Toon een melding om de applicatie te updaten wanneer er een nieuwe versie beschikbaar is</string>
     <string name="list_view_mode">Lijstweergavemodus</string>
     <string name="list">Lijst</string>
     <string name="grid">Raster</string>
     <string name="auto">Auto</string>
-    <string name="app_update_notification_content_title">NewPipe-update is beschikbaar!</string>
-    <string name="app_update_notification_content_text">Tik om te downloaden</string>
     <string name="missions_header_finished">Voltooid</string>
     <string name="missions_header_pending">In afwachting van</string>
     <string name="paused">gepauzeerd</string>
@@ -628,9 +621,6 @@
     <string name="crash_the_player">Crash de speler</string>
     <string name="show_crash_the_player_title">Toon \"crash de speler\"</string>
     <string name="show_crash_the_player_summary">Toon een crash overzicht bij gebruik van de speler</string>
-    <string name="manual_update_description">Controleer handmatig op nieuwe versies</string>
-    <string name="manual_update_title">Controleer op updates</string>
-    <string name="checking_updates_toast">Bezig met controleren op updates…</string>
     <string name="feed_new_items">Nieuwe feed items</string>
     <string name="error_report_channel_name">Foutmelding</string>
     <string name="error_report_channel_description">Beschrijving van foutmeldingen</string>

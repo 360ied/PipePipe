@@ -314,11 +314,8 @@
     <string name="volume_gesture_control_summary">Kasuta viipeid helitugevuse reguleerimiseks</string>
     <string name="brightness_gesture_control_title">Ereduse reguleerimine viibetega</string>
     <string name="brightness_gesture_control_summary">Kasuta viipeid heleduse reguleerimiseks</string>
-    <string name="settings_category_updates_title">Uuendused</string>
     <string name="events">Sündmused</string>
     <string name="file_deleted">Fail kustutati</string>
-    <string name="app_update_notification_channel_name">Rakenduse värskenduse teavitus</string>
-    <string name="app_update_notification_channel_description">Teavitus NewPipe uuetest versioonidest</string>
     <string name="download_to_sdcard_error_title">Väline andmekandja pole saadaval</string>
     <string name="download_to_sdcard_error_message">Allalaadimine välisele SD-kaardile ei ole võimalik. Kas lähtestada allalaadimiste kataloogi asukoht\?</string>
     <string name="saved_tabs_invalid_json">Tõrge salvestatud vahekaaride lugemisel; kasutatakse vaikeväärtusi</string>
@@ -327,14 +324,10 @@
     <string name="subscribers_count_not_available">Tellijate arv pole saadaval</string>
     <string name="main_page_content_summary">Esilehel kuvatavad vahekaardid</string>
     <string name="conferences">Konverentsid</string>
-    <string name="updates_setting_title">Uuendused</string>
-    <string name="updates_setting_description">Kuva teavitus, kui uus versioon on saadaval</string>
     <string name="list_view_mode">Nimekirjavaate režiim</string>
     <string name="list">Nimekiri</string>
     <string name="grid">Võrgustik</string>
     <string name="auto">Auto</string>
-    <string name="app_update_notification_content_title">NewPipe värskendus on saadaval!</string>
-    <string name="app_update_notification_content_text">Allalaadimiseks puuduta</string>
     <string name="missions_header_finished">Lõpetatud</string>
     <string name="missions_header_pending">Ootel</string>
     <string name="paused">peatatud</string>
@@ -625,9 +618,6 @@
     <string name="enqueued_next">Lisasin esitamiseks järgmisena</string>
     <string name="enqueue_next_stream">Lisa esitamiseks järgmisena</string>
     <string name="processing_may_take_a_moment">Töötlen andmeid… Võib kuluda mõni hetk</string>
-    <string name="checking_updates_toast">Kontrollin uuendusi…</string>
-    <string name="manual_update_title">Kontrolli uuendusi</string>
-    <string name="manual_update_description">Kontrolli uuendusi käsitsi</string>
     <string name="feed_new_items">Uued andmevoo kirjed</string>
     <string name="show_crash_the_player_title">Näita „Jooksuta meediamängija kokku“ nupukest</string>
     <string name="show_crash_the_player_summary">Näitab valikut meediamängija kokkujooksutamiseks</string>

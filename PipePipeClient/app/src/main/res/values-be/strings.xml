@@ -313,10 +313,7 @@
     <string name="volume_gesture_control_summary">Мяняць гучнасць плэера жэстам</string>
     <string name="brightness_gesture_control_title">Жэст яркасці</string>
     <string name="brightness_gesture_control_summary">Мяняць яркасць плэера жэстам</string>
-    <string name="settings_category_updates_title">Абнаўленні</string>
     <string name="file_deleted">Файл выдалены</string>
-    <string name="app_update_notification_channel_name">Апавяшчэнне аб абнаўленні</string>
-    <string name="app_update_notification_channel_description">Апавяшчэння аб новай версіі NewPipe</string>
     <string name="download_to_sdcard_error_title">Знешняе сховішча недаступна</string>
     <string name="download_to_sdcard_error_message">Загрузка на знешнюю SD-карту немагчымая. Скінуць размяшчэнне тэчкі загрузкі\?</string>
     <string name="saved_tabs_invalid_json">Памылка чытання захаваных укладак. Выкарыстоўваюцца ўкладкі па змаўчанні</string>
@@ -324,14 +321,10 @@
     <string name="restore_defaults_confirmation">Аднавіць значэнні па змаўчанні\?</string>
     <string name="subscribers_count_not_available">Колькасць падпісчыкаў недаступная</string>
     <string name="main_page_content_summary">Ўкладкі, бачныя на галоўнай старонцы</string>
-    <string name="updates_setting_title">Абнаўлення</string>
-    <string name="updates_setting_description">Паказаць апавяшчэнне пры наяўнасці новай версіі</string>
     <string name="list_view_mode">Выгляд спісу</string>
     <string name="list">Спіс</string>
     <string name="grid">Сетка</string>
     <string name="auto">Аўтаматычна</string>
-    <string name="app_update_notification_content_title">Даступна абнаўленне NewPipe!</string>
-    <string name="app_update_notification_content_text">Націсніце для загрузкі</string>
     <string name="missions_header_finished">Скончана</string>
     <string name="missions_header_pending">У чарзе</string>
     <string name="paused">прыпынена</string>

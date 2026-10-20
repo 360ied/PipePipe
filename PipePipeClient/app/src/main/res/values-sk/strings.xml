@@ -317,11 +317,8 @@
     <string name="volume_gesture_control_summary">Používať gestá pre ovládanie hlasitosti</string>
     <string name="brightness_gesture_control_title">Ovládanie jasu gestom</string>
     <string name="brightness_gesture_control_summary">Použivať gestá pre ovládanie jasu</string>
-    <string name="settings_category_updates_title">Aktualizácie</string>
     <string name="events">Udalosti</string>
     <string name="file_deleted">Súbor vymazaný</string>
-    <string name="app_update_notification_channel_name">Oznámenie o aktualizácii aplikácie</string>
-    <string name="app_update_notification_channel_description">Upozornenia na novú verziu NewPipe</string>
     <string name="download_to_sdcard_error_title">Externé úložisko je nedostupné</string>
     <string name="download_to_sdcard_error_message">Sťahovanie na externú SD kartu nie je možné. Obnoviť umiestnenie priečinka na sťahovanie\?</string>
     <string name="saved_tabs_invalid_json">Chyba pri načítavaní uložených kariet, použijú sa predvolené</string>
@@ -330,14 +327,10 @@
     <string name="subscribers_count_not_available">Počet odberateľov nie je k dispozícii</string>
     <string name="main_page_content_summary">Karty, ktoré sa zobrazujú na hlavnej stránke</string>
     <string name="conferences">Konferencie</string>
-    <string name="updates_setting_title">Aktualizácie</string>
-    <string name="updates_setting_description">Zobrazí sa výzva na aktualizáciu aplikácie, keď je k dispozícii nová verzia</string>
     <string name="list_view_mode">Režim zobrazenia zoznamu</string>
     <string name="list">Zoznam</string>
     <string name="grid">Mriežka</string>
     <string name="auto">Auto</string>
-    <string name="app_update_notification_content_title">Aktualizácia NewPipe je k dispozícii!</string>
-    <string name="app_update_notification_content_text">Ťuknite a stiahnite</string>
     <string name="missions_header_finished">Ukončené</string>
     <string name="missions_header_pending">Vo fronte</string>
     <string name="paused">pozastavené</string>
@@ -637,9 +630,6 @@
     <string name="enqueue_next_stream">Pridať do zoznamu</string>
     <string name="enqueued_next">Ďaľší v poradí</string>
     <string name="processing_may_take_a_moment">Spracovávanie... môže to chvíľku trvať</string>
-    <string name="manual_update_title">Skontrolovať aktualizácie</string>
-    <string name="manual_update_description">Ručne skontrolovať nové verzie</string>
-    <string name="checking_updates_toast">Kontrolujú sa aktualizácie…</string>
     <string name="feed_new_items">Nové položky informačného kanála</string>
     <string name="no_appropriate_file_manager_message">Pre túto akciu sa nenašiel vhodný správca súborov.
 \nNainštalujte si správcu súborov alebo skúste vypnúť \'%s\' v nastaveniach sťahovania.</string>

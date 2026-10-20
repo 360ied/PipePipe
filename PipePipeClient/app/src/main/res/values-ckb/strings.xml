@@ -73,7 +73,6 @@
     <string name="clear_download_history">سڕانەوەی مێژووی دابه‌زاندن</string>
     <string name="just_once">تەنیا ئێستا</string>
     <string name="title_activity_recaptcha">reCAPTCHA داواکاری</string>
-    <string name="settings_category_updates_title">نوێکارییەکان</string>
     <string name="error_http_unsupported_range">ئەم ڕاژەیە ناتوانێت چەندین بابەت لە یەک کاتدا داببەزێنێت</string>
     <string name="feed_use_dedicated_fetch_method_enable_button">كاراکردنی دۆخی خێرا</string>
     <string name="minimize_on_exit_background_description">بچوککردنەوەی ڤیدیۆ بۆ لێده‌ری پاشبنەما</string>
@@ -222,7 +221,6 @@
     <string name="open_in_browser">كردنه‌وه‌ له‌ وێبگه‌ر</string>
     <string name="error_http_no_content">ڕاژەکە هیچ داتایەک نانێرێت</string>
     <string name="watch_history_states_deleted">شوێنی کارپێکراوەکان سڕانەوە</string>
-    <string name="app_update_notification_channel_description">پەیامەکانی وەشانە نوێیەکانی نیوپایپ</string>
     <string name="notification_channel_description">پەیامەکانی لێدەری نیوپایپ</string>
     <string name="feed_use_dedicated_fetch_method_summary">لەهەندێ خزمەتگوزاریدا بەردەستە، بەزۆری خێراترینە بەڵام ڕەنگە هەندێک لە بابەتەکان زانیارییەکانیان ناتەواو بێت (وەک نەبوونی ماوە، جۆری بابەت ، نەبوونی پەخش)</string>
     <plurals name="seconds">
@@ -258,7 +256,6 @@
     <string name="video_streams_empty">هیچ پەخشێکی ڤیدیۆیی نەدۆزرایەوە</string>
     <string name="import_from">هاوردە لە</string>
     <string name="subtitle_activity_recaptcha">كرتە بکە لەسەر ”كرا” کاتێك کە چارەسەرکرا</string>
-    <string name="app_update_notification_channel_name">پەیامی نوێکردنەوەی بەرنامە</string>
     <string name="could_not_load_thumbnails">ناتوانرێت هەموو وێنۆچکەکان باربکرێن</string>
     <string name="previous_export">هەناردەی پێشووتر</string>
     <string name="no_valid_zip_file">فایلی ZIP دروست نییە</string>
@@ -334,7 +331,6 @@
     <string name="download_path_audio_title">فۆڵده‌ری دابه‌زاندنی ده‌نگ</string>
     <string name="events">ڕووداوەکان</string>
     <string name="detail_uploader_thumbnail_view_description">وێنۆچکەی کەسی بەرزکەرەوە</string>
-    <string name="app_update_notification_content_text">كرتە بکە بۆ دابه‌زاندن</string>
     <string name="import_complete_toast">هاورده‌كرا</string>
     <string name="downloads">دابه‌زاندنه‌كان</string>
     <string name="playback_speed_control">کۆنترۆڵی خێرایی کارپێکەر</string>
@@ -371,7 +367,6 @@
     <string name="bookmark_playlist">نیشانه‌كردنی خشته‌لێدان</string>
     <string name="file_name_empty_error">ناوی فایل ناکرێت بەتاڵ بێت</string>
     <string name="youtube_signature_deobfuscation_error">ناتوانرێت واژووی بەستەری ڤیدیۆ بخوێنرێتەوە</string>
-    <string name="updates_setting_description">پیشاندانی پەیامێک بۆ ئامادەبوونی به‌رنامه‌ لەکاتی بەردەست بوونی وەشانی نوێ</string>
     <string name="enable_watch_history_title">مێژووی سەیرکردن</string>
     <string name="enable_disposed_exceptions_title">سکاڵا لەسەر کێشەکان</string>
     <string name="playlist_no_uploader">خۆکار-دانراو (هیچ بەرزکەرەوەیەک نەدۆزرایەوە)</string>
@@ -489,7 +484,6 @@
 \nهەڵبژێرەری فۆڵدەری سیستەم کارابکە (SAF) گەر دەتەوێت بابەتەکانت لە بیرگەی دەرەکیدا داببەزێنرێن</string>
     <string name="title_last_played">دواین لێدراو</string>
     <string name="could_not_setup_download_menu">ناتوانرێ لیستی دابه‌زاندن دابنرێت</string>
-    <string name="app_update_notification_content_title">وەشانی نوێی نیوپایپ بەردەستە!</string>
     <string name="playlist_thumbnail_change_success">وێنۆچکەی خشتەلێدان گۆڕدرا.</string>
     <string name="import_soundcloud_instructions">هێنانەوەی پەڕەی کەسی SoundCloud بەدانانی بەستەر یاخوود ئایدی:
 \n
@@ -499,7 +493,6 @@
 \n4. بەستەری پەڕەی کەسییەکەت دابنێ.</string>
     <string name="charset_letters_and_digits">پیت و ژمارەکان</string>
     <string name="default_content_country_title">بابەتی وڵاتی بنەڕەتی</string>
-    <string name="updates_setting_title">نوێکارییەکان</string>
     <string name="playlist_page_summary">پەڕەی خشته‌لێدان</string>
     <string name="feed_group_show_only_ungrouped_subscriptions">تەنیا به‌ژداریییه‌ كۆمه‌ڵه‌ نەکراوەکان پیشان بدرێن</string>
     <string name="never">هەرگیز</string>
@@ -624,14 +617,11 @@
     <string name="enqueue_next_stream">لە نۆبەت دانان بۆ دواتر</string>
     <string name="enqueued_next">لە نۆبەت دانرا بۆ دواتر</string>
     <string name="processing_may_take_a_moment">جێبەجێ دەکرێت... ڕەنگە ساتێک بخایەنێت</string>
-    <string name="checking_updates_toast">دەپشکنرێت بۆ نوێکردنەوە…</string>
-    <string name="manual_update_description">پشکنینی خۆیی بۆ وەشانی نوێ</string>
     <string name="show_crash_the_player_summary">بژاردەی کڕاش کردن پیشان دەدات لەکاتی بەکارهێنانی لێدەرەکە</string>
     <string name="error_report_notification_toast">کێشەیەک ڕوویدا ، پەیامەکە ببینە</string>
     <string name="error_report_notification_title">نیوپایپ تووشی کێشەیەک بوو ، کرتە بکە بۆ سکاڵاکردن</string>
     <string name="show_crash_the_player_title">پیشاندانی ”کڕاش کردنی لێدەرەکە“</string>
     <string name="create_error_notification">سازاندنی پەیامی کێشەیەک</string>
-    <string name="manual_update_title">پشکنین بۆ نوێکردنەوە</string>
     <string name="error_report_channel_name">کێشە لە سکاڵا کردنی پەیام</string>
     <string name="error_report_channel_description">پەیامەکانی سکاڵاکردن لە کێشەکان</string>
     <string name="feed_new_items">بابەتە نوێیەکانی فیید</string>

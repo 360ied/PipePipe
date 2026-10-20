@@ -2,7 +2,6 @@
 <resources>
     <string name="unmute">Immuta</string>
     <string name="mute">Muta</string>
-    <string name="updates_setting_title">Renovationes</string>
     <string name="error_snackbar_action">Reporta</string>
     <string name="error_http_not_found">Non invenit</string>
     <string name="error_file_creation">Creavit file non potui</string>

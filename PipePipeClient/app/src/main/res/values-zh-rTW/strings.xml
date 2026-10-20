@@ -295,10 +295,7 @@
 <string name="volume_gesture_control_summary">使用手勢控制播放器音量</string>
 <string name="brightness_gesture_control_title">亮度手勢控制</string>
 <string name="brightness_gesture_control_summary">使用手勢控制播放器亮度</string>
-<string name="settings_category_updates_title">更新</string>
 <string name="file_deleted">已刪除檔案</string>
-<string name="app_update_notification_channel_name">應用程式更新通知</string>
-<string name="app_update_notification_channel_description_new">新 PipePipe 版本通知</string>
 <string name="download_to_sdcard_error_title">無法使用外部儲存空間</string>
 <string name="download_to_sdcard_error_message">無法下載到外部 SD 卡。重設下載資料夾位置？</string>
 <string name="saved_tabs_invalid_json">無法讀取已儲存的分頁，因此使用預設分頁</string>
@@ -306,13 +303,10 @@
 <string name="restore_defaults_confirmation">您想要恢復預設值嗎？</string>
 <string name="subscribers_count_not_available">訂閱數不可用</string>
 <string name="main_page_content_summary">要在首頁顯示哪些分頁</string>
-<string name="updates_setting_title">更新</string>
-<string name="updates_setting_description">當有新版本可用時顯示通知以告知應用程式更新</string>
 <string name="list_view_mode">清單檢視模式</string>
 <string name="list">清單</string>
 <string name="grid">網格</string>
 <string name="auto">自動</string>
-<string name="app_update_notification_content_text">輕觸以下載</string>
 <string name="missions_header_finished">已完成</string>
 <string name="missions_header_pending">有待處理</string>
 <string name="paused">已暫停</string>
@@ -592,9 +586,6 @@
 <string name="enqueued_next">已將下一個加入佇列</string>
 <string name="enqueue_next_stream">將下一個加入佇列</string>
 <string name="processing_may_take_a_moment">正在處理……可能需要一點時間</string>
-<string name="manual_update_title">檢查更新</string>
-<string name="manual_update_description">手動檢查新版本</string>
-<string name="checking_updates_toast">正在檢查更新……</string>
 <string name="feed_new_items">新 feed 項目</string>
 <string name="crash_the_player">使播放器當機</string>
 <string name="show_crash_the_player_title">顯示「播放器當機」</string>
@@ -683,8 +674,6 @@
 <string name="youtube_visitor_data_summary">在所有 YouTube 桌面請求上發送訪客數據 cookie。可用於重現 A/B 測試。</string>
 <string name="percent">百分比</string>
 <string name="semitone">半音</string>
-<string name="app_update_unavailable_toast">您正在運行 PipePipe 的最新版本</string>
-<string name="app_update_notification_content_title_new">PipePipe 有更新可用！</string>
 <string name="error_postprocessing_stopped_new">PipePipe 在處理文件時關閉</string>
 <string name="sponsor_block">SponsorBlock</string>
 <string name="sponsor_block_home_page_title">查看網站</string>
@@ -784,8 +773,6 @@
 <string name="navigate_to">導覽至</string>
 <string name="sort_origin">原始</string>
 <string name="sort_origin_reverse">原始（逆向）</string>
-<string name="dialog_title_enable_update_checker">啟用更新檢查</string>
-<string name="dialog_message_enable_update_checker">您要啟用更新檢查嗎？您可在設定中停用。</string>
 <string name="app_description_new">一款自由瀏覽 YouTube、NicoNico 和 BiliBili 的 FLOSS Android 應用程式</string>
 <string name="error_priority_notice">優先順序：GitHub/CodeBerg 上的問題 &gt; 標題清晰、內容禮貌且包含錯誤報告的郵件 &gt; 僅包含錯誤報告的郵件。\n僅包含錯誤報告的郵件將不會收到回覆。</string>
 <string name="sleep_timer_length_title">睡眠計時器</string>
@@ -837,8 +824,6 @@
 <string name="token_expired">憑證已過期</string>
 <string name="subscription_kofi_title">在 Ko-fi 上成為支持者</string>
 <string name="show_stream_details">顯示串流詳細資訊</string>
-<string name="show_prerelease_description">先行版更新較快，但可能存在一些錯誤</string>
-<string name="show_prerelease_title">顯示先行版</string>
 <string name="temp">我們已找到穩定的方法來解密 YouTube 針對已登入使用者的新加密機制，因此已重新開放 YouTube 的登入功能。若有需要，請透過 設定 &gt; 帳戶 &gt; YouTube 重新登入。</string>
 <string name="show_dislike_title">顯示不喜歡數</string>
 <string name="sponsor_block_category_highlight">重點</string>

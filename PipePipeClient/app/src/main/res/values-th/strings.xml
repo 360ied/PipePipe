@@ -71,7 +71,6 @@
     <string name="settings_category_history_title">ประวัติและแคช</string>
     <string name="settings_category_appearance_title">ลักษณะ</string>
     <string name="settings_category_debug_title">แก้ข้อบกพร่อง</string>
-    <string name="settings_category_updates_title">อัพเดต</string>
     <string name="background_player_playing_toast">กำลังเล่นในโหมดพื้นหลัง</string>
     <string name="popup_playing_toast">กำลังเล่นในโหมดป๊อปอัพ</string>
     <string name="content">เนื้อหา</string>
@@ -96,8 +95,6 @@
     <string name="file">ไฟล์</string>
     <string name="notification_channel_name">การแจ้งเตือน NewPipe</string>
     <string name="notification_channel_description">การแจ้งเตือนของแอป NewPipe เมื่อเล่นสื่อในโหมดพื้นหลังและป๊อปอัพ</string>
-    <string name="app_update_notification_channel_name">การแจ้งเตือนการอัปเดตแอป</string>
-    <string name="app_update_notification_channel_description">การแจ้งเตือนสำหรับ NewPipe เวอร์ชั่นใหม่</string>
     <string name="unknown_content">[ไม่ทราบ]</string>
     <string name="switch_to_background">สลับไปยังโหมดพื้นหลัง</string>
     <string name="switch_to_popup">สลับไปยังโหมดป๊อปอัพ</string>
@@ -294,8 +291,6 @@
 \nคุณต้องยอมรับข้อตกลงเพื่ออนุญาตให้ส่งรายงานข้อผิดพลาดถึงเรา</string>
     <string name="limit_data_usage_none_description">ไม่จำกัด</string>
     <string name="limit_mobile_data_usage_title">จำกัดความละเอียดเมื่อใช้ข้อมูลมือถือ</string>
-    <string name="updates_setting_title">อัพเดท</string>
-    <string name="updates_setting_description">แสดงการแจ้งเตือนการปรับปรุงให้ทราบก่อนอัพเดทแอพ เมื่อมีเวอร์ชั่นใหม่ให้พร้อมใช้งาน</string>
     <string name="minimize_on_exit_title">ย่อเล็กสุดเมื่อสลับแอป</string>
     <string name="minimize_on_exit_summary">การดำเนินการเมื่อสลับไปยังแอปอื่นๆ จากโปรแกรมเล่นวิดีโอหลัก — %s</string>
     <string name="minimize_on_exit_none_description">ไม่มี</string>
@@ -305,8 +300,6 @@
     <string name="list">รายการ</string>
     <string name="grid">ตาราง</string>
     <string name="auto">อัตโนมัติ</string>
-    <string name="app_update_notification_content_title">NewPipe พร้อมให้อัพเดทแล้ว!</string>
-    <string name="app_update_notification_content_text">แตะเพื่อดาวน์โหลด</string>
     <string name="missions_header_finished">เสร็จแล้ว</string>
     <string name="missions_header_pending">อยู่ในคิว</string>
     <string name="paused">หยุดชั่วคราว</string>

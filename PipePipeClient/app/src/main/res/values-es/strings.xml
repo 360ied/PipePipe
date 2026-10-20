@@ -125,7 +125,6 @@
 <string name="settings_category_history_title">Historial y caché</string>
 <string name="settings_category_appearance_title">Apariencia</string>
 <string name="settings_category_debug_title">Depuración</string>
-<string name="settings_category_updates_title">Actualizaciones</string>
 <string name="settings_category_player_notification_title">Notificación del reproductor</string>
 <string name="settings_category_player_notification_summary">Configurar notificación de flujo de actual reproducción</string>
 <string name="settings_category_sponsor_block_title">SponsorBlock (Beta, Servicio de terceros)</string>
@@ -173,8 +172,6 @@
 <string name="notifications">Notificaciones</string>
 <string name="notification_channel_name">Notificación de PipePipe</string>
 <string name="notification_channel_description">Notificaciones para el reproductor de PipePipe</string>
-<string name="app_update_notification_channel_name">Notificación de actualización de la aplicación</string>
-<string name="app_update_notification_channel_description_new">Notificaciones de nuevas versiones de PipePipe</string>
 <string name="hash_channel_name">Notificación de hash de vídeo</string>
 <string name="hash_channel_description">Notificaciones sobre el progreso del hash de vídeo</string>
 <string name="streams_notification_channel_name">Nuevas transmisiones</string>
@@ -479,10 +476,6 @@
 <string name="streams_notifications_interval_title">Frecuencia de comprobación</string>
 <string name="streams_notifications_network_title">Conexión de red requerida</string>
 <string name="any_network">Cualquier red</string>
-<string name="updates_setting_title">Actualizaciones</string>
-<string name="updates_setting_description">Mostrar una notificación para alertar sobre actualización de la aplicación cuando hay una nueva versión disponible</string>
-<string name="manual_update_title">Buscar actualizaciones</string>
-<string name="manual_update_description">Buscar manualmente nuevas versiones</string>
 <string name="minimize_on_exit_title">Minimizar al cambiar de aplicación</string>
 <string name="minimize_on_exit_summary">Acción al cambiar a otra aplicación desde el reproductor de vídeo principal — %s</string>
 <string name="minimize_on_exit_none_description">Ninguno</string>
@@ -498,9 +491,6 @@
 <string name="high_quality_larger">Alta calidad (mayor)</string>
 <string name="low_quality_smaller">Baja calidad (menor)</string>
 <string name="dont_show">No mostrar</string>
-<string name="app_update_unavailable_toast">Estás ejecutando la última versión de PipePipe</string>
-<string name="app_update_notification_content_title_new">¡Hay una actualización disponible de PipePipe!</string>
-<string name="app_update_notification_content_text">Toca para descargar</string>
 <string name="missions_header_finished">Terminado</string>
 <string name="missions_header_pending">Pendiente</string>
 <string name="paused">pausado</string>
@@ -509,7 +499,6 @@
 <string name="recovering">recuperando</string>
 <string name="enqueue">Encolar</string>
 <string name="permission_denied">Acción denegada por el sistema</string>
-<string name="checking_updates_toast">Comprobando actualizaciones…</string>
 <string name="download_failed">Descarga fallida</string>
 <plurals name="download_finished_notification">
 <item quantity="one">Descarga finalizada</item>
@@ -778,8 +767,6 @@
 <string name="navigate_to">Navegar</string>
 <string name="sort_origin">Original-es</string>
 <string name="sort_origin_reverse">Original (reverse-es)</string>
-<string name="dialog_title_enable_update_checker">Habilitar comprobador de actualizaciones</string>
-<string name="dialog_message_enable_update_checker">¿Quiere habilitar el comprobador de actualizaciones? Puede desactivarlo en configuraciones.</string>
 <string name="title_staff_list">Lista de personal</string>
 <string name="av_num">av</string>
 <string name="stat_view">Ver</string>
@@ -844,8 +831,6 @@
 <string name="token_expired">Token expirado</string>
 <string name="subscription_kofi_title">Conviértete en un patrocinador en Ko-fi</string>
 <string name="show_stream_details">Mostrar detalles de la transmisión</string>
-<string name="show_prerelease_description">Las actualizaciones de prelanzamiento son más rápidas, pero pueden contener algunos errores</string>
-<string name="show_prerelease_title">Mostrar pre-lanzamientos</string>
 <string name="show_dislike_title">Mostrar el recuento de no me gusta</string>
 <string name="sponsor_block_category_highlight">Resaltar</string>
 <string name="sponsor_block_category_self_promo">Promoción no remunerada/personal</string>

@@ -59,7 +59,6 @@
     <string name="events">Tidyanin</string>
     <string name="no_comments">Ulac iwenniten</string>
     <string name="name">Isem</string>
-    <string name="settings_category_updates_title">Ileqman</string>
     <string name="missions_header_pending">Yettraǧu</string>
     <string name="play_queue_audio_settings">Iɣewwaren n umeslaw</string>
     <string name="unmute">Sermed imesli</string>
@@ -110,7 +109,6 @@
     <string name="website_title">Asmel web</string>
     <string name="settings_category_player_title">Ameɣri</string>
     <string name="conferences">Isaragen</string>
-    <string name="updates_setting_title">Isedγiten</string>
     <string name="theme_title">Asentel</string>
     <string name="dark_theme_title">Ubrik</string>
     <string name="share">Bḍu</string>
@@ -120,7 +118,6 @@
     <string name="playback_pitch">Pas</string>
     <string name="systems_language">Amezwer n unagraw</string>
     <string name="rename">Snifel isem</string>
-    <string name="app_update_notification_content_text">Nnal akken ad tessidreḍ</string>
     <string name="download_failed">Asider ur yeddi ara</string>
     <string name="video">Tamwalit</string>
     <string name="short_billion">o</string>

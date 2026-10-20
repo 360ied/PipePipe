@@ -61,7 +61,6 @@
     <string name="settings_category_history_title">Chronologia e cache</string>
     <string name="settings_category_appearance_title">Apparentia</string>
     <string name="settings_category_debug_title">Depuration</string>
-    <string name="settings_category_updates_title">Actualisationes</string>
     <string name="background_player_playing_toast">Es reproduce in fundo</string>
     <string name="popup_playing_toast">Es reproduce in modo emergente</string>
     <string name="content">Contento</string>
@@ -83,8 +82,6 @@
     <string name="just_once">Solo un vice</string>
     <string name="file">File</string>
     <string name="notification_channel_name">Notification de NewPipe</string>
-    <string name="app_update_notification_channel_name">Notification de actualisation del application</string>
-    <string name="app_update_notification_channel_description">Notificationes de nove versiones de NewPipe</string>
     <string name="unknown_content">[Incognite]</string>
     <string name="switch_to_background">Cambiar a modo fundo</string>
     <string name="switch_to_popup">Cambiar a modo emergente</string>
@@ -135,9 +132,6 @@
     <string name="systems_language">Predefinite del systema</string>
     <string name="app_language_title">Lingua del application</string>
     <string name="feed_update_threshold_option_always_update">Actualisar sempre</string>
-    <string name="app_update_notification_content_title">Il ha un actualisation de NewPipe disponibile!</string>
-    <string name="updates_setting_description">Monstrar un notification pro requestar le actualisation del application quando un nove version es disponibile</string>
-    <string name="updates_setting_title">Actualisationes</string>
     <string name="open_in_popup_mode">Aperir in modo emergente</string>
     <string name="confirm_prompt">Esque tu vole vacuar le chronologia de discargamentos o deler omne files discargate\?</string>
     <string name="clear_download_history">Vacuar le chronologia de discargamentos</string>

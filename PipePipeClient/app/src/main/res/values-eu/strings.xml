@@ -314,11 +314,8 @@
     <string name="volume_gesture_control_summary">Erabili keinuak erreproduzigailuaren bolumena kontrolatzeko</string>
     <string name="brightness_gesture_control_title">Keinuen bidezko distiraren kontrola</string>
     <string name="brightness_gesture_control_summary">Erabili keinuak erreproduzigailuaren distira kontrolatzeko</string>
-    <string name="settings_category_updates_title">Eguneraketak</string>
     <string name="events">Gertaerak</string>
     <string name="file_deleted">Fitxategia ezabatu da</string>
-    <string name="app_update_notification_channel_name">Aplikazioaren eguneraketen jakinarazpena</string>
-    <string name="app_update_notification_channel_description">NewPipe aplikazioaren bertsio berrien jakinarazpena</string>
     <string name="download_to_sdcard_error_title">Kanpo biltegiratzea ez dago eskuragarri</string>
     <string name="download_to_sdcard_error_message">Ezin da SD txartel batera deskargatu. Deskargen karpeta berrezarri nahi duzu\?</string>
     <string name="saved_tabs_invalid_json">Ezin izan dira gordetako fitxak irakurri, lehenetsitako fitxak erabiltzen</string>
@@ -327,14 +324,10 @@
     <string name="subscribers_count_not_available">Harpidedun kopurua ez dago eskuragarri</string>
     <string name="main_page_content_summary">Orri nagusian ikusiko diren fitxak</string>
     <string name="conferences">Konferentziak</string>
-    <string name="updates_setting_title">Eguneraketak</string>
-    <string name="updates_setting_description">Erakutsi jakinarazpena aplikazioa eguneratzea eskatuz bertsio berria eskuragarri dagoenean</string>
     <string name="list_view_mode">Zerrenda ikuspegi modua</string>
     <string name="list">Zerrenda</string>
     <string name="grid">Sareta</string>
     <string name="auto">Automatikoa</string>
-    <string name="app_update_notification_content_title">NewPipe-ren eguneraketa eskuragarri dago!</string>
-    <string name="app_update_notification_content_text">Sakatu deskargatzeko</string>
     <string name="missions_header_finished">Amaituta</string>
     <string name="missions_header_pending">Zain</string>
     <string name="paused">pausatuta</string>
@@ -630,14 +623,11 @@
     <string name="error_report_channel_description">Jakinarazpenak erroreen berri emateko</string>
     <string name="error_report_notification_title">NewPipe-k errore bat aurkitu du, sakatu berri emateko</string>
     <string name="error_report_notification_toast">Errore bat gertatu da, ikusi jakinarazpena</string>
-    <string name="manual_update_title">Bilatu eguneraketak</string>
-    <string name="manual_update_description">Bilatu bertsio berriak eskuz</string>
     <string name="feed_new_items">Elementu berriak jarioan</string>
     <string name="no_appropriate_file_manager_message_android_10">Ez da fitxategi kudeatzaile bat aurkitu ekintza honetarako.
 \nMesedez, instalatu Storage Access Framework-ekin bateragarria den fitxategi kudeatzaile bat.</string>
     <string name="detail_pinned_comment_view_description">Ainguratutako iruzkina</string>
     <string name="crash_the_player">Itxi erreproduzigailua</string>
-    <string name="checking_updates_toast">Eguneraketak bilatzen…</string>
     <string name="no_appropriate_file_manager_message">Ez da fitxategi kudeatzaile bat aurkitu ekintza honetarako.
 \nMesedez, instalatu fitxategi kudeatzaile bat edo saiatu \'%s\' desgaitzen deskarga ezarpenetan.</string>
     <string name="show_crash_the_player_summary">Erreproduzigailua erabiltzean ustekabean ixteko aukera ematen du</string>

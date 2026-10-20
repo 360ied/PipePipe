@@ -121,7 +121,6 @@
 <string name="settings_category_history_title">Historique et cache</string>
 <string name="settings_category_appearance_title">Apparence</string>
 <string name="settings_category_debug_title">Débogage</string>
-<string name="settings_category_updates_title">Mises à jour</string>
 <string name="settings_category_player_notification_title">Notification du lecteur</string>
 <string name="settings_category_player_notification_summary">Configurer la notification du flux en cours de lecture</string>
 <string name="settings_category_sponsor_block_title">SponsorBlock (Beta, Service Tiers)</string>
@@ -169,8 +168,6 @@
 <string name="notifications">Notifications</string>
 <string name="notification_channel_name">Notification PipePipe</string>
 <string name="notification_channel_description">Notifications pour le lecteur de PipePipe</string>
-<string name="app_update_notification_channel_name">Notification de mise à jour de l\'application</string>
-<string name="app_update_notification_channel_description_new">Notifications pour les nouvelles versions de PipePipe</string>
 <string name="hash_channel_name">Notification de hachage vidéo</string>
 <string name="hash_channel_description">Notifications pour la progression du hachage vidéo</string>
 <string name="streams_notification_channel_name">Nouveaux flux</string>
@@ -384,10 +381,6 @@ Voulez-vous continuer?</string>
 <string name="streams_notifications_interval_title">Fréquence de vérification</string>
 <string name="streams_notifications_network_title">Connexion réseau requise</string>
 <string name="any_network">N\'importe quel réseau</string>
-<string name="updates_setting_title">Mises à jour</string>
-<string name="updates_setting_description">Afficher une notification pour inciter à mettre à jour l\'application lorsqu\'une nouvelle version est disponible</string>
-<string name="manual_update_title">Vérifier les mises à jour</string>
-<string name="manual_update_description">Vérifier manuellement les nouvelles versions</string>
 <string name="minimize_on_exit_title">Minimiser en cas de changement d\'application</string>
 <string name="minimize_on_exit_summary">Action lors du passage à une autre application depuis le lecteur vidéo principal — %s</string>
 <string name="minimize_on_exit_none_description">Aucun</string>
@@ -403,9 +396,6 @@ Voulez-vous continuer?</string>
 <string name="high_quality_larger">Haute qualité (plus grand)</string>
 <string name="low_quality_smaller">Basse qualité (plus petit)</string>
 <string name="dont_show">Ne pas afficher</string>
-<string name="app_update_unavailable_toast">Vous utilisez la dernière version de PipePipe</string>
-<string name="app_update_notification_content_title_new">Une mise à jour PipePipe est disponible !</string>
-<string name="app_update_notification_content_text">Appuyez pour télécharger</string>
 <string name="missions_header_finished">Terminé</string>
 <string name="missions_header_pending">En attente</string>
 <string name="paused">en pause</string>
@@ -414,7 +404,6 @@ Voulez-vous continuer?</string>
 <string name="recovering">récupération</string>
 <string name="enqueue">Enfiler</string>
 <string name="permission_denied">Action refusée par le système</string>
-<string name="checking_updates_toast">Recherche de mises à jour…</string>
 <string name="download_failed">Échec du téléchargement</string>
 <string name="generate_unique_name">Générer un nom unique</string>
 <string name="overwrite">Écraser</string>
@@ -671,9 +660,6 @@ Voulez-vous continuer?</string>
 <string name="navigate_to">Naviguer</string>
 <string name="sort_origin">Original</string>
 <string name="sort_origin_reverse">Original (inversé)</string>
-<string name="dialog_title_enable_update_checker">Activer le vérificateur de mise à jour</string>
-<string name="dialog_message_enable_update_checker">Voulez-vous activer le vérificateur de mise à jour?
-    Vous pouvez le désactiver dans les paramètres.</string>
 <string name="title_staff_list">Liste du personnel</string>
 <string name="av_num">av</string>
 <string name="stat_view">Vue</string>
@@ -739,8 +725,6 @@ Voulez-vous continuer?</string>
 <string name="token_expired">Le jeton a expiré</string>
 <string name="subscription_kofi_title">Devenez un supporter sur Ko-fi</string>
 <string name="show_stream_details">Afficher les détails du flux</string>
-<string name="show_prerelease_description">Les pré-versions se mettent à jour plus rapidement, mais peuvent contenir des bugs</string>
-<string name="show_prerelease_title">Afficher les pré-versions</string>
 <string name="temp">Nous avons trouvé une méthode stable pour déchiffrer le nouveau chiffrement de YouTube pour les utilisateurs connectés, de sorte que la fonctionnalité de connexion à YouTube est rouverte. Si vous en avez besoin, veuillez vous reconnecter via Paramètres &gt; Comptes &gt; YouTube.</string>
 <string name="show_dislike_title">Afficher le nombre de désapprobations</string>
 <string name="sponsor_block_category_highlight">Surligner</string>

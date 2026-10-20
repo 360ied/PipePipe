@@ -264,10 +264,7 @@
     <string name="volume_gesture_control_summary">جوڵەی پەنجەت لەسەر ڕوونما بەکاربهێنە بۆ گۆڕینی ئاستی دەنگ</string>
     <string name="brightness_gesture_control_title">کۆنترۆڵی ڕووناکی بەجوڵەی پەنجە</string>
     <string name="brightness_gesture_control_summary">جوڵەی پەنجەت لەسەر ڕوونما بەکاربهێنە بۆ گۆڕینی ئاستی ڕووناکی ڕوونما</string>
-    <string name="settings_category_updates_title">نوێکارییەکان</string>
     <string name="file_deleted">فایل سڕایەوە</string>
-    <string name="app_update_notification_channel_name">پەیامی نوێکاری ئەپ</string>
-    <string name="app_update_notification_channel_description">پەیامەکانی وەشانی نوێی ئەپ</string>
     <string name="download_to_sdcard_error_title">بیرگەی دەرەکی بەردەست نییە</string>
     <string name="download_to_sdcard_error_message">دابەزاندن لە بیرگەی دەرەکی ناکرێت.
 \nشوێنی فۆڵدەری دابەزاندنەکان دابنرێتەوە؟</string>
@@ -356,14 +353,10 @@
     <string name="playback_reset">ڕێکخستنەوە</string>
     <string name="saved_tabs_invalid_json">پەڕە بنەڕەتییەکان بەکاردەبردرێن, ناتوانرێ پەڕە پاشەکەوتکراوەکان بخوێنرێنەوە</string>
     <string name="main_page_content_summary">چ پەڕەیەک نیشانبدرێ لە پەڕەی سەرەکی</string>
-    <string name="updates_setting_title">نوێکارییەکان</string>
-    <string name="updates_setting_description">پیشاندانی پەیامێک بۆ ئامادەبوونی ئەپ لەکاتی بەردەست بوونی وەشانی نوێ</string>
     <string name="list_view_mode">شێوازی پیشاندانی خشتە</string>
     <string name="list">خشتە</string>
     <string name="grid">چوارخانە</string>
     <string name="auto">خۆکاری</string>
-    <string name="app_update_notification_content_title">وەشانی نوێی ئەپ بەردەستە!</string>
-    <string name="app_update_notification_content_text">کرتە بکە بۆ دابەزاندن</string>
     <string name="missions_header_finished">تەواوبوو</string>
     <string name="missions_header_pending">لە نۆرەیە</string>
     <string name="paused">وەستاوە</string>
