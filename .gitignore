@@ -3,6 +3,8 @@
 /nightly
 .claude/settings.local.json
 .gradle-home/
+.direnv/
+.envrc.local
 local.properties
 # Release signing key material (generated locally, never commit)
 release.keystore
