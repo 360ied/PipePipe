@@ -216,8 +216,6 @@
     <string name="no_videos">Nun hai vídeos</string>
     <string name="delete_search_history_alert">¿Desaniciar tol historial de busques\?</string>
     <string name="error_progress_lost">Perdióse\'l progresu porque se desanició\'l ficheru</string>
-    <string name="peertube_instance_url_title">Instancies de PeerTube</string>
-    <string name="peertube_instance_add_exists">La instancia yá esiste</string>
     <string name="app_language_title">Llingua de l\'aplicación</string>
     <string name="systems_language">Lo predeterminao del sistema</string>
     <string name="videos_string">Vídeos</string>
@@ -235,7 +233,6 @@
     <string name="export_complete_toast">Esportóse</string>
     <string name="import_complete_toast">Importóse</string>
     <string name="could_not_import_all_files">Alvertencia: nun pudieron importase tolos ficheros.</string>
-    <string name="peertube_instance_add_fail">Nun pudo validase la instancia</string>
     <plurals name="minutes">
         <item quantity="one">%d minutu</item>
         <item quantity="other">%d minutos</item>
@@ -303,7 +300,6 @@
 \n¿De xuru\? ¡Esto nun pue desfacese!</string>
     <string name="remove_watched_popup_title">¿Desaniciar los vídeos vistos\?</string>
     <string name="remove_watched">Desaniciar lo visto</string>
-    <string name="choose_instance_prompt">Escoyeta d\'una instancia</string>
     <string name="downloads_storage_use_saf_summary">El «Storage Access Framework» permite les descargues nuna tarxeta SD esterna.
 \nDalgunos preseos son incompatibles</string>
     <string name="downloads_storage_use_saf_title">Usar SAF</string>
@@ -483,11 +479,6 @@
 \n
 \nActiva «%1$s» nos axustes de l\'aplicación si quies velu.</string>
     <string name="settings_category_debug_title">Depuración</string>
-    <string name="peertube_instance_add_https_only">Namás se sofiten URLs HTTPS</string>
-    <string name="peertube_instance_add_help">Introduz la URL d\'una instancia</string>
-    <string name="peertube_instance_add_title">Amiestu d\'una instancia</string>
-    <string name="peertube_instance_url_help">Atopa les instancies que te presten en %s</string>
-    <string name="peertube_instance_url_summary">Esbilla les instancies de PeerTube que prefieras</string>
     <string name="unsupported_url_dialog_message">Nun pudo reconocese la URL. ¿Abrila con otra aplicación\?</string>
     <string name="download_dialog_title">Descarga</string>
     <string name="enable_watch_history_summary">Rexistra los vídeos vistos</string>

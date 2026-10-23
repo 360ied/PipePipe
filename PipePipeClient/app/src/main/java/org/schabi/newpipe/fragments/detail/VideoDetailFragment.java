@@ -65,8 +65,6 @@ import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
-import org.schabi.newpipe.extractor.ServiceList;
-import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockAction;
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockCategory;
@@ -122,7 +120,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import static android.text.TextUtils.isEmpty;
 import static org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability.COMMENTS;
 import static org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability.SPONSORBLOCK;
-import static org.schabi.newpipe.extractor.services.bilibili.utils.isFirstP;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.ktx.ViewUtils.animateRotation;
 import static org.schabi.newpipe.player.helper.PlayerHelper.globalScreenOrientationLocked;
@@ -1081,8 +1078,7 @@ public final class VideoDetailFragment
 
     private void runWorker(final boolean forceLoad, final boolean addToBackStack) {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
-        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, forceLoad
-                        || url.contains("live.bilibili.com"))
+        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, forceLoad)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
@@ -1243,11 +1239,8 @@ public final class VideoDetailFragment
         }
 
         if (shouldShowSponsorBlock()) {
-            final boolean isLiveStream = info.getStreamType() == StreamType.LIVE_STREAM;
-            if (isLiveStream
-                    || (info.getServiceId() == ServiceList.BiliBili.getServiceId()
-                            && !isFirstP(info.getId()))) {
-                // exclude for live streams or BiliBili multi-part videos
+            // exclude for live streams
+            if (info.getStreamType() == StreamType.LIVE_STREAM) {
                 int index = pageAdapter.getItemPositionByTitle(SPONSOR_BLOCK_TAB_TAG);
                 if(index != -1){
                     pageAdapter.removeItem(index);
@@ -2049,19 +2042,8 @@ public final class VideoDetailFragment
         }
 
         if (!info.getErrors().isEmpty()) {
-            // Bandcamp fan pages are not yet supported and thus a ContentNotAvailableException is
-            // thrown. This is not an error and thus should not be shown to the user.
-            for (final Throwable throwable : info.getErrors()) {
-                if (throwable instanceof ContentNotSupportedException
-                        && "Fan pages are not supported".equals(throwable.getMessage())) {
-                    info.getErrors().remove(throwable);
-                }
-            }
-
-            if (!info.getErrors().isEmpty()) {
-                showSnackBarError(new ErrorInfo(info.getErrors(),
-                        UserAction.REQUESTED_STREAM, info.getUrl(), info));
-            }
+            showSnackBarError(new ErrorInfo(info.getErrors(),
+                    UserAction.REQUESTED_STREAM, info.getUrl(), info));
         }
 
         binding.detailControlsDownload.setVisibility(info.getStreamType() == StreamType.LIVE_STREAM

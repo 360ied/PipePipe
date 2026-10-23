@@ -413,14 +413,6 @@
     <string name="restricted_video">Aquest vídeo té una restricció per edat.
 \n
 \nSi desitgeu visualitzar-lo, activeu \"%1$s\" a paràmetres.</string>
-    <string name="peertube_instance_add_exists">La instància introduïda ja existeix</string>
-    <string name="peertube_instance_add_https_only">Només estàn soportades URLs HTTPS</string>
-    <string name="peertube_instance_add_fail">No ha estat possible validar la instància</string>
-    <string name="peertube_instance_add_help">Introdueix l\'enllaç d\'una instància</string>
-    <string name="peertube_instance_add_title">Afegeix-hi una instància</string>
-    <string name="peertube_instance_url_help">Troba les instàncies que t\'agraden en %s</string>
-    <string name="peertube_instance_url_summary">Selecciona les teves instàncies preferides del PeerTube</string>
-    <string name="peertube_instance_url_title">Instàncies del PeerTube</string>
     <string name="seek_duration_title">Avançar/-rebobinar duració cerca</string>
     <string name="recent">Recents</string>
     <string name="show_thumbnail_summary">Estableix la miniatura com a fons de la pantalla de bloqueig i també de les notificacions</string>
@@ -489,7 +481,6 @@
     <string name="remove_watched">Esborra els ja vistos</string>
     <string name="systems_language">Valors per defecte</string>
     <string name="app_language_title">Llengua de l\'aplicació</string>
-    <string name="choose_instance_prompt">Escolliu una instància</string>
     <string name="delete_downloaded_files">Esborrar els fitxers de baixades anteriors</string>
     <string name="clear_download_history">Esborra l\'historial de baixades</string>
     <string name="error_download_resource_gone">No s\'ha pogut recuperar aquesta baixada</string>

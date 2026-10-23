@@ -57,7 +57,6 @@
     </plurals>
     <string name="systems_language">E parazgjedhura e sistemit</string>
     <string name="app_language_title">Gjuha e aplikacionit</string>
-    <string name="choose_instance_prompt">Zgjidhni një instancë</string>
     <string name="downloads_storage_use_saf_summary">\'Storage Access Framework\' lejon shkarkime në një kartë SD të jashtme</string>
     <string name="downloads_storage_use_saf_title">Përdor zgjedhësin e direktorisë së sistemit (SAF)</string>
     <string name="downloads_storage_ask_summary">Ju do të pyeteni se ku duhet ruajtur çdo shkarkim
@@ -439,14 +438,6 @@
     <string name="popup_playing_toast">Duke luajtur në modalitetin popup</string>
     <string name="background_player_playing_toast">Duke luajtur në sfond</string>
     <string name="settings_category_debug_title">Rregullo</string>
-    <string name="peertube_instance_add_exists">Instanca ekziston tashmë</string>
-    <string name="peertube_instance_add_https_only">Vetëm URL-të HTTPS janë të mbështetura</string>
-    <string name="peertube_instance_add_fail">Nuk arriti të vërtetësohej instanca</string>
-    <string name="peertube_instance_add_help">Vendosni URL e instancës</string>
-    <string name="peertube_instance_add_title">Shtoni instancë</string>
-    <string name="peertube_instance_url_help">Gjeni instancat që ju pëlqeni në %s</string>
-    <string name="peertube_instance_url_summary">Zgjidhni instancat tuaja të preferuara të PeerTube</string>
-    <string name="peertube_instance_url_title">Instancat PeerTube</string>
     <string name="default_content_country_title">Shteti i parazgjedhur i përmbajtjes</string>
     <string name="unsupported_url">URL e pambështetur</string>
     <string name="autoplay_title">Luajtje automatike</string>

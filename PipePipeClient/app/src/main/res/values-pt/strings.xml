@@ -398,21 +398,12 @@
     </plurals>
     <string name="localization_changes_requires_app_restart">O idioma será alterado assim que reiniciar a app</string>
     <string name="seek_duration_title">Duração da pesquisa de avanço/recuo rápido</string>
-    <string name="peertube_instance_url_title">Instâncias PeerTube</string>
-    <string name="peertube_instance_url_summary">Defina as suas instâncias favoritas PeerTube</string>
-    <string name="peertube_instance_url_help">Encontre as instâncias que gosta em %s</string>
-    <string name="peertube_instance_add_title">Adicionar instância</string>
-    <string name="peertube_instance_add_help">Digite o URL da instância</string>
-    <string name="peertube_instance_add_fail">Falha ao validar a instância</string>
-    <string name="peertube_instance_add_https_only">Apenas os URL HTTPS são suportados</string>
-    <string name="peertube_instance_add_exists">Instância já existe</string>
     <string name="local">Local</string>
     <string name="recently_added">Recentes</string>
     <string name="most_liked">Mais apreciados</string>
     <string name="playlist_no_uploader">Geração automática (não foi encontrado nenhum enviador)</string>
     <string name="recovering">a recuperar</string>
     <string name="error_download_resource_gone">Não é possível recuperar esta descarga</string>
-    <string name="choose_instance_prompt">Escolha uma instância</string>
     <string name="clear_download_history">Limpar histórico de descargas</string>
     <string name="delete_downloaded_files">Remover ficheiros descarregados</string>
     <string name="permission_display_over_apps">Permitir sobreposição a outras aplicações</string>

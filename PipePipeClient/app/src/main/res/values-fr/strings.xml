@@ -109,14 +109,6 @@
 <string name="unsupported_url">URL non supportée</string>
 <string name="unsupported_url_dialog_message">Impossible de reconnaître l\'URL. Ouvrir avec une autre application ?</string>
 <string name="default_content_country_title">Pays de contenu par défaut</string>
-<string name="peertube_instance_url_title">Instances PeerTube</string>
-<string name="peertube_instance_url_summary">Sélectionnez vos instances PeerTube préférées</string>
-<string name="peertube_instance_url_help">Trouvez les instances que vous aimez sur %s</string>
-<string name="peertube_instance_add_title">Ajouter une instance</string>
-<string name="peertube_instance_add_help">Entrez l\'URL de l\'instance</string>
-<string name="peertube_instance_add_fail">Impossible de valider l\'instance</string>
-<string name="peertube_instance_add_https_only">Seules les URLs HTTPS sont prises en charge</string>
-<string name="peertube_instance_add_exists">L\'instance existe déjà</string>
 <string name="settings_category_player_title">Lecteur</string>
 <string name="settings_category_history_title">Historique et cache</string>
 <string name="settings_category_appearance_title">Apparence</string>
@@ -446,7 +438,6 @@ Voulez-vous continuer?</string>
 <string name="downloads_storage_ask_summary_no_saf_notice">Vous serez invité à choisir où enregistrer chaque téléchargement</string>
 <string name="downloads_storage_use_saf_title">Utiliser le sélecteur de dossier système (SAF)</string>
 <string name="downloads_storage_use_saf_summary">Le \'Storage Access Framework\' permet des téléchargements vers une carte SD externe</string>
-<string name="choose_instance_prompt">Choisir une instance</string>
 <string name="app_language_title">Langue de l\'application</string>
 <string name="systems_language">Langue par défaut du système</string>
 <string name="remove_watched">Retirer visionnés</string>
@@ -601,8 +592,6 @@ Voulez-vous continuer?</string>
 <string name="enable_eye_protection_summary">Désactiver le changement dynamique de thème et utiliser un thème de protection pour les yeux sur tous les services</string>
 <string name="enable_eye_protection_title">Activer la protection des yeux</string>
 <string name="account">Compte</string>
-<string name="settings_category_niconico_account_title">Compte NicoNico</string>
-<string name="settings_category_bilibili_account_title">Compte BiliBili</string>
 <string name="settings_category_youtube_account_title">Compte YouTube</string>
 <string name="login_warning">Les jetons ne seront utilisés que si nécessaire</string>
 <string name="login_title">Connexion</string>
@@ -1006,7 +995,6 @@ Voulez-vous continuer?</string>
 <string name="rotate_fullscreen_to_video_orientation_summary">Faire pivoter l\'écran en mode portrait ou paysage en fonction de la vidéo en mode plein écran</string>
 <string name="rotation_controls_fullscreen_title">Basculer automatiquement en plein écran lors de la rotation</string>
 <string name="rotation_controls_fullscreen_summary">Lorsque la rotation automatique du système est activée, la rotation en mode paysage active le plein écran et la rotation en mode portrait quitte le plein écran</string>
-<string name="niconico_login_summary">Les jetons ne seront utilisés que lorsque cela est nécessaire. La page de connexion peut ne pas fonctionner sur les anciens appareils avec un WebView obsolète.</string>
 <string name="minimize_gesture_control_title">Balayer vers le bas pour réduire</string>
 <string name="minimize_gesture_control_summary">Balayer vers le bas sur le lecteur pour le réduire en mini-lecteur — %s</string>
 <string name="minimize_gesture_none_description">Désactivé</string>

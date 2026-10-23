@@ -70,8 +70,6 @@
 \nPara o poder ver, tem que ativar \"%1$s\" nas definições.</string>
     <string name="read_full_license">Ver licença</string>
     <string name="help">Ajuda</string>
-    <string name="peertube_instance_add_https_only">Apenas os URL HTTPS são suportados</string>
-    <string name="peertube_instance_add_fail">Falha ao validar a instância</string>
     <string name="clear_download_history">Limpar histórico de descargas</string>
     <string name="delete_playback_states_alert">Remover todas as posições de reprodução\?</string>
     <string name="enable_queue_limit">Limitar fila de descargas</string>
@@ -164,7 +162,6 @@
     <string name="minimize_on_exit_background_description">Ativar reprodutor em segundo plano</string>
     <string name="recaptcha_request_toast">Desafio reCAPTCHA solicitado</string>
     <string name="autoplay_title">Reprodução automática</string>
-    <string name="peertube_instance_add_exists">Instância já existe</string>
     <string name="donation_encouragement">NewPipe é desenvolvido por voluntários que utilizam o seu tempo livre para nos proporcionar a melhor experiência. Retribua para ajudar os programadores a tornarem NewPipe ainda melhor.</string>
     <string name="auto_queue_summary">Continuar (sem repetição) a fila de reprodução anexando um vídeo relacionado</string>
     <string name="always">Sempre</string>
@@ -275,10 +272,8 @@
     <string name="play_queue_audio_settings">Definições de áudio</string>
     <string name="delete">Eliminar</string>
     <string name="playback_tempo">Ritmo</string>
-    <string name="peertube_instance_url_title">Instâncias PeerTube</string>
     <string name="settings_category_player_title">Reprodutor</string>
     <string name="settings_category_debug_title">Depuração</string>
-    <string name="peertube_instance_add_help">Digite o URL da instância</string>
     <string name="preferred_open_action_settings_title">Ação de \'Abrir\' preferida</string>
     <string name="charset_letters_and_digits">Letras e dígitos</string>
     <string name="enable_leak_canary_summary">A monitorização de memória pode tornar a aplicação instável</string>
@@ -328,7 +323,6 @@
         <item quantity="other">%d horas</item>
     </plurals>
     <string name="auto_queue_title">Enfileirar o próximo stream automaticamente</string>
-    <string name="peertube_instance_url_summary">Defina as suas instâncias favoritas PeerTube</string>
     <string name="export_data_summary">Exportar histórico, subscrições, listas de reprodução e definições</string>
     <string name="best_resolution">Melhor resolução</string>
     <string name="select_a_channel">Selecione um canal</string>
@@ -364,7 +358,6 @@
     <string name="contribution_title">Participar</string>
     <string name="controls_background_title">Segundo plano</string>
     <string name="unknown_content">[Desconhecido]</string>
-    <string name="peertube_instance_url_help">Encontre as instâncias que gosta em %s</string>
     <string name="select_a_kiosk">Selecione um \"kiosk\"</string>
     <string name="channels">Canais</string>
     <string name="max_retry_msg">Tentativas máximas</string>
@@ -435,7 +428,6 @@
     <string name="feed_use_dedicated_fetch_method_title">Se possível, obter de uma fonte dedicada</string>
     <string name="feed_group_dialog_select_subscriptions">Selecionar subscrições</string>
     <string name="playlist_add_stream_success">Adicionado à lista de reprodução</string>
-    <string name="choose_instance_prompt">Escolha uma instância</string>
     <string name="metadata_cache_wipe_summary">Limpar todos os dados da página web</string>
     <string name="drawer_close">Fechar menu</string>
     <string name="brightness_gesture_control_summary">Utilizar gestos para controlar o brilho do reprodutor</string>
@@ -492,7 +484,6 @@
     <string name="permission_denied">Ação recusada pelo sistema</string>
     <string name="songs">Músicas</string>
     <string name="localization_changes_requires_app_restart">O idioma será alterado assim que reiniciar a app</string>
-    <string name="peertube_instance_add_title">Adicionar instância</string>
     <string name="tracks">Faixas</string>
     <string name="play_with_kodi_title">Reproduzir no Kodi</string>
     <string name="download_to_sdcard_error_title">Armazenamento externo indisponível</string>

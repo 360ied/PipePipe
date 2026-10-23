@@ -381,7 +381,6 @@
     <string name="no_one_listening">Nitko ne sluša</string>
     <string name="localization_changes_requires_app_restart">Jezik će se promijeniti nakon ponovnog pokretanja programa</string>
     <string name="default_kiosk_page_summary">Zadani Kiosk</string>
-    <string name="peertube_instance_add_https_only">Podržani su samo HTTP URL-ovi</string>
     <string name="local">Lokalno</string>
     <string name="recently_added">Nedavno dodano</string>
     <string name="playlist_no_uploader">Autogenerirano (prenositelj nedefiniran)</string>
@@ -478,7 +477,6 @@
     <string name="feed_oldest_subscription_update">Zadnje aktualiziranje feeda: %s</string>
     <string name="feed_groups_header_title">Grupe kanala</string>
     <string name="remove_watched_popup_yes_and_partially_watched_videos">Da, i djelomično pogledane videozapise</string>
-    <string name="choose_instance_prompt">Odaberi primjerak</string>
     <string name="downloads_storage_ask_summary">Aplikacija će te pitati kamo spremati preuzimanja.
 \nOmogući birač mapa sustava (SAF), ako želiš preuzimati na vanjsku SD karticu</string>
     <string name="error_download_resource_gone">Nije moguće obnoviti ovo preuzimanje</string>
@@ -506,13 +504,6 @@
     <string name="restricted_video">Ovaj video je dobno ograničen.
 \n
 \nZa prikaz sadržaja uključi „%1$s” u postavkama.</string>
-    <string name="peertube_instance_add_exists">Primjerak već postoji</string>
-    <string name="peertube_instance_add_fail">Neuspjela provjera primjerka</string>
-    <string name="peertube_instance_add_help">Upiši URL primjerka</string>
-    <string name="peertube_instance_add_title">Dodaj primjerak</string>
-    <string name="peertube_instance_url_help">Pronađi omiljene primjerke na %s</string>
-    <string name="peertube_instance_url_summary">Odaberi tvoje omiljene PeerTube primjerke</string>
-    <string name="peertube_instance_url_title">PeerTube primjerci</string>
     <string name="seek_duration_title">Vrijeme premotavanja prema naprijed ili natrag</string>
     <string name="notification_action_nothing">Ništa</string>
     <string name="notification_action_shuffle">Promiješaj</string>

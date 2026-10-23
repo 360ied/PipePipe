@@ -10,7 +10,6 @@ import org.schabi.newpipe.streams.io.SharpStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Objects;
 
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.io.ChunkFileInputStream;
@@ -21,7 +20,6 @@ import us.shandian.giga.io.ProgressReport;
 import static us.shandian.giga.get.DownloadMission.ERROR_NOTHING;
 import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING;
 import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING_HOLD;
-import static us.shandian.giga.util.Utility.removeTempFileOfDownloadedVideo;
 
 public abstract class Postprocessing implements Serializable {
 
@@ -32,8 +30,6 @@ public abstract class Postprocessing implements Serializable {
     public transient static final String ALGORITHM_MP4_FROM_DASH_MUXER = "mp4D-mp4";
     public transient static final String ALGORITHM_M4A_NO_DASH = "mp4D-m4a";
     public transient static final String ALGORITHM_OGG_FROM_WEBM_DEMUXER = "webm-ogg-d";
-    public transient static final String BILIBILI_MUXER = "bilibili";
-    public transient static final String NICONICO_MUXER = "niconico";
 
     public static Postprocessing getAlgorithm(@NonNull String algorithmName, String[] args) {
         Postprocessing instance;
@@ -53,12 +49,6 @@ public abstract class Postprocessing implements Serializable {
                 break;
             case ALGORITHM_OGG_FROM_WEBM_DEMUXER:
                 instance = new OggFromWebmDemuxer();
-                break;
-            case BILIBILI_MUXER:
-                instance = new BiliBiliMp4Muxer();
-                break;
-            case NICONICO_MUXER:
-                instance = new NicoNicoMuxer();
                 break;
             /*case "example-algorithm":
                 instance = new ExampleAlgorithm();*/
@@ -183,14 +173,7 @@ public abstract class Postprocessing implements Serializable {
                         };
 
 
-                        if (Objects.equals(target.psAlgorithm.name, NICONICO_MUXER)) {
-                            result = process(target.storage.source, target.context, out, sources);
-                            ((NicoNicoMuxer)this).download(target.storage.source, target.context, target.urls, mission);
-                        } else if (Objects.equals(target.psAlgorithm.name, BILIBILI_MUXER)) {
-                            result = ((BiliBiliMp4Muxer)this).mux(target.storage, target.context, out, sources);
-                        } else {
-                            result = process(target.storage.source, target.context, out, sources);
-                        }
+                        result = process(target.storage.source, target.context, out, sources);
 
                         if (result == OK_RESULT)
                             finalLength = out.finalizeFile();
@@ -208,9 +191,6 @@ public abstract class Postprocessing implements Serializable {
                     //noinspection ResultOfMethodCallIgnored
                     tempFile.delete();
                     tempFile = null;
-                }
-                if(target.psAlgorithm.name == BILIBILI_MUXER){
-                    removeTempFileOfDownloadedVideo(target.storage);
                 }
 
             }

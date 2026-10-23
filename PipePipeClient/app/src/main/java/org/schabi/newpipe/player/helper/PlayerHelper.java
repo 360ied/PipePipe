@@ -286,10 +286,8 @@ public final class PlayerHelper {
         if (Utils.isNullOrEmpty(relatedItems)) {
             return null;
         }
-        if(info.getServiceId() == 5){
-            if (info.isRoundPlayStream()) {
-                return getAutoQueuedSinglePlayQueue((StreamInfoItem) relatedItems.get(0));
-            }
+        if (info.isRoundPlayStream()) {
+            return getAutoQueuedSinglePlayQueue((StreamInfoItem) relatedItems.get(0));
         }
 
         // if YouTube, only enqueue the first one since others are not guaranteed to be related

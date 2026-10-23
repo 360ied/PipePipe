@@ -446,7 +446,6 @@
     <string name="restricted_video">Ez a videó korhatáros.
 \n
 \nEngedélyezze a(z) „%1$s” beállítást, ha meg szeretné tekinteni.</string>
-    <string name="peertube_instance_add_https_only">Csak a HTTPS webcímek támogatottak</string>
     <string name="show_meta_info_title">Metainformációk megjelenítése</string>
     <string name="night_theme_title">Éjszakai téma</string>
     <string name="notification_colorize_summary">Az Android igazítsa az értesítés színét a bélyegkép meghatározó színéhez (nem minden eszközön érhető el)</string>
@@ -500,13 +499,6 @@
     <string name="saved_tabs_invalid_json">Nem sikerült a mentett lapok olvasása, alapértelmezettek használata</string>
     <string name="hash_channel_description">Értesítések a videók ujjlenyomat-készítési folyamatához</string>
     <string name="hash_channel_name">Videó ujjlenyomat-készítési értesítése</string>
-    <string name="peertube_instance_add_exists">A példány már létezik</string>
-    <string name="peertube_instance_add_fail">A példány érvényesítése nem sikerült</string>
-    <string name="peertube_instance_add_help">Adja meg a példány webcímét</string>
-    <string name="peertube_instance_add_title">Példány hozzáadása</string>
-    <string name="peertube_instance_url_help">Találjon önnek tetsző példányokat itt: %s</string>
-    <string name="peertube_instance_url_summary">Válassza ki a kedvenc PeerTube példányait</string>
-    <string name="peertube_instance_url_title">PeerTube példányok</string>
     <string name="enable_disposed_exceptions_title">Életciklusából kifutott hibák jelentése</string>
     <string name="preferred_open_action_settings_title">Előnyben részesített „megnyitási” művelet</string>
     <string name="drawer_close">Fiók bezárása</string>
@@ -538,7 +530,6 @@
     <string name="show_image_indicators_summary">Picasso színes szalagok megjelenítése a képek fölött, megjelölve a forrásukat: piros a hálózathoz, kék a lemezhez, zöld a memóriához</string>
     <string name="downloads_storage_ask_summary_no_saf_notice">Minden letöltésnél meg fogja kérdezni, hogy hova mentse el</string>
     <string name="downloads_storage_use_saf_summary_api_19">A „Storage Access Framework” nem támogatott Android KitKaten vagy régebbin</string>
-    <string name="choose_instance_prompt">Válasszon egy példányt</string>
     <string name="feed_oldest_subscription_update">Lista legutóbb frissítve: %s</string>
     <string name="feed_notification_loading">Lista betöltése…</string>
     <string name="feed_group_show_only_ungrouped_subscriptions">Csak a nem csoportosított feliratkozások megjelenítése</string>

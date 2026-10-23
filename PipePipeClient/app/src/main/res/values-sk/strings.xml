@@ -403,21 +403,12 @@
     </plurals>
     <string name="localization_changes_requires_app_restart">Zmena jazyka sa prejaví po reštarte aplikácie</string>
     <string name="seek_duration_title">Dĺžka rýchleho pretáčania</string>
-    <string name="peertube_instance_url_title">Inštancie PeerTube</string>
-    <string name="peertube_instance_url_summary">Vyberte si svoje obľúbené inštancie PeerTube</string>
-    <string name="peertube_instance_url_help">Nájdite inštancie, ktoré chcete na %s</string>
-    <string name="peertube_instance_add_title">Pridať inštanciu</string>
-    <string name="peertube_instance_add_help">Vložiť URL inštancie</string>
-    <string name="peertube_instance_add_fail">Nepodarilo sa overiť inštanciu</string>
-    <string name="peertube_instance_add_https_only">Podporované sú iba adresy URL s HTTPS</string>
-    <string name="peertube_instance_add_exists">Inštancia už existuje</string>
     <string name="local">Miestne</string>
     <string name="recently_added">Nedávno pridané</string>
     <string name="most_liked">Najobľúbenejšie</string>
     <string name="playlist_no_uploader">Automaticky generované (používateľ sa nenašiel)</string>
     <string name="recovering">obnovovanie</string>
     <string name="error_download_resource_gone">Sťahovanie nemožno obnoviť</string>
-    <string name="choose_instance_prompt">Vyberte inštanciu</string>
     <string name="clear_download_history">Vymazať históriu sťahovania</string>
     <string name="delete_downloaded_files">Vymazať stiahnuté súbory</string>
     <string name="permission_display_over_apps">Súhlas pre zobrazenie cez ďalšie aplikácie</string>

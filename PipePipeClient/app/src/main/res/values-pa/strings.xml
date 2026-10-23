@@ -490,7 +490,6 @@
     <string name="remove_watched">ਵੇਖੀਆਂ ਹੋਈਆਂ ਹਟਾਓ</string>
     <string name="systems_language">ਸਿਸਟਮ ਡਿਫ਼ਾਲਟ</string>
     <string name="app_language_title">ਐਪ ਭਾਸ਼ਾ</string>
-    <string name="choose_instance_prompt">ਕੋਈ ਸਥਿਤੀ ਚੁਣੋ</string>
     <string name="downloads_storage_use_saf_summary_api_19">\'ਸਟੋਰੇਜ ਐਕਸੈੱਸ ਫ਼ਰੇਮਵਰਕ\' ਐਂਡਰਾਇਡ ਕਿਟਕੈਟ ਅਤੇ ਇਸਤੋਂ ਹੇਠਾਂ ਦੇ ਵਰਜਨਾਂ \'ਤੇ ਕੰਮ ਨਹੀਂ ਕਰਦਾ</string>
     <string name="downloads_storage_ask_summary_no_saf_notice">ਤੁਹਾਨੂੰ ਹਰ ਵਾਰ ਪੁੱਛਿਆ ਜਾਵੇਗਾ ਕਿ ਡਾਊਨਲੋਡ ਨੂੰ ਕਿੱਥੇ ਸਾਂਭਣਾ ਹੈ</string>
     <string name="delete_downloaded_files">ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਫ਼ਾਈਲਾਂ ਮਿਟਾਓ</string>
@@ -543,14 +542,6 @@
     <string name="restricted_video">ਇਹ ਵੀਡੀਓ ਉਮਰ-ਪਾਬੰਦੀਸ਼ੁਦਾ ਹੈ।
 \n
 \nਜੇ ਤੁਸੀਂ ਇਸਨੂੰ ਵੇਖਣਾ ਚਾਹੁੰਦੇ ਹੋ ਤਾਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚੋਂ \"%1$s\" ਚਾਲੂ ਕਰੋ।</string>
-    <string name="peertube_instance_add_exists">ਸਥਿਤੀ ਪਹਿਲਾਂ ਨੂੰ ਮੌਜੂਦ ਹੈ</string>
-    <string name="peertube_instance_add_https_only">ਸਿਰਫ਼ HTTP URLs ਹੀ ਮਾਣਨਯੋਗ ਹਨ</string>
-    <string name="peertube_instance_add_fail">ਸਥਿਤੀ ਦੀ ਜਾਇਜ਼ਗੀ ਤਸਦੀਕ ਨਹੀਂ ਹੋ ਸਕੀ</string>
-    <string name="peertube_instance_add_help">ਸਥਿਤੀ URL ਦਾਖ਼ਲ ਕਰੋ</string>
-    <string name="peertube_instance_add_title">ਸਥਿਤੀਆਂ ਜੋੜੋ</string>
-    <string name="peertube_instance_url_help">ਤੁਹਾਡੀਆਂ ਪਸੰਦੀਦਾ ਸਥਿਤੀਆਂ %s \'ਤੇ ਲੱਭੋ</string>
-    <string name="peertube_instance_url_summary">ਆਪਣੀ ਪਸੰਦੀਦਾ ਪੀਰਟਿਊਬ ਸਥਿਤੀਆਂ ਚੁਣੋ</string>
-    <string name="peertube_instance_url_title">ਪੀਰਟਿਊਬ ਸਥਿਤੀਆਂ</string>
     <string name="unsupported_url_dialog_message">URL ਪਛਾਣ ਨਹੀਂ ਹੋਇਆ। ਕਿਸੇ ਹੋਰ ਐਪ ਨਾਲ਼ ਖੋਲ੍ਹਣਾ ਹੈ\?</string>
     <string name="auto_queue_toggle">ਆਪ-ਮੁਖ਼ਤਾਰ ਕਤਾਰ</string>
     <string name="show_meta_info_summary">ਸਟ੍ਰੀਮ ਦੇ ਕਰਤਾ, ਸਮੱਗਰੀ ਜਾਂ ਖੋਜ ਬੇਨਤੀ ਵਾਲੇ ਵਾਧੂ ਜਾਣਕਾਰੀ ਬਕਸਿਆਂ ਵਾਲ਼ੀ ਮੈਟਾ ਜਾਣਕਾਰੀ ਲੁਕਾਉਣ ਲਈ ਇਸਨੂੰ ਬੰਦ ਕਰ ਦਿਓ।</string>

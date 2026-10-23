@@ -119,14 +119,6 @@
 <item quantity="one">%s yanıt</item>
 <item quantity="other">%s yanıt</item>
 </plurals>
-<string name="peertube_instance_url_title">PeerTube sunucuları</string>
-<string name="peertube_instance_url_summary">Favori PeerTube sunucularınızı seçin</string>
-<string name="peertube_instance_url_help">Beğendiğiniz sunucuları %s üzerinde bulun</string>
-<string name="peertube_instance_add_title">Sunucu ekle</string>
-<string name="peertube_instance_add_help">Sunucu URL\'sini girin</string>
-<string name="peertube_instance_add_fail">Sunucu doğrulanamadı</string>
-<string name="peertube_instance_add_https_only">Yalnızca HTTPS URL\'leri desteklenir</string>
-<string name="peertube_instance_add_exists">Sunucu zaten mevcut</string>
 <string name="settings_category_player_title">Oynatıcı</string>
 <string name="settings_category_history_title">Geçmiş ve önbellek</string>
 <string name="settings_category_appearance_title">Görünüm</string>
@@ -579,7 +571,6 @@
 <string name="downloads_storage_ask_summary_no_saf_notice">Her indirmeyi nereye kaydedeceğiniz sorulacaktır</string>
 <string name="downloads_storage_use_saf_title">Sistem klasör seçicisini (SAF) kullan</string>
 <string name="downloads_storage_use_saf_summary">\'Depolama Erişim Çerçevesi\' (SAF) harici bir SD karta indirmeye izin verir</string>
-<string name="choose_instance_prompt">Bir sunucu seçin</string>
 <string name="app_language_title">Uygulama dili</string>
 <string name="systems_language">Sistem varsayılanı</string>
 <string name="remove_watched">İzlenenleri kaldır</string>
@@ -814,8 +805,6 @@
 <string name="enable_eye_protection_summary">Dinamik tema değiştirmeyi devre dışı bırak ve tüm hizmetler için göz koruma teması kullan</string>
 <string name="enable_eye_protection_title">Göz korumasını etkinleştir</string>
 <string name="account">Hesap</string>
-<string name="settings_category_niconico_account_title">NicoNico Hesabı</string>
-<string name="settings_category_bilibili_account_title">BiliBili Hesabı</string>
 <string name="settings_category_youtube_account_title">YouTube Hesabı</string>
 <string name="login_warning">Tokenler yalnızca gerektiğinde kullanılacaktır</string>
 <string name="login_title">Giriş Yap</string>

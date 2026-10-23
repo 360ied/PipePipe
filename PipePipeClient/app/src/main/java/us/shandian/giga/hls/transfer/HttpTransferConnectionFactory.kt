@@ -1,7 +1,6 @@
 package us.shandian.giga.hls.transfer
 
 import org.schabi.newpipe.DownloaderImpl
-import us.shandian.giga.util.Utility
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -28,7 +27,6 @@ class HttpTransferConnectionFactory(
         connection.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT)
         connection.setRequestProperty("Accept", "*/*")
         connection.setRequestProperty("Accept-Encoding", if (rangeStart == null) "identity" else "*")
-        Utility.setRequestPropertyIfDownloadingBilibili(requestUrl, connection)
         if (cookie != null) {
             connection.setRequestProperty("Cookie", cookie)
         }

@@ -440,14 +440,6 @@
 <string name="localization_changes_requires_app_restart">Język zmieni się po ponownym uruchomieniu aplikacji</string>
 <string name="disable_android_auto_summary">Wyłącza połączenie z Android Auto, aby uniknąć problemów z powiadomieniami na Androidzie 12 i starszych.</string>
 <string name="seek_duration_title">Wielkość skoku przy przewijaniu</string>
-<string name="peertube_instance_url_title">Serwery PeerTube</string>
-<string name="peertube_instance_url_summary">Wybierz swoje ulubione serwery PeerTube</string>
-<string name="peertube_instance_url_help">Znajdź serwery, które lubisz, na %s</string>
-<string name="peertube_instance_add_title">Dodaj serwer</string>
-<string name="peertube_instance_add_help">Wprowadź adres URL serwera</string>
-<string name="peertube_instance_add_fail">Nie udało się sprawdzić poprawności serwera</string>
-<string name="peertube_instance_add_https_only">Obsługiwane są tylko adresy HTTPS</string>
-<string name="peertube_instance_add_exists">Serwer już istnieje</string>
 <string name="local">Lokalne</string>
 <string name="recently_added">Ostatnio dodane</string>
 <string name="most_liked">Najbardziej lubiane</string>
@@ -463,7 +455,6 @@
 <string name="error_sabr_download_muxing">Nie udało się zmuxować mediów SABR</string>
 <string name="error_sabr_download_storage">Nie udało się zapisać pobrania SABR</string>
 <string name="error_sabr_download_protocol">Błąd protokołu SABR</string>
-<string name="choose_instance_prompt">Wybierz serwer</string>
 <string name="clear_download_history">Wyczyść historię pobierania</string>
 <string name="delete_downloaded_files">Usuń pobrane pliki</string>
 <string name="permission_display_over_apps">Udziel uprawnienia do wyświetlania nad innymi aplikacjami</string>
@@ -830,8 +821,6 @@
 <string name="enable_eye_protection_summary">Wyłącz dynamiczne zmienianie się motywu i używaj motywu chroniącego oczy dla wszystkich usług</string>
 <string name="enable_eye_protection_title">Włącz ochronę oczu</string>
 <string name="account">Konta</string>
-<string name="settings_category_niconico_account_title">Konto NikoNiko</string>
-<string name="settings_category_bilibili_account_title">Konto BiliBili</string>
 <string name="settings_category_youtube_account_title">Konto YouTube</string>
 <string name="login_warning">Tokeny będą używane tylko w razie potrzeby</string>
 <string name="login_title">Zaloguj się</string>
@@ -1070,7 +1059,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">Obróć ekran do orientacji pionowej lub poziomej na podstawie wideo w trybie pełnoekranowym</string>
 <string name="rotation_controls_fullscreen_title">Automatycznie przełączaj tryb pełnoekranowy przy obrocie</string>
 <string name="rotation_controls_fullscreen_summary">Gdy systemowe automatyczne obracanie jest włączone, obrót do orientacji poziomej włącza tryb pełnoekranowy, a obrót do orientacji pionowej z niego wychodzi</string>
-<string name="niconico_login_summary">Tokeny będą używane tylko w razie potrzeby. Strona logowania może nie działać na starszych urządzeniach z przestarzałym WebView.</string>
 <string name="minimize_gesture_control_title">Przesuń w dół, aby zminimalizować</string>
 <string name="minimize_gesture_control_summary">Przesuń w dół na odtwarzaczu, aby zwinąć go do miniodtwarzacza — %s</string>
 <string name="minimize_gesture_none_description">Wyłączone</string>

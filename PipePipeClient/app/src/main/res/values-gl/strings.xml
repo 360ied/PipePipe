@@ -309,7 +309,6 @@
     <string name="minimize_on_exit_background_description">Minimizar ao reprodutor en segundo plano</string>
     <string name="minimize_on_exit_popup_description">Minimizar o reprodutor popup</string>
     <string name="local">Limitado</string>
-    <string name="peertube_instance_add_https_only">Só son compatibles os URLs HTTPS</string>
     <string name="volume_gesture_control_title">Control xestual do volume</string>
     <string name="enable_playback_resume_title">Retomar a reprodución</string>
     <string name="playlist_page_summary">Páxina das listas de reprodución</string>
@@ -376,7 +375,6 @@
     <string name="remove_watched">Eliminar o visto</string>
     <string name="systems_language">Sistema predeterminado</string>
     <string name="app_language_title">Lingua do aplicativo</string>
-    <string name="choose_instance_prompt">Elixir unha instancia</string>
     <string name="downloads_storage_use_saf_summary">O \'Framework Access Framework\' permite a descarga a unha tarxeta SD externa</string>
     <string name="downloads_storage_use_saf_title">Usar selector de cartafois do sistema (SAF)</string>
     <string name="downloads_storage_ask_summary">Preguntaralle onde gardar cada descarga.
@@ -486,13 +484,6 @@
     <string name="restricted_video">Este vídeo está restrinxido por idade.
 \n
 \nSe desexa visualizalo, habilite \"%1$s\" nas opcións.</string>
-    <string name="peertube_instance_add_exists">A instancia xa existe</string>
-    <string name="peertube_instance_add_fail">Non se puido validar a instancia</string>
-    <string name="peertube_instance_add_help">Introduza o URL da instancia</string>
-    <string name="peertube_instance_add_title">Engadir instancia</string>
-    <string name="peertube_instance_url_help">Atopar as instancias que lle gustan en %s</string>
-    <string name="peertube_instance_url_summary">Selecciona as instancias favoritas de PeerTube</string>
-    <string name="peertube_instance_url_title">Instancias de PeerTube</string>
     <string name="autoplay_title">Reprodución automática</string>
     <string name="settings_category_clear_data_title">Eliminar datos</string>
     <string name="enable_playback_resume_summary">Restaurar a última posición de reprodución</string>

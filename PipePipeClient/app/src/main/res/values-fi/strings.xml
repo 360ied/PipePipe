@@ -352,14 +352,6 @@
     <string name="restricted_video">Tämä video on ikärajoitettu.
 \n
 \nSalli ”%1$s” asetuksissa katsoaksesi.</string>
-    <string name="peertube_instance_add_exists">Instanssi on jo olemassa</string>
-    <string name="peertube_instance_add_https_only">Vain HTTPS-URL:t ovat tuettuja</string>
-    <string name="peertube_instance_add_fail">Instanssia ei voitu vahvistaa</string>
-    <string name="peertube_instance_add_help">Syötä instanssin URL</string>
-    <string name="peertube_instance_add_title">Lisää instanssi</string>
-    <string name="peertube_instance_url_help">Hae instansseja, joista pidät, osoitteesta %s</string>
-    <string name="peertube_instance_url_summary">Valitse PeerTube-suosikki-instanssisi</string>
-    <string name="peertube_instance_url_title">PeerTube-instanssit</string>
     <string name="autoplay_title">Automaattinen toisto</string>
     <string name="settings_category_clear_data_title">Tietojen tyhjennys</string>
     <string name="enable_playback_resume_title">Jatka toistoa</string>
@@ -442,7 +434,6 @@
     <string name="remove_watched">Poista katsotut</string>
     <string name="systems_language">Järjestelmän oletus</string>
     <string name="app_language_title">Sovelluksen kieli</string>
-    <string name="choose_instance_prompt">Valitse instanssi</string>
     <string name="downloads_storage_use_saf_summary">\'Storage Access Framework\' sallii lataukset ulkoiselle SD-kortille</string>
     <string name="downloads_storage_use_saf_title">Ota SAF käyttöön</string>
     <string name="downloads_storage_ask_summary">Jokaisen latauksen kohde kysytään.

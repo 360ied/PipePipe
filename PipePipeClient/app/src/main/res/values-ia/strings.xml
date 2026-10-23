@@ -27,7 +27,6 @@
     <string name="theme_title">Thema</string>
     <string name="start_downloads">Initiar discargas</string>
     <string name="pause_downloads">Pausar le discargas</string>
-    <string name="choose_instance_prompt">Seliger un instantia</string>
     <string name="error_connect_host">Non poteva connecter con le servitor</string>
     <string name="upload_date_text">Publicate le %1$s</string>
     <string name="controls_download_desc">Discargar le file de fluxo</string>
@@ -52,11 +51,6 @@
     <string name="autoplay_title">Reproduction automatic</string>
     <string name="unsupported_url">URL non supportate</string>
     <string name="default_content_country_title">Pais predefinite del contentos</string>
-    <string name="peertube_instance_url_title">Instantias de PeerTube</string>
-    <string name="peertube_instance_url_summary">Selige tu instantias favorite de PeerTube</string>
-    <string name="peertube_instance_add_title">Adder instantia</string>
-    <string name="peertube_instance_add_help">Insere URL de instantia</string>
-    <string name="peertube_instance_add_exists">Le instantia jam existe</string>
     <string name="settings_category_player_title">Reproductor</string>
     <string name="settings_category_history_title">Chronologia e cache</string>
     <string name="settings_category_appearance_title">Apparentia</string>
@@ -208,5 +202,4 @@
     <string name="download_thumbnail_title">Cargar miniaturas</string>
     <string name="search_showing_result_for">Monstrante resultatos pro: %s</string>
     <string name="start_main_player_fullscreen_title">Initiar le reproductor principal in schermo plen</string>
-    <string name="peertube_instance_add_https_only">Solmente le URLs HTTPS es supportate</string>
 </resources>

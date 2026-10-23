@@ -188,11 +188,6 @@
     <string name="settings_category_appearance_title">অ্যাপিয়ারেন্স</string>
     <string name="settings_category_history_title">ইতিহাস</string>
     <string name="settings_category_player_title">প্লেয়ার</string>
-    <string name="peertube_instance_add_https_only">শুধুমাত্র HTTPS URL গুলি সাপোর্ট করে</string>
-    <string name="peertube_instance_add_help">ইন্সটান্স এর ইউ আর এল</string>
-    <string name="peertube_instance_add_title">ইন্সটান্স যোগ করুন</string>
-    <string name="peertube_instance_url_summary">আপনার পছন্দের পিয়ার টিউব ইন্সটান্স</string>
-    <string name="peertube_instance_url_title">পিয়ার টিউব এর ইন্সটান্স সমূহ</string>
     <string name="unsupported_url">URL সমর্থিত নয়</string>
     <string name="autoplay_title">স্বয়ংক্রিয়</string>
     <string name="download_dialog_title">ডাউনলোড</string>
@@ -314,7 +309,6 @@
     <string name="empty_subscription_feed_subtitle">ঝিঝিপোকা ছাড়া কিছুই নেই এখানে</string>
     <string name="invalid_source">এই ধরনের কোন ফাইল/বিষয়বস্তুর উৎস নেই</string>
     <string name="player_unrecoverable_failure">অপুনরুদ্ধারযোগ্য প্লেয়ার ত্রুটি ঘটেছে</string>
-    <string name="peertube_instance_add_fail">ইন্সট্যান্সটি যাচাই করা যায়নি</string>
     <string name="recaptcha_cookies_cleared">রিক্যাপচা কুকিগুলো পরিষ্কার করা হয়েছে</string>
     <string name="remove_watched_popup_yes_and_partially_watched_videos">হ্যাঁ, এবং আংশিকভাবে দেখা ভিডিও</string>
     <string name="permission_denied">ব্যবস্থা দ্বারা ক্রিয়া অস্বীকার করা হয়েছে</string>
@@ -386,7 +380,6 @@
     </plurals>
     <string name="max_retry_msg">সর্বোচ্চ চেষ্টা</string>
     <string name="recent">সাম্প্রতিক</string>
-    <string name="peertube_instance_add_exists">ইন্সট্যান্স ইতোমধ্যে বিদ্যমান</string>
     <string name="default_content_country_title">ডিফল্ট কন্টেন্টের দেশ</string>
     <string name="related_items_tab_description">সম্পর্কিত ভুক্তি</string>
     <string name="msg_calculating_hash">হ্যাশ গণনা করা হচ্ছে</string>
@@ -410,7 +403,6 @@
     <string name="feed_group_dialog_empty_selection">কোনো সদস্যতা নির্বাচিত হয়নি</string>
     <string name="feed_subscription_not_loaded_count">%d: লোড হয়নি</string>
     <string name="remove_watched_popup_title">দেখা ভিডিওগুলো সরাও\?</string>
-    <string name="choose_instance_prompt">একটি ইন্সট্যান্স নাও</string>
     <string name="enable_queue_limit">ডাউনলোড সারি সীমিত করো</string>
     <string name="generate_unique_name">অনন্য নাম বানাও</string>
     <string name="list_view_mode">তালিকা দর্শন মোড</string>
@@ -476,7 +468,6 @@
     <string name="preferred_open_action_settings_summary">এইরকম তথ্য খোলার সহজাত ক্রিয়া – %s</string>
     <string name="import_settings">পছন্দসমূহ কি আমদানি করতে চাও\?</string>
     <string name="permission_display_over_apps">অন্য অ্যাপের উপরে দেখাতে অনুমতি দাও</string>
-    <string name="peertube_instance_url_help">%s-এ আপনার পছন্দের ইন্সট্যান্স খুঁজুন</string>
     <string name="clear_views_history_summary">প্লে করা স্ট্রিমের ইতিহাস এবং প্লেব্যাক অবস্থানগুলি মুছে দেয়</string>
     <string name="restricted_video">এই ভিডিওটি বয়সসীমাবদ্ধ ।
 \n

@@ -113,14 +113,6 @@
 <item quantity="one">%s respuesta</item>
 <item quantity="other">%s respuestas</item>
 </plurals>
-<string name="peertube_instance_url_title">Instancias de PeerTube</string>
-<string name="peertube_instance_url_summary">Selecciona tus instancias favoritas de PeerTube</string>
-<string name="peertube_instance_url_help">Encuentra las instancias que te gustan en %s</string>
-<string name="peertube_instance_add_title">Añadir instancia</string>
-<string name="peertube_instance_add_help">Introduce la URL de la instancia</string>
-<string name="peertube_instance_add_fail">No se pudo validar la instancia</string>
-<string name="peertube_instance_add_https_only">Sólo se admiten URLs HTTPS</string>
-<string name="peertube_instance_add_exists">La instancia ya existe</string>
 <string name="settings_category_player_title">Reproductor</string>
 <string name="settings_category_history_title">Historial y caché</string>
 <string name="settings_category_appearance_title">Apariencia</string>
@@ -550,7 +542,6 @@
 <string name="downloads_storage_ask_summary_no_saf_notice">Se te preguntará dónde guardar cada descarga</string>
 <string name="downloads_storage_use_saf_title">Usar selector de carpetas del sistema (SAF)</string>
 <string name="downloads_storage_use_saf_summary">El \'Framework de Acceso al Almacenamiento\' permite descargas a una tarjeta SD externa</string>
-<string name="choose_instance_prompt">Elige una instancia</string>
 <string name="app_language_title">Idioma de la aplicación</string>
 <string name="systems_language">Por defecto del sistema</string>
 <string name="remove_watched">Eliminar vistos</string>
@@ -720,8 +711,6 @@
 <string name="enable_eye_protection_summary">Deshabilite el cambio de tema dinámico y use un tema de protección para los ojos para todos los servicios</string>
 <string name="enable_eye_protection_title">Habilitar protección de la vista</string>
 <string name="account">Cuenta</string>
-<string name="settings_category_niconico_account_title">Cuenta de NicoNico</string>
-<string name="settings_category_bilibili_account_title">Cuenta de BiliBili</string>
 <string name="settings_category_youtube_account_title">Cuenta de YouTube</string>
 <string name="login_warning">Los tokens solo se utilizarán cuando sea necesario</string>
 <string name="login_title">Iniciar sesión</string>
@@ -1046,7 +1035,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">Rotar la pantalla a vertical u horizontal según el video mientras se está en pantalla completa</string>
 <string name="rotation_controls_fullscreen_title">Cambiar automáticamente a pantalla completa al girar</string>
 <string name="rotation_controls_fullscreen_summary">Cuando la rotación automática del sistema está activada, al girar a horizontal se entra en pantalla completa y al girar a vertical se sale de la pantalla completa</string>
-<string name="niconico_login_summary">Los tokens solo se usarán cuando sea necesario. La página de inicio de sesión podría no funcionar en dispositivos antiguos con un WebView desactualizado.</string>
 <string name="minimize_gesture_control_title">Deslizar hacia abajo para minimizar</string>
 <string name="minimize_gesture_control_summary">Desliza hacia abajo en el reproductor para contraerlo en el minirreproductor — %s</string>
 <string name="minimize_gesture_none_description">Desactivado</string>

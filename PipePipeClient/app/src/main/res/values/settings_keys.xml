@@ -304,9 +304,6 @@
     <string name="stream_info_selected_tab_key">stream_info_selected_tab</string>
     <string name="show_hold_to_append_key">show_hold_to_append</string>
     <string name="content_language_key">content_language</string>
-    <string name="peertube_instance_setup_key">peertube_instance_setup</string>
-    <string name="peertube_selected_instance_key">peertube_selected_instance</string>
-    <string name="peertube_instance_list_key">peertube_instance_list</string>
     <string name="content_country_key">content_country</string>
     <string name="show_auto_translated_subtitles_key">show_auto_translated_subtitles</string>
     <string name="show_age_restricted_content">show_age_restricted_content</string>
@@ -1436,18 +1433,12 @@
     <string name="enable_eye_protection_key">enable_eye_protection_key</string>
     <string name="logout_key">logout_key</string>
     <string name="login_key">login_key</string>
-    <string name="niconico_cookies_key">niconico_cookies_key</string>
     <string name="youtube_cookies_key">youtube_cookies_key</string>
-    <string name="bilibili_cookies_key">bilibili_cookies_key</string>
     <string name="bullet_comments_font_key">bullet_comments_font_key</string>
     <string name="bullet_comments_opacity_key">bullet_comments_opacity_key</string>
     <string name="toggle_show_future_items_key">toggle_show_future_items_key</string>
     <string name="auto_background_play_key">auto_background_play_key</string>
-    <string name="override_cookies_bilibili_key">override_cookies_bilibili_key</string>
-    <string name="override_cookies_niconico_key">override_cookies_niconico_key</string>
     <string name="override_cookies_youtube_key">override_cookies_youtube_key</string>
-    <string name="override_cookies_bilibili_value_key">override_cookies_bilibili_value_key</string>
-    <string name="override_cookies_niconico_value_key">override_cookies_niconico_value_key</string>
     <string name="override_cookies_youtube_value_key">override_cookies_youtube_value_key</string>
     <string name="auto_queue_partition_key">auto_queue_partition_key</string>
     <string-array name="font_list">
@@ -1488,16 +1479,6 @@
 
 
     <!-- Accounts Cookies -->
-    <string name="cookie_functions_bilibili_key">cookie_functions_bilibili_key</string>
-    <string name="cookie_functions_niconico_key">cookie_functions_niconico_key</string>
-    <string-array name="cookie_functions_bilibili_entries">
-        <item>@string/high_res</item>
-        <item>@string/ai_subtitle</item>
-    </string-array>
-    <string-array name="cookie_functions_bilibili_values">
-        <item>high_res</item>
-        <item>ai_subtitle</item>
-    </string-array>
     <string name="playlist_sort_mode_key">playlist_sort_mode_key</string>
     <string name="sleep_timer_length_key">sleep_timer_length_key</string>
     <string-array name="sleep_timer_length_key">

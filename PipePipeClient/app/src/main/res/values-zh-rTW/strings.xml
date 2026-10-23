@@ -379,21 +379,12 @@
 </plurals>
 <string name="localization_changes_requires_app_restart">語言將會在重新啟動應用程式後變更</string>
 <string name="seek_duration_title">快轉 / 快退搜尋持續時間</string>
-<string name="peertube_instance_url_title">PeerTube 站臺</string>
-<string name="peertube_instance_url_summary">選取您最愛的 PeerTube 站臺</string>
-<string name="peertube_instance_url_help">在 %s 上找到您喜愛的站臺</string>
-<string name="peertube_instance_add_title">新增站臺</string>
-<string name="peertube_instance_add_help">輸入站臺 URL</string>
-<string name="peertube_instance_add_fail">無法驗證站臺</string>
-<string name="peertube_instance_add_https_only">僅支援 HTTPS URL</string>
-<string name="peertube_instance_add_exists">站臺已存在</string>
 <string name="local">本機</string>
 <string name="recently_added">最近新增</string>
 <string name="most_liked">最喜歡</string>
 <string name="playlist_no_uploader">自動生成（未找到上傳者）</string>
 <string name="recovering">正在恢復</string>
 <string name="error_download_resource_gone">無法恢復此下載</string>
-<string name="choose_instance_prompt">選擇一個站臺</string>
 <string name="clear_download_history">清除下載歷史紀錄</string>
 <string name="delete_downloaded_files">刪除已下載的檔案</string>
 <string name="permission_display_over_apps">給予顯示在其他應用程式上層的權限</string>
@@ -727,8 +718,6 @@
 <string name="enable_eye_protection_summary">停用動態主題切換，並為所有服務使用護眼主題。</string>
 <string name="enable_eye_protection_title">啟用護眼模式</string>
 <string name="account">帳戶</string>
-<string name="settings_category_niconico_account_title">NicoNico 帳戶</string>
-<string name="settings_category_bilibili_account_title">BiliBili 帳戶</string>
 <string name="login_warning">僅必要時才會存取帳戶</string>
 <string name="login_title">登入</string>
 <string name="logout_title">登出</string>
@@ -1044,7 +1033,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">在全螢幕模式下，根據影片將螢幕旋轉為直向或橫向</string>
 <string name="rotation_controls_fullscreen_title">旋轉時自動切換全螢幕</string>
 <string name="rotation_controls_fullscreen_summary">系統自動旋轉開啟時，旋轉到橫向會進入全螢幕，旋轉到直向會退出全螢幕</string>
-<string name="niconico_login_summary">Token 只會在必要時使用。登入頁面可能無法在 WebView 版本過舊的舊型裝置上正常運作。</string>
 <string name="minimize_gesture_control_title">向下滑動以最小化</string>
 <string name="minimize_gesture_control_summary">在播放器上向下滑動即可將其縮小為迷你播放器 — %s</string>
 <string name="minimize_gesture_none_description">停用</string>

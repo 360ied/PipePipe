@@ -409,21 +409,12 @@
     </plurals>
     <string name="localization_changes_requires_app_restart">Язык будет изменён после перезапуска</string>
     <string name="seek_duration_title">Шаг перемотки</string>
-    <string name="peertube_instance_url_title">Серверы PeerTube</string>
-    <string name="peertube_instance_url_summary">Выберите предпочтительные серверы</string>
-    <string name="peertube_instance_url_help">Каталог серверов: %s</string>
-    <string name="peertube_instance_add_title">Новый сервер</string>
-    <string name="peertube_instance_add_help">URL сервера</string>
-    <string name="peertube_instance_add_fail">Не удалось проверить сервер</string>
-    <string name="peertube_instance_add_https_only">Поддерживается только HTTPS</string>
-    <string name="peertube_instance_add_exists">Сервер уже существует</string>
     <string name="local">Локальное</string>
     <string name="recently_added">Новое</string>
     <string name="most_liked">Популярное</string>
     <string name="playlist_no_uploader">Создано автоматически (автор не найден)</string>
     <string name="recovering">восстановление</string>
     <string name="error_download_resource_gone">Не удалось восстановить загрузку</string>
-    <string name="choose_instance_prompt">Выберите сервер</string>
     <string name="clear_download_history">Очистить историю загрузок</string>
     <string name="delete_downloaded_files">Удаление загруженных файлов</string>
     <string name="permission_display_over_apps">Разрешите отображение поверх приложений</string>
@@ -872,8 +863,6 @@ PipePipe предлагает две стратегии загрузки лен�
     <string name="enable_eye_protection_summary">Отключить динамические темы и использовать режим защиты зрения для всех сервисов</string>
     <string name="enable_eye_protection_title">Защита зрения</string>
     <string name="account">Аккаунт</string>
-    <string name="settings_category_niconico_account_title">Аккаунт NicoNico</string>
-    <string name="settings_category_bilibili_account_title">Аккаунт BiliBili</string>
     <string name="settings_category_youtube_account_title">Аккаунт YouTube</string>
     <string name="login_warning">Токены будут использоваться только при необходимости</string>
     <string name="login_title">Войти</string>

@@ -403,18 +403,10 @@
     </plurals>
     <string name="localization_changes_requires_app_restart">Мова зміниться після перезапуску застосунку</string>
     <string name="seek_duration_title">Швидке перемотування</string>
-    <string name="peertube_instance_url_title">Екземпляри PeerTube</string>
-    <string name="peertube_instance_url_summary">Виберіть сервер PeerTube</string>
-    <string name="peertube_instance_url_help">Каталог серверів: %s</string>
-    <string name="peertube_instance_add_title">Додати екземпляр</string>
-    <string name="peertube_instance_add_help">Введіть URL екземпляра</string>
-    <string name="peertube_instance_add_https_only">Підтримуються лише HTTPS-посилання</string>
-    <string name="peertube_instance_add_exists">Екземпляр уже існує</string>
     <string name="recently_added">Недавно додані</string>
     <string name="most_liked">Найвподобаніші</string>
     <string name="recovering">відновлення</string>
     <string name="error_download_resource_gone">Неможливо відновити це завантаження</string>
-    <string name="choose_instance_prompt">Вибрати екземпляр</string>
     <string name="clear_download_history">Очистити історію завантажень</string>
     <string name="delete_downloaded_files">Видалити завантажені файли</string>
     <string name="permission_display_over_apps">Потрібен дозвіл показувати поверх інших застосунків</string>
@@ -451,7 +443,6 @@
     <string name="local">Локальне</string>
     <string name="help">Допомога</string>
     <string name="videos_string">Відео</string>
-    <string name="peertube_instance_add_fail">Не вдалося перевірити сервер</string>
     <string name="content_not_supported">NewPipe ще не підтримує цей вміст.
 \n
 \nМожливо, підтримка з\'явиться в наступних версіях.</string>

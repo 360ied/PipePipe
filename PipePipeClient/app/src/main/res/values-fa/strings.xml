@@ -381,14 +381,6 @@
     <string name="minimize_on_exit_summary">عملکرد هنگام تغییر به برنامه دیگر از پخش‌کننده اصلی فیلم — %s</string>
     <string name="tracks">قطعه‌ها</string>
     <string name="videos_string">ویدیوها</string>
-    <string name="peertube_instance_add_exists">این نمونه قبلا وجود دارد</string>
-    <string name="peertube_instance_add_https_only">تنها نشانی‌های دارای http پشتیبانی می‌شوند</string>
-    <string name="peertube_instance_add_fail">ناتوانی در اعتبارسنجی نشانی نمونه</string>
-    <string name="peertube_instance_add_help">نشانی نمونه را وارد کنید</string>
-    <string name="peertube_instance_add_title">افزودن نمونه</string>
-    <string name="peertube_instance_url_help">نمونه‌های مورد علاقه خود را در %s پیدا کنید</string>
-    <string name="peertube_instance_url_summary">نمونه پیرتیوب مورد علاقه خود در را انتخاب کنید</string>
-    <string name="peertube_instance_url_title">نمونه‌های پیرتیوب</string>
     <string name="seek_duration_title">مدت زمان حرکت سریع به جلو یا عقب</string>
     <string name="minimize_on_exit_title">کمینه کردن به هنگام تغییر برنامه</string>
     <string name="video_detail_by">توسط %s</string>
@@ -430,7 +422,6 @@
     <string name="remove_watched">پاک کردن دیده شده‌ها</string>
     <string name="systems_language">پیش‌فرض دستگاه</string>
     <string name="app_language_title">زبان برنامه</string>
-    <string name="choose_instance_prompt">نمونه‌ای را انتخاب کنید</string>
     <string name="delete_downloaded_files">پاک کردن پرونده‌های بارگیری شده</string>
     <string name="clear_download_history">پاک کردن تاریخچه بارگیری</string>
     <string name="error_download_resource_gone">ناتوانی در بازیابی این بارگیری</string>

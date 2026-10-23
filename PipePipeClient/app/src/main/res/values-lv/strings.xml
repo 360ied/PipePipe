@@ -251,14 +251,6 @@
     <string name="settings_category_appearance_title">Izskats</string>
     <string name="settings_category_history_title">Vēsture un kešatmiņa</string>
     <string name="settings_category_player_title">Atskaņotājs</string>
-    <string name="peertube_instance_add_exists">Instance jau eksistē</string>
-    <string name="peertube_instance_add_https_only">Tikai HTTPS saišu URL ir atbalstīti</string>
-    <string name="peertube_instance_add_fail">Nevarēja apstiprināt instanci</string>
-    <string name="peertube_instance_add_help">Ievadīt instances saites URL</string>
-    <string name="peertube_instance_add_title">Pievienot instanci</string>
-    <string name="peertube_instance_url_help">Atrodiet instances, kas jums patīk ar %s</string>
-    <string name="peertube_instance_url_summary">Izvēlaties jūsu mīļāko PeerTube instanci</string>
-    <string name="peertube_instance_url_title">PeerTube instances</string>
     <string name="localization_changes_requires_app_restart">Valoda nomainīsies, kad aplikāciju restartēs</string>
     <string name="no_app_to_open_intent">Neviena lietotne jūsu ierīcē nevar šo atvērt</string>
     <string name="chapters">Nodaļas</string>
@@ -335,7 +327,6 @@
     <string name="remove_watched">Noņemt skatīto</string>
     <string name="systems_language">System default</string>
     <string name="app_language_title">Lietotnes valoda</string>
-    <string name="choose_instance_prompt">Izvēlieties instanci</string>
     <string name="downloads_storage_use_saf_title">Izmantot sistēmas mapes izvēlni</string>
     <string name="downloads_storage_use_saf_summary">“Krātuves Piekļuves Sistēma” ļauj lejupielādēt ārējā SD kartē</string>
     <string name="downloads_storage_ask_summary">Jums tiks jautāts, kur saglabāt katru lejupielādi.

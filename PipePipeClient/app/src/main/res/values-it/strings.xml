@@ -109,14 +109,6 @@
 <string name="unsupported_url">URL non supportato</string>
 <string name="unsupported_url_dialog_message">Impossibile riconoscere l\'URL. Aprire con un\'altra app?</string>
 <string name="default_content_country_title">Paese di contenuto predefinito</string>
-<string name="peertube_instance_url_title">Instanze di PeerTube</string>
-<string name="peertube_instance_url_summary">Seleziona le tue istanze preferite di PeerTube</string>
-<string name="peertube_instance_url_help">Trova le istanze che ti piacciono su %s</string>
-<string name="peertube_instance_add_title">Aggiungi istanza</string>
-<string name="peertube_instance_add_help">Inserisci URL dell\'istanza</string>
-<string name="peertube_instance_add_fail">Impossibile convalidare l\'istanza</string>
-<string name="peertube_instance_add_https_only">Sono supportati solo URL HTTPS</string>
-<string name="peertube_instance_add_exists">Istanza già esistente</string>
 <string name="settings_category_player_title">Lettore</string>
 <string name="settings_category_history_title">Storia e cache</string>
 <string name="settings_category_appearance_title">Aspetto</string>
@@ -435,7 +427,6 @@
 <string name="downloads_storage_ask_summary_no_saf_notice">Ti verrà chiesto dove salvare ogni download</string>
 <string name="downloads_storage_use_saf_title">Usa selettore di cartelle di sistema (SAF)</string>
 <string name="downloads_storage_use_saf_summary">Il \'Storage Access Framework\' consente download su una scheda SD esterna</string>
-<string name="choose_instance_prompt">Scegli un\'istanza</string>
 <string name="app_language_title">Lingua dell\'app</string>
 <string name="systems_language">Predefinito del sistema</string>
 <string name="remove_watched">Rimuovi guardato</string>
@@ -588,8 +579,6 @@
 <string name="enable_eye_protection_summary">Disabilita il cambio dinamico del tema e utilizza un tema per protezione occhi per tutti i servizi</string>
 <string name="enable_eye_protection_title">Abilita la protezione occhi</string>
 <string name="account">Account</string>
-<string name="settings_category_niconico_account_title">Account NicoNico</string>
-<string name="settings_category_bilibili_account_title">Account BiliBili</string>
 <string name="settings_category_youtube_account_title">Account YouTube</string>
 <string name="login_warning">I token saranno utilizzati solo quando necessario</string>
 <string name="login_title">Accedi</string>
@@ -984,7 +973,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">Ruota lo schermo in verticale o in orizzontale in base al video mentre è a schermo intero</string>
 <string name="rotation_controls_fullscreen_title">Passa automaticamente a schermo intero alla rotazione</string>
 <string name="rotation_controls_fullscreen_summary">Quando la rotazione automatica del sistema è attivata, ruotando in orizzontale si entra a schermo intero e ruotando in verticale si esce dallo schermo intero</string>
-<string name="niconico_login_summary">I token verranno utilizzati solo quando necessario. La pagina di accesso potrebbe non funzionare su dispositivi meno recenti con una WebView obsoleta.</string>
 <string name="minimize_gesture_control_title">Scorri verso il basso per ridurre a icona</string>
 <string name="minimize_gesture_control_summary">Scorri verso il basso sul lettore per ridurlo a mini player — %s</string>
 <string name="minimize_gesture_none_description">Disattivato</string>

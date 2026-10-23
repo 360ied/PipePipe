@@ -354,14 +354,6 @@
     <string name="settings_category_clear_data_title">Rensa data</string>
     <string name="seek_duration_title">Spola framåt/bakåt sökvaraktighet</string>
     <string name="clear_playback_states_title">Ta bort uppspelningspositioner</string>
-    <string name="peertube_instance_url_title">PeerTube-instanser</string>
-    <string name="peertube_instance_url_summary">Välj dina favoritpeertube-instanser</string>
-    <string name="peertube_instance_url_help">Hitta de instanser du gillar på %s</string>
-    <string name="peertube_instance_add_title">Lägg till instans</string>
-    <string name="peertube_instance_add_help">Ange instansens URL</string>
-    <string name="peertube_instance_add_fail">Det gick inte att validera instansen</string>
-    <string name="peertube_instance_add_https_only">Endast HTTPS-URL:er stöds</string>
-    <string name="peertube_instance_add_exists">Instansen finns redan</string>
     <string name="videos_string">Videor</string>
     <string name="help">Hjälp</string>
     <string name="delete_playback_states_alert">Ta bort alla uppspelningspositioner\?</string>
@@ -456,7 +448,6 @@
     <string name="remove_watched">Ta bort tittade</string>
     <string name="systems_language">Systemstandard</string>
     <string name="app_language_title">Appspråk</string>
-    <string name="choose_instance_prompt">Välj en instans</string>
     <string name="downloads_storage_use_saf_summary">\"Storage Access Framework\" möjliggör hämtningar till ett externt SD-kort</string>
     <string name="downloads_storage_use_saf_title">Använd systemmappväljaren (SAF)</string>
     <string name="downloads_storage_ask_summary">Du kommer att bli tillfrågad var du vill spara varje hämtning.

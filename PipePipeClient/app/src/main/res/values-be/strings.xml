@@ -382,9 +382,6 @@
 \nПадтрымліваецца не ўсімі прыладамі</string>
     <string name="drawer_header_description">Пераключыць службу, выбраную ў дадзены момант:</string>
     <string name="clear_playback_states_summary">Выдаліць ўсе пазіцыі прайгравання</string>
-    <string name="peertube_instance_add_https_only">Падтрымліваюцца толькі адрасы URL HTTPS</string>
-    <string name="peertube_instance_add_title">Дадаць экзэмпляр</string>
-    <string name="peertube_instance_url_title">Экзэмпляры PeerTube</string>
     <string name="search_showing_result_for">Вынікі для: %s</string>
     <string name="notification_scale_to_square_image_title">Мініяцюра відэа ў 1:1</string>
     <string name="notification_scale_to_square_image_summary">Мініяцюра відэа ў апавяшчэнні з 16:9 да 1:1 (магчымі скажэнні)</string>
@@ -395,14 +392,9 @@
     <string name="feed_groups_header_title">Групы каналаў</string>
     <string name="systems_language">Як у сістэме</string>
     <string name="app_language_title">Мова прылады</string>
-    <string name="choose_instance_prompt">Выберыце экзэмпляр</string>
     <string name="delete_downloaded_files">Выдаліць загружаныя файлы</string>
     <string name="show_original_time_ago_summary">Арыгінальныя тэксты з сэрвісаў будуць бачны ў ленце элементаў</string>
     <string name="clear_cookie_summary">Ачысціце cookie, якія NewPipe захоўвае пры рашэнні reCAPTCHA</string>
-    <string name="peertube_instance_add_exists">Экзэмпляр ужо існуе</string>
-    <string name="peertube_instance_add_fail">Немагчыма праверыць экзэмпляр</string>
-    <string name="peertube_instance_add_help">Увесці URL экзэмпляра</string>
-    <string name="peertube_instance_url_summary">Абярыце любімыя экзэмпляры PeerTube</string>
     <string name="never">Ніколі</string>
     <string name="wifi_only">Толькі па Wi-Fi</string>
     <string name="show_original_time_ago_title">Паказаць арыгінальны час на элементах</string>

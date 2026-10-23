@@ -108,14 +108,6 @@
 <string name="autoplay_title">Automatische Wiedergabe</string>
 <string name="unsupported_url_dialog_message">Konnte die URL nicht erkennen. Mit einer anderen App öffnen?</string>
 <string name="default_content_country_title">Standard-Content-Land</string>
-<string name="peertube_instance_url_title">PeerTube-Instanzen</string>
-<string name="peertube_instance_url_summary">Wählen Sie Ihre bevorzugten PeerTube-Instanzen</string>
-<string name="peertube_instance_url_help">Finden Sie die Instanzen, die Sie mögen, auf %s</string>
-<string name="peertube_instance_add_title">Instanz hinzufügen</string>
-<string name="peertube_instance_add_help">Instanz-URL eingeben</string>
-<string name="peertube_instance_add_fail">Konnte Instanz nicht validieren</string>
-<string name="peertube_instance_add_https_only">Nur HTTPS-URLs werden unterstützt</string>
-<string name="peertube_instance_add_exists">Instanz existiert bereits</string>
 <string name="settings_category_player_title">Player</string>
 <string name="settings_category_history_title">Verlauf und Cache</string>
 <string name="settings_category_appearance_title">Aussehen</string>
@@ -506,7 +498,6 @@
 <string name="downloads_storage_ask_summary_no_saf_notice">Sie werden gefragt, wo jeder Download gespeichert werden soll</string>
 <string name="downloads_storage_use_saf_title">System-Ordnerauswahler (SAF) verwenden</string>
 <string name="downloads_storage_use_saf_summary">Der \'Storage Access Framework\' ermöglicht Downloads auf eine externe SD-Karte</string>
-<string name="choose_instance_prompt">Instanz wählen</string>
 <string name="app_language_title">App-Sprache</string>
 <string name="systems_language">Systemstandard</string>
 <string name="remove_watched">Angesehene entfernen</string>
@@ -659,8 +650,6 @@
 <string name="enable_eye_protection_summary">Deaktivieren Sie das dynamische Themenwechseln und nutzen Sie ein Augenschutzthema für alle Dienste</string>
 <string name="enable_eye_protection_title">Augenschutz aktivieren</string>
 <string name="account">Konto</string>
-<string name="settings_category_niconico_account_title">NicoNico Konto</string>
-<string name="settings_category_bilibili_account_title">BiliBili Konto</string>
 <string name="settings_category_youtube_account_title">YouTube-Konto</string>
 <string name="login_warning">Tokens werden nur bei Bedarf verwendet</string>
 <string name="login_title">Einloggen</string>
@@ -990,7 +979,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">Bildschirm im Vollbildmodus basierend auf dem Video ins Hoch- oder Querformat drehen</string>
 <string name="rotation_controls_fullscreen_title">Bei Drehung automatisch den Vollbildmodus umschalten</string>
 <string name="rotation_controls_fullscreen_summary">Wenn die automatische Bildschirmdrehung des Systems aktiviert ist, wird bei einer Drehung ins Querformat der Vollbildmodus aktiviert und bei einer Drehung ins Hochformat beendet</string>
-<string name="niconico_login_summary">Tokens werden nur bei Bedarf verwendet. Die Anmeldeseite funktioniert möglicherweise nicht auf älteren Geräten mit einer veralteten WebView.</string>
 <string name="minimize_gesture_control_title">Zum Minimieren nach unten wischen</string>
 <string name="minimize_gesture_control_summary">Auf dem Player nach unten wischen, um ihn zum Miniplayer zu verkleinern — %s</string>
 <string name="minimize_gesture_none_description">Deaktiviert</string>

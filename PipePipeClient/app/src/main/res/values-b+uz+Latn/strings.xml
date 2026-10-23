@@ -120,14 +120,6 @@
     <string name="settings_category_appearance_title">Tashqi ko\'rinish</string>
     <string name="settings_category_history_title">Tarix va kesh</string>
     <string name="settings_category_player_title">Ijro etish</string>
-    <string name="peertube_instance_add_exists">Namuna allaqachon mavjud</string>
-    <string name="peertube_instance_add_https_only">Faqat HTTPS URL-lari qo\'llab-quvvatlanadi</string>
-    <string name="peertube_instance_add_fail">Namunani tasdiqlab bo\'lmadi</string>
-    <string name="peertube_instance_add_help">Namuna URL manzilini kiriting</string>
-    <string name="peertube_instance_add_title">Namuna qo\'shish</string>
-    <string name="peertube_instance_url_help">%s da sizga yoqadigan misollarni toping</string>
-    <string name="peertube_instance_url_summary">Sevimli PeerTube nusxalarini tanlang</string>
-    <string name="peertube_instance_url_title">PeerTube misollari</string>
     <string name="default_content_country_title">Standart kontent mamlakati</string>
     <string name="unsupported_url_dialog_message">URL manzili aniqlanmadi. Boshqa ilova bilan ochilsinmi\?</string>
     <string name="unsupported_url">Qo\'llab-quvvatlanmaydigan URL manzili</string>
@@ -368,7 +360,6 @@
     <string name="remove_watched">Ko\'rilganlarni olib tashlash</string>
     <string name="systems_language">Tizimning standart qiymati</string>
     <string name="app_language_title">Ilova tili</string>
-    <string name="choose_instance_prompt">Namunani tanlang</string>
     <string name="downloads_storage_use_saf_summary">\"Saqlash uchun kirish doirasi\" tashqi SD-kartaga yuklab olishga imkon beradi.
 \nBa\'zi qurilmalar mos kelmaydi</string>
     <string name="downloads_storage_use_saf_title">SAFdan foydalalnish</string>

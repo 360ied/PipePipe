@@ -111,14 +111,6 @@
 <item quantity="one">%s 条回复</item>
 <item quantity="other">%s 条回复</item>
 </plurals>
-<string name="peertube_instance_url_title">PeerTube 实例</string>
-<string name="peertube_instance_url_summary">选择您最喜欢的 PeerTube 实例</string>
-<string name="peertube_instance_url_help">在 %s 上找到您喜欢的实例</string>
-<string name="peertube_instance_add_title">添加实例</string>
-<string name="peertube_instance_add_help">输入实例 URL</string>
-<string name="peertube_instance_add_fail">无法验证实例</string>
-<string name="peertube_instance_add_https_only">仅支持 HTTPS URL</string>
-<string name="peertube_instance_add_exists">实例已存在</string>
 <string name="settings_category_player_title">播放器</string>
 <string name="settings_category_history_title">历史和缓存</string>
 <string name="settings_category_appearance_title">外观</string>
@@ -547,7 +539,6 @@
 <string name="downloads_storage_ask_summary_no_saf_notice">系统将询问您每次下载保存到何处</string>
 <string name="downloads_storage_use_saf_title">使用系统文件夹选择器（SAF）</string>
 <string name="downloads_storage_use_saf_summary">“存储访问框架”允许下载到外部 SD 卡</string>
-<string name="choose_instance_prompt">选择实例</string>
 <string name="app_language_title">应用语言</string>
 <string name="systems_language">系统默认</string>
 <string name="remove_watched">清除已观看</string>
@@ -685,8 +676,6 @@
 <string name="enable_eye_protection_summary">禁用动态主题更改并为所有服务使用护眼主题</string>
 <string name="enable_eye_protection_title">启用护眼模式</string>
 <string name="account">账户</string>
-<string name="settings_category_niconico_account_title">NicoNico 账户</string>
-<string name="settings_category_bilibili_account_title">BiliBili 账户</string>
 <string name="login_warning">只有在必要时才会使用令牌</string>
 <string name="login_title">登录</string>
 <string name="logout_title">退出登录</string>
@@ -1054,7 +1043,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">在全屏模式下，根据视频将屏幕旋转为竖屏或横屏</string>
 <string name="rotation_controls_fullscreen_title">旋转时自动切换全屏</string>
 <string name="rotation_controls_fullscreen_summary">系统自动旋转开启时，旋转到横屏会进入全屏，旋转到竖屏会退出全屏</string>
-<string name="niconico_login_summary">Token 仅在必要时使用。登录页面可能无法在 WebView 过时的老旧设备上运行。</string>
 <string name="minimize_gesture_control_title">向下滑动以最小化</string>
 <string name="minimize_gesture_control_summary">在播放器上向下滑动将其折叠为迷你播放器 — %s</string>
 <string name="minimize_gesture_none_description">已禁用</string>

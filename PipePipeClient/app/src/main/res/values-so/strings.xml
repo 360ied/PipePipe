@@ -339,14 +339,6 @@
     <string name="settings_category_appearance_title">Nashqada</string>
     <string name="settings_category_history_title">Wixii Hore &amp; kaydka K/G ah</string>
     <string name="settings_category_player_title">Daareha</string>
-    <string name="peertube_instance_add_exists">Qaybtan horay ayay ujirtay</string>
-    <string name="peertube_instance_add_https_only">Kaliya waxaa la taageeraa tixraacyada HTTPS-ka ah</string>
-    <string name="peertube_instance_add_fail">Lama ansixin karo qaybtan</string>
-    <string name="peertube_instance_add_help">Gali tixraaca qaybta</string>
-    <string name="peertube_instance_add_title">Ku dar qayb</string>
-    <string name="peertube_instance_url_help">Ka hel qaybaha aad jeceshahay %s</string>
-    <string name="peertube_instance_url_summary">Dooro qaybaha aad jeceshahay ee PeerTube-ka</string>
-    <string name="peertube_instance_url_title">Qaybaha PeerTube</string>
     <string name="default_content_country_title">Wadanka muuqaalada/dhagaysiga</string>
     <string name="unsupported_url_dialog_message">Lama aqoonsan karo tixraacan. Ku fur app kale\?</string>
     <string name="unsupported_url">Tixraac aan la furi karin</string>
@@ -470,7 +462,6 @@
     <string name="remove_watched">Saar kuwa la daawaday</string>
     <string name="systems_language">Aaladu saytahay</string>
     <string name="app_language_title">Luuqada Appka</string>
-    <string name="choose_instance_prompt">Dooro qayb</string>
     <string name="downloads_storage_use_saf_summary">\'Storage Access Framework\' loosoo gaabiyo SAF wuxuu suurto galiyaa in mimoriga wax lagu dajiyo</string>
     <string name="downloads_storage_use_saf_title">Maamulaha faylasha ee aallada (SAF)</string>
     <string name="downloads_storage_ask_summary">Shay walba meesha lagu kaydin doono ayaa lagu waydiin.

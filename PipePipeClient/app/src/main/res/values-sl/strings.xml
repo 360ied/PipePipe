@@ -261,7 +261,6 @@
     <string name="users">Uporabniki</string>
     <string name="playlists">Seznami predvajanja</string>
     <string name="channels">Kanali</string>
-    <string name="peertube_instance_add_https_only">Samo HTTPS URL-ji so podprti</string>
     <string name="settings_category_clear_data_title">Počisti podatke</string>
     <string name="auto_queue_title">Samodejno predvajaj naslednji video</string>
     <string name="metadata_cache_wipe_title">Izbriši shranjene metapodatke</string>
@@ -388,13 +387,6 @@
     <string name="restricted_video">Ta video ima omejitev starosti.
 \n
 \nVklopite \"%1$s\" v nastavitvah, če ga želite predvajati.</string>
-    <string name="peertube_instance_add_exists">Instanca že obstaja</string>
-    <string name="peertube_instance_add_fail">Validacija instance ni bila mogoča</string>
-    <string name="peertube_instance_add_help">Vnesite URL instance</string>
-    <string name="peertube_instance_add_title">Dodaj instanco</string>
-    <string name="peertube_instance_url_help">Najdite instance, ki so vam všeč na %s</string>
-    <string name="peertube_instance_url_summary">Izberite vaše najljubše instance PeerTuba</string>
-    <string name="peertube_instance_url_title">Instance PeerTube</string>
     <string name="default_content_country_title">Privzeta država vsebine</string>
     <string name="unsupported_url_dialog_message">URL-ja ni bilo mogoče prepoznati. Želite odpreti z drugo aplikacijo\?</string>
     <string name="autoplay_title">Samodejno predvajanje</string>

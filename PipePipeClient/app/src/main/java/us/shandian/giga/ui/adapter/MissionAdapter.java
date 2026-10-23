@@ -94,7 +94,6 @@ import static us.shandian.giga.get.DownloadMission.ERROR_SSL_EXCEPTION;
 import static us.shandian.giga.get.DownloadMission.ERROR_TIMEOUT;
 import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_EXCEPTION;
 import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_HOST;
-import static us.shandian.giga.postprocessing.Postprocessing.NICONICO_MUXER;
 
 public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callback {
     private static final SparseArray<String> ALGORITHMS = new SparseArray<>();
@@ -264,8 +263,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         h.progress.setMarquee(mission.isRecovering() || !hasError && (!mission.isInitialized() || mission.unknownLength));
 
         double progress;
-        if (mission.unknownLength
-                && (mission.psAlgorithm == null || !NICONICO_MUXER.equals(mission.psAlgorithm.name))) {
+        if (mission.unknownLength) {
             progress = Double.NaN;
             h.progress.setProgress(0.0f);
         } else {

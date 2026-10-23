@@ -123,14 +123,6 @@
 <item quantity="one">%s reply</item>
 <item quantity="other">%s replies</item>
 </plurals>
-<string name="peertube_instance_url_title">PeerTube instances</string>
-<string name="peertube_instance_url_summary">Select your favorite PeerTube instances</string>
-<string name="peertube_instance_url_help">Find the instances you like on %s</string>
-<string name="peertube_instance_add_title">Add instance</string>
-<string name="peertube_instance_add_help">Enter instance URL</string>
-<string name="peertube_instance_add_fail">Could not validate instance</string>
-<string name="peertube_instance_add_https_only">Only HTTPS URLs are supported</string>
-<string name="peertube_instance_add_exists">Instance already exists</string>
 <string name="settings_category_player_title">Player</string>
 <string name="settings_category_history_title">History and cache</string>
 <string name="settings_category_appearance_title">Appearance</string>
@@ -332,7 +324,7 @@
 <string name="title_licenses">Third-party Licenses</string>
 <string name="copyright">© %1$s by %2$s under %3$s</string>
 <string name="tab_about">About</string>
-<string name="app_description_new">A FLOSS Android app to let you browse YouTube, NicoNico and BiliBili freely </string>
+<string name="app_description_new">A FLOSS Android app to let you browse YouTube and SoundCloud freely </string>
 <string name="contribution_title">Contribute</string>
 <string name="contribution_encouragement">Whether you have ideas of; translation, design changes, code cleaning, or real heavy code changes—help is always welcome. The more is done the better it gets!</string>
 <string name="donation_title">Donate</string>
@@ -596,7 +588,6 @@
 <string name="downloads_storage_ask_summary_no_saf_notice">You will be asked where to save each download</string>
 <string name="downloads_storage_use_saf_title">Use system folder picker (SAF)</string>
 <string name="downloads_storage_use_saf_summary">The \'Storage Access Framework\' allows downloads to an external SD card</string>
-<string name="choose_instance_prompt">Choose an instance</string>
 <string name="app_language_title">App language</string>
 <string name="systems_language">System default</string>
 <string name="remove_watched">Remove watched</string>
@@ -679,7 +670,7 @@
 <string name="sponsor_block_home_page_title">View Website</string>
 <string name="sponsor_block_home_page_summary">View the official SponsorBlock website.</string>
 <string name="sponsor_block_enable_title">Enable SponsorBlock</string>
-<string name="sponsor_block_enable_summary">Automatically skip sponsors in videos. Works for YouTube and BiliBili.</string>
+<string name="sponsor_block_enable_summary">Automatically skip sponsors in videos. Works for YouTube.</string>
 <string name="sponsor_block_api_url_title">API Url</string>
 <string name="sponsor_block_notifications_title">Notify when sponsors are skipped</string>
 <string name="sponsor_block_notifications_summary">Show a toast notification when a sponsor is automatically skipped.</string>
@@ -836,8 +827,6 @@
 <string name="enable_eye_protection_summary">Disable dynamic theme changing and use a eye protection theme for all services</string>
 <string name="enable_eye_protection_title">Enable eye protection</string>
 <string name="account">Account</string>
-<string name="settings_category_niconico_account_title">NicoNico Account</string>
-<string name="settings_category_bilibili_account_title">BiliBili Account</string>
 <string name="settings_category_youtube_account_title">YouTube Account</string>
 <string name="login_warning">Tokens will only be used when necessary</string>
 <string name="login_title">Login</string>
@@ -1092,7 +1081,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">Rotate the screen to portrait or landscape based on the video while in fullscreen</string>
 <string name="rotation_controls_fullscreen_title">Automatically switch fullscreen on rotation</string>
 <string name="rotation_controls_fullscreen_summary">When system auto-rotate is enabled, rotating to landscape enters fullscreen and rotating to portrait exits fullscreen</string>
-<string name="niconico_login_summary">Tokens will only be used when necessary. The login page may not work on older devices with an outdated WebView.</string>
 <string name="minimize_gesture_control_title">Swipe down to minimize</string>
 <string name="minimize_gesture_control_summary">Swipe down on the player to collapse it into the mini player — %s</string>
 <string name="minimize_gesture_none_description">Disabled</string>
@@ -1141,7 +1129,7 @@
 <string name="filter_by_channel_id_title">Blocked channel IDs</string>
 <string name="filter_by_channel_id_summary">Hide videos from channels with these IDs</string>
 <string name="comment_filter_by_user_id_summary">Hide comments posted by users with these channel IDs</string>
-<string name="filter_id_invalid_format">Invalid format. Use ServiceName:ID, e.g. YouTube:UCxxxxxxxxxxxxxxxxxxxxxx, BiliBili:12345 or NicoNico:12345</string>
+<string name="filter_id_invalid_format">Invalid format. Use ServiceName:ID, e.g. YouTube:UCxxxxxxxxxxxxxxxxxxxxxx</string>
 <string name="subscribe_to_channel">Subscribe to channel</string>
 <string name="already_subscribed">Already subscribed</string>
 <string name="multi_select">Multi-select</string>
@@ -1169,7 +1157,7 @@
 <string name="pinch_to_zoom_gesture_control_title">Pinch to zoom</string>
 <string name="pinch_to_zoom_gesture_control_summary">Pinch to zoom the video in fullscreen. While zoomed, drag to pan and double-tap to reset</string>
 <string name="bullet_comments_chat_mode_title">Show live chat and danmaku as chat</string>
-<string name="bullet_comments_chat_mode_summary">On: shown in a chat panel (YouTube style). Off: all shown as scrolling danmaku over the video (BiliBili/NicoNico style)</string>
+<string name="bullet_comments_chat_mode_summary">On: shown in a chat panel (YouTube style). Off: all shown as scrolling danmaku over the video</string>
 <string name="chat_tab_description">Chat</string>
 <string name="chat_anonymous">Anonymous</string>
 <string name="chat_jump_to_latest">Jump to latest</string>

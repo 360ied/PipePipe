@@ -7,14 +7,6 @@
             android:fragment="org.schabi.newpipe.settings.YouTubeAccountSettingsFragment"
             android:title="YouTube"
             app:iconSpaceReserved="false" />
-    <PreferenceScreen
-            android:fragment="org.schabi.newpipe.settings.BiliBiliAccountSettingsFragment"
-            android:title="BiliBili"
-            app:iconSpaceReserved="false" />
-    <PreferenceScreen
-            android:fragment="org.schabi.newpipe.settings.NicoNicoAccountSettingsFragment"
-            android:title="NicoNico"
-            app:iconSpaceReserved="false" />
 
     <PreferenceCategory
             android:layout="@layout/settings_category_header_layout"

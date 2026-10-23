@@ -111,7 +111,6 @@
     <string name="restricted_video">Bu video yaş məhdudiyyətlidir.
 \n
 \nGörmək istəyirsinizsə, ayarlarda \"%1$s\" özəlliyini yandırın.</string>
-    <string name="peertube_instance_url_title">\"PeerTube\" nümunələri</string>
     <string name="download_thumbnail_title">Kiçik təsvirləri yüklə</string>
     <string name="notification_actions_at_most_three">Siz yığcam bildirişdə göstərilməsi üçün ən çoxu üç fəaliyyət seçə bilərsiniz!</string>
     <string name="feed_update_threshold_option_always_update">Həmişə yenilə</string>
@@ -179,8 +178,6 @@
     <string name="limit_mobile_data_usage_title">Mobil internet istifadə edərkən görüntü keyfiyyətini məhdudlaşdırın</string>
     <string name="limit_data_usage_none_description">Limitsiz</string>
     <string name="one_item_deleted">1 element silindi.</string>
-    <string name="peertube_instance_add_title">Nümunə əlavə et</string>
-    <string name="peertube_instance_url_summary">Sevimli \"PeerTube\" nümunələrinizi seçin</string>
     <string name="delete_downloaded_files">Yüklənmiş faylları sil</string>
     <string name="confirm_prompt">Yükləmə tarixçənizi təmizləmək və ya yüklənmiş bütün faylları silmək istəyirsiniz\?</string>
     <string name="clear_download_history">Yükləmə tarixçəsini təmizlə</string>

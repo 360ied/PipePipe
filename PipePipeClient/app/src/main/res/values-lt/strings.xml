@@ -301,12 +301,6 @@
     <string name="restricted_video">Šiam video taikomas amžiaus apribojimas
 \n
 \nĮjunkite \"%1$s\" norėdami peržiūrėti.</string>
-    <string name="peertube_instance_add_exists">Kopija jau yra</string>
-    <string name="peertube_instance_add_https_only">Palaikomi tik HTTPS adresai</string>
-    <string name="peertube_instance_add_title">Pridėti kopiją</string>
-    <string name="peertube_instance_url_help">Pasirinkite patikusias kopijas %s</string>
-    <string name="peertube_instance_url_summary">Pasirinkite mėgiamiausias PeerTube kopijas</string>
-    <string name="peertube_instance_url_title">PeerTube kopijos</string>
     <string name="unsupported_url_dialog_message">URL neatpažintas. Atverti kita programa\?</string>
     <string name="autoplay_title">Automatinis atkūrimas</string>
     <string name="settings_category_clear_data_title">Išvalyti duomenis</string>
@@ -341,8 +335,6 @@
     <string name="notification_scale_to_square_image_title">Pakeisti miniatiūrų dydi 1:1 santykiu</string>
     <string name="watch_history_states_deleted">Atkūrimo vietos pašalintos</string>
     <string name="delete_playback_states_alert">Pašalinti visas atkūrimo vietas\?</string>
-    <string name="peertube_instance_add_fail">Netinkama kopija</string>
-    <string name="peertube_instance_add_help">Įveskite kopijos URL</string>
     <string name="enable_playback_resume_summary">Atstatyti paskutinį atkūrimo laiką</string>
     <string name="enable_playback_resume_title">Tęsti atkūrimą</string>
     <string name="download_thumbnail_summary">Norėdami taupyti duomenų srautą, atminties naudojimą išjunkite. Pakeitimai išvalys duomenis atmintyje ir diske</string>
@@ -539,7 +531,6 @@
     <string name="feed_group_dialog_empty_name">Tuščias grupės pavadinimas</string>
     <string name="feed_group_dialog_empty_selection">Nepasirinkta jokia prenumerata</string>
     <string name="delete_downloaded_files">Pašalinti parsiųstus failus</string>
-    <string name="choose_instance_prompt">Pasirinkite kopiją</string>
     <string name="enable_queue_limit">Riboti parsiuntimų eilę</string>
     <string name="list_view_mode">Sąrašo rodinio režimas</string>
     <string name="skip_silence_checkbox">Prasukti kai nieko negroja</string>

@@ -375,14 +375,6 @@
     <string name="localization_changes_requires_app_restart">زمان دەگۆڕدرێ لەدوای داخستن و پاشان کردنەوەی ئەپ.</string>
     <string name="default_kiosk_page_summary">پەڕەی بنەڕەتی</string>
     <string name="seek_duration_title">ماوەی خێرا بردنە پێشەوە\\ گێڕانەوە بۆ دواوە</string>
-    <string name="peertube_instance_url_title">دۆخی پێرتووبی</string>
-    <string name="peertube_instance_url_summary">دۆخە دڵخوازەکانی پێرتووبی دیاریبکە</string>
-    <string name="peertube_instance_url_help">ئەو دۆخانە بدۆزەرەوە کە لەگەڵ خۆتدا دەگونجێن لە %s</string>
-    <string name="peertube_instance_add_title">زیادکردنی دۆخ</string>
-    <string name="peertube_instance_add_help">بەستەری دۆخ دابنێ</string>
-    <string name="peertube_instance_add_fail">ناتوانرێ پشتگیری دۆخەکە بکرێ</string>
-    <string name="peertube_instance_add_https_only">تەنها بەستەرەکانی https پشتگیریکراون</string>
-    <string name="peertube_instance_add_exists">هەمان دۆخ کاراکراوە</string>
     <string name="error_http_not_found">نەدۆزرایەوە</string>
     <string name="error_postprocessing_failed">چارەسەرکردن شکستی هێنا</string>
     <string name="stop">ڕاگرتن</string>
@@ -411,7 +403,6 @@
     <string name="playlist_no_uploader">خۆکاری دانرا (هیچ بەرزکەرەوەیەک نەدۆزرایەوە)</string>
     <string name="recovering">دەگەڕێنرێتەوە</string>
     <string name="error_download_resource_gone">ناتوانرێ ئەم دابەزاندنە بهێنرێتەوە</string>
-    <string name="choose_instance_prompt">دۆخێک هەڵبژێرە</string>
     <string name="clear_download_history">سڕینەوەی مێژووی دابەزاندن</string>
     <string name="delete_downloaded_files">سڕینەوەی فایلە دابەزێنراوەکان</string>
     <string name="permission_display_over_apps">دەسەڵاتی پێبدە بۆ پیشاندان لەسەرووی ئەپەکانیترەوە</string>

@@ -85,7 +85,6 @@
     <string name="enqueue">نۆبه‌ت</string>
     <string name="play_with_kodi_title">لێدان به‌ Kodi</string>
     <string name="error_unable_to_load_comments">ناتوانرێت لێدوانەکان باربکرێن</string>
-    <string name="peertube_instance_add_help">بەستەری دۆخ دابنێ</string>
     <string name="download_path_audio_summary">فایلی دەنگە دابه‌زێنراوەکان لێرەدا هەڵدەگیرێن</string>
     <string name="error_snackbar_message">ببورە، هەندێك کێشە ڕوویدا.</string>
     <string name="export_to">هەناردە کردن بۆ</string>
@@ -167,7 +166,6 @@
     <string name="black_theme_title">ڕه‌ش</string>
     <string name="default_popup_resolution_title">قه‌باره‌ی بنەڕەتی په‌نجه‌ره‌</string>
     <string name="could_not_import_all_files">ئاگاداربە: ناتوانرێت هەموو فایله‌كان هاوردە بكرێن .</string>
-    <string name="peertube_instance_url_summary">ئارەزوومەندییەکانی دۆخی پێرتووب دیار بکە</string>
     <string name="feed_oldest_subscription_update">دواین نوێکردنەوەی فیید: %s</string>
     <string name="stop">ڕاگرتن</string>
     <string name="list">خشته‌یی</string>
@@ -184,7 +182,6 @@
     <string name="msg_running_detail">كرتە بکە بۆ وردەکاری</string>
     <string name="delete_playback_states_alert">شوێنی هەموو کارپێکراوەکان بسڕدرێنەوە؟</string>
     <string name="top_50">باشترین ٥٠</string>
-    <string name="peertube_instance_add_https_only">تەنها بەستەرەکانی https پشتگیریکراون</string>
     <string name="error_ssl_exception">پەیوەستبوونی پارێزراو هه‌ره‌سی هێنا</string>
     <string name="remove_watched_popup_warning">ئەو ڤیدیۆیانەی پێشتر سەیرت کردوون و دواتر زیادت کردوون بۆ خشتەلێدان لادەدرێن.
 \nئایا دڵنیایت؟ ئەمە ناگەڕێنرێتەوە!</string>
@@ -198,7 +195,6 @@
     <string name="error_progress_lost">کردارەکە هه‌ره‌سی هێنا, چونکە ئەو فایله‌ سڕاوەتەوە</string>
     <string name="controls_add_to_playlist_title">زیادکردن بۆ</string>
     <string name="no_subscribers">به‌ژداری نییه‌</string>
-    <string name="peertube_instance_url_title">دۆخی پێرتووب</string>
     <string name="playlist_creation_success">خشتەلێدان سازکرا</string>
     <string name="unhook_checkbox">سڕینەوەی بەستەر (ڕەنگە ببێتە هۆی تێکدان)</string>
     <string name="channel_page_summary">پەڕەی کەناڵەکان</string>
@@ -213,7 +209,6 @@
     <string name="play_audio">ده‌نگ</string>
     <string name="show_original_time_ago_title">پیشاندانی کاتی بنچینەیی پێشوو لەسەر بابەتەکان</string>
     <string name="play_queue_stream_detail">وردەکارییەکان</string>
-    <string name="peertube_instance_add_exists">هەمان دۆخ کاراکراوە</string>
     <string name="tab_bookmarks">خشتەلێدانه‌ نیشانەکراوەکان</string>
     <string name="privacy_policy_title">سیاسەتی تایبەتی نیوپایپ</string>
     <string name="settings_category_downloads_title">دابه‌زاندن</string>
@@ -239,7 +234,6 @@
     <string name="retry">هەوڵدانەوە</string>
     <string name="remove_watched_popup_title">ڤیدیۆ سەیر کراوەکان لابدرێن؟</string>
     <string name="playlists">خشته‌لێدانه‌كان</string>
-    <string name="choose_instance_prompt">دۆخێک هەڵبژێرە</string>
     <string name="skip_silence_checkbox">بردنەپێشەوەی خێرا لەکاتی بێدەنگکردن</string>
     <string name="your_comment">لێدوانەکەت (بە ئینگلیزی):</string>
     <string name="overwrite_unrelated_warning">فایلێك بەهەمان ناو بوونی هەیە</string>
@@ -314,13 +308,11 @@
     <string name="songs">گۆرانییەکان</string>
     <string name="controls_download_desc">دابه‌زاندنی فایلی پەخش</string>
     <string name="list_view_mode">شێوازی پیشاندانی خشتە</string>
-    <string name="peertube_instance_add_title">زیادکردنی دۆخ</string>
     <string name="delete_playlist_prompt">ئەم خشتەلێدانه‌ بسڕدرێتەوە؟</string>
     <string name="mute">بێدەنگکردن</string>
     <string name="website_encouragement">سەردانی ماڵپەڕی نیوپایپ بکە بۆ زانیاری و هەواڵی نوێ.</string>
     <string name="app_description">به‌رنامه‌یه‌كی خۆڕایی و کێشکەم بۆ پەخش لەسەر ئەندرۆید.</string>
     <string name="content_not_available">بابەت به‌رده‌ست نییە</string>
-    <string name="peertube_instance_url_help">ئەو دۆخانە بدۆزەرەوە کە لەگەڵ خۆتدا دەگونجێن لە %s</string>
     <string name="file">فایل</string>
     <string name="error_http_not_found">نەدۆزرایەوە</string>
     <string name="post_processing">چارەسەردەکرێت</string>
@@ -445,7 +437,6 @@
     <string name="error_report_title">هەڵە لە سكاڵا</string>
     <string name="metadata_cache_wipe_summary">سڕینەوەی پاشماوەی هەموو ماڵپه‌ڕه‌كان</string>
     <string name="kore_not_found">بەرنامەکە نه‌دۆزرایه‌وه‌. دابمه‌زرێت؟</string>
-    <string name="peertube_instance_add_fail">ناتوانرێ پشتگیری دۆخەکە بکرێ</string>
     <string name="install">دامەزراندن</string>
     <string name="videos_string">ڤیدیۆکان</string>
     <string name="unsupported_url">بەستەرەکە پشتگیری نەکراوە</string>

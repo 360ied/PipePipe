@@ -183,7 +183,6 @@
     <string name="export_data_title">ডাটা বেস এক্সপোর্ট করুন</string>
     <string name="notification_channel_name">নিউ পাইপ এর সূচনা</string>
     <string name="playlists">প্লেলিস্ট গুলি</string>
-    <string name="peertube_instance_add_title">ইন্সটান্স যোগ করুন</string>
     <string name="file">ফাইল</string>
     <string name="play_all">সব চালু করুন</string>
     <string name="file_deleted">ফাইল ডিলিট হয়েছে</string>
@@ -209,7 +208,6 @@
     <string name="undo">ফিরে যান</string>
     <string name="artists">শিল্পীরা</string>
     <string name="events">ইভেন্টগুলি</string>
-    <string name="peertube_instance_add_https_only">শুধুমাত্র HTTPS URL গুলি সাপোর্ট করে</string>
     <string name="close">বন্ধ করুন</string>
     <string name="limit_data_usage_none_description">কোন সীমা নেই</string>
     <string name="unbookmark_playlist">বুকমার্ক মুছুন</string>
@@ -235,9 +233,6 @@
     <string name="switch_to_background">পেছনে নিয়ে যান</string>
     <string name="best_resolution">সেরা রেজুলিউসন</string>
     <string name="songs">গান গুলি</string>
-    <string name="peertube_instance_add_help">ইন্সটান্স এর ইউ আর এল</string>
-    <string name="peertube_instance_url_summary">আপনার পছন্দের পিয়ার টিউব ইন্সটান্স</string>
-    <string name="peertube_instance_url_title">পিয়ার টিউব এর ইন্সটান্স সমূহ</string>
     <string name="autoplay_title">স্বয়ংক্রিয়</string>
     <string name="enable_watch_history_summary">দেখা ভিডিও গুলির হিসেব</string>
     <string name="enable_playback_resume_summary">শেষ প্লে ব্যাক পজিশন এ যান</string>

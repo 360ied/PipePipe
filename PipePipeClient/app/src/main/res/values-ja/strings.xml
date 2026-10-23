@@ -365,20 +365,11 @@
 </plurals>
 <string name="localization_changes_requires_app_restart">アプリを再起動すると、言語が変更されます</string>
 <string name="seek_duration_title">高速早送り/巻き戻し時間</string>
-<string name="peertube_instance_url_title">PeerTube インスタンス</string>
-<string name="peertube_instance_url_summary">PeerTube インスタンスを選択する</string>
-<string name="peertube_instance_url_help">あなたに最適なインスタンスを探す: %s</string>
-<string name="peertube_instance_add_title">インスタンスを追加</string>
-<string name="peertube_instance_add_help">インスタンスの URL を入力</string>
-<string name="peertube_instance_add_fail">インスタンスを検証することができませんでした</string>
-<string name="peertube_instance_add_https_only">HTTPS の URL のみに対応しています</string>
-<string name="peertube_instance_add_exists">インスタンスはすでに存在しています</string>
 <string name="local">ローカル</string>
 <string name="recently_added">最近追加された</string>
 <string name="most_liked">高評価</string>
 <string name="recovering">修復中</string>
 <string name="error_download_resource_gone">ダウンロードが修復できません</string>
-<string name="choose_instance_prompt">インスタンスを選択</string>
 <string name="clear_download_history">ダウンロード履歴を消去</string>
 <string name="delete_downloaded_files">ダウンロードしたファイルを消去</string>
 <string name="playlist_no_uploader">自動生成 (アップローダーが見つかりません)</string>
@@ -679,8 +670,6 @@
 <string name="enable_eye_protection_summary">動的なテーマの変更を無効にし、全てのサービスで目の保護テーマを使用します。</string>
 <string name="enable_eye_protection_title">目の保護を有効にする</string>
 <string name="account">アカウント</string>
-<string name="settings_category_niconico_account_title">ニコニコアカウント</string>
-<string name="settings_category_bilibili_account_title">BiliBiliアカウント</string>
 <string name="login_warning">トークンは必要な場合にのみ使用されます</string>
 <string name="login_title">ログイン</string>
 <string name="logout_title">ログアウト</string>
@@ -1013,7 +1002,6 @@
 <string name="rotate_fullscreen_to_video_orientation_summary">全画面表示時に、動画に合わせて画面を縦向きまたは横向きに回転させます</string>
 <string name="rotation_controls_fullscreen_title">回転時に全画面表示を自動的に切り替える</string>
 <string name="rotation_controls_fullscreen_summary">システムの自動回転がオンの場合、横向きに回転すると全画面表示になり、縦向きに回転すると全画面表示を終了します</string>
-<string name="niconico_login_summary">トークンは必要な場合にのみ使用されます。古いWebViewを搭載した古い端末では、ログインページが正しく動作しない場合があります。</string>
 <string name="minimize_gesture_control_title">下にスワイプして最小化</string>
 <string name="minimize_gesture_control_summary">プレーヤー上で下にスワイプしてミニプレーヤーに縮小します — %s</string>
 <string name="minimize_gesture_none_description">無効</string>

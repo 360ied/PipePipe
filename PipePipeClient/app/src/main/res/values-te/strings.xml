@@ -148,8 +148,6 @@
     <string name="default_resolution_title">డిఫాల్ట్ స్పష్టత</string>
     <string name="black_theme_title">నలుపు</string>
     <string name="download_thumbnail_title">సూక్ష్మచిత్రాలను లోడ్ చేయండి</string>
-    <string name="peertube_instance_url_help">%sలో మీకు నచ్చిన సందర్భాలను కనుగొనండి</string>
-    <string name="peertube_instance_url_title">పీర్‌ట్యూబ్ ఉదాహరణలు</string>
     <string name="notification_action_2_title">మూడవ చర్య బటన్</string>
     <string name="download_thumbnail_summary">థంబ్‌నెయిల్‌లను లోడ్ చేయడం, డేటాను సేవ్ చేయడం మరియు మెమరీ వినియోగాన్ని నిరోధించడానికి ఆఫ్ చేయండి. మార్పులు ఇన్-మెమరీ మరియు ఆన్-డిస్క్ ఇమేజ్ కాష్ రెండింటినీ క్లియర్ చేస్తాయి</string>
     <string name="use_inexact_seek_summary">ఖచ్చితమైన శోధన తగ్గిన ఖచ్చితత్వంతో వేగంగా స్థానాలను పొందేందుకు ఆటగాడిని అనుమతిస్తుంది. 5, 15 లేదా 25 సెకన్ల పాటు కోరడం దీనితో పని చేయదు</string>
@@ -166,11 +164,8 @@
     <string name="brightness_gesture_control_summary">ప్లేయర్ ప్రకాశాన్ని నియంత్రించడానికి సంజ్ఞలను ఉపయోగించండి</string>
     <string name="show_search_suggestions_summary">శోధిస్తున్నప్పుడు చూపాల్సిన సూచనలను ఎంచుకోండి</string>
     <string name="enable_playback_resume_summary">చివరి ప్లేబ్యాక్ స్థానాన్ని పునరుద్ధరించండి</string>
-    <string name="peertube_instance_url_summary">మీకు ఇష్టమైన పీర్‌ట్యూబ్ సందర్భాలను ఎంచుకోండి</string>
     <string name="enable_watch_history_summary">వీక్షించిన వీడియోలను ట్రాక్ చేయండి</string>
     <string name="start_main_player_fullscreen_summary">మినీ ప్లేయర్‌లో వీడియోలను ప్రారంభించవద్దు, ఆటో రొటేషన్ లాక్ చేయబడితే, నేరుగా పూర్తి స్క్రీన్ మోడ్‌కి మారండి. మీరు పూర్తి స్క్రీన్ నుండి నిష్క్రమించడం ద్వారా ఇప్పటికీ మినీ ప్లేయర్‌ని యాక్సెస్ చేయవచ్చు</string>
-    <string name="peertube_instance_add_title">సందర్భాన్ని జోడించండి</string>
-    <string name="peertube_instance_add_https_only">HTTPS URLలకు మాత్రమే మద్దతు ఉంది</string>
     <string name="notification_action_1_title">రెండవ చర్య బటన్</string>
     <string name="notification_action_3_title">నాల్గవ చర్య బటన్</string>
     <string name="crash_the_player">ప్లేయర్ క్రాష్ చేయండి</string>
@@ -196,9 +191,6 @@
     <string name="settings_category_clear_data_title">డేటాను క్లియర్ చేయండి</string>
     <string name="resume_on_audio_focus_gain_title">ప్లే చేయడం కొనసాగించండి</string>
     <string name="default_content_country_title">డిఫాల్ట్ కంటెంట్ దేశం</string>
-    <string name="peertube_instance_add_help">ఉదాహరణ URLని నమోదు చేయండి</string>
-    <string name="peertube_instance_add_fail">ఉదాహరణను ధృవీకరించడం సాధ్యపడలేదు</string>
-    <string name="peertube_instance_add_exists">ఉదాహరణ ఇప్పటికే ఉంది</string>
     <string name="users">వినియోగదారులు</string>
     <string name="events">ఈవెంట్స్</string>
     <string name="restricted_video_no_stream">ఈ వీడియో వయో పరిమితి విధించబడింది.

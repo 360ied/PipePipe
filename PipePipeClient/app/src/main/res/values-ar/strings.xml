@@ -405,21 +405,12 @@
         <item quantity="other">%s مستمع</item>
     </plurals>
     <string name="seek_duration_title">تسريع للأمام / ترجيع للخلف</string>
-    <string name="peertube_instance_url_title">مثيلات خوادم PeerTube</string>
-    <string name="peertube_instance_url_summary">حدد مثيلات PeerTube المفضلة لديك</string>
-    <string name="peertube_instance_add_title">إضافة مثيل</string>
-    <string name="peertube_instance_add_help">أدخل عنوانا للمثيل</string>
-    <string name="peertube_instance_add_fail">لا يمكن التحقق من صحة المثيل</string>
-    <string name="peertube_instance_add_https_only">يتم دعم عناوين URL التي تستخدم HTTPS فقط</string>
-    <string name="peertube_instance_add_exists">المثيل موجود بالفعل</string>
     <string name="local">محلي</string>
     <string name="recently_added">أُضيف مؤخرًا</string>
     <string name="most_liked">الأكثر إعجابًا</string>
     <string name="playlist_no_uploader">مُنشأة تلقائيًا (لم يتم العثور على رافع)</string>
     <string name="recovering">استرداد</string>
     <string name="error_download_resource_gone">لا يمكن استرداد هذا التنزيل</string>
-    <string name="choose_instance_prompt">اختيار مثيل</string>
-    <string name="peertube_instance_url_help">ابحث عن مثيلات الخوادم التي تناسبك على %s</string>
     <string name="clear_download_history">مسح تاريخ التحميل</string>
     <string name="delete_downloaded_files">حذف الملفات المحملة</string>
     <string name="permission_display_over_apps">امنح الإذن بالعرض فوق التطبيقات الأخرى</string>
@@ -822,8 +813,6 @@
     <string name="enable_eye_protection_summary">تعطيل تغيير السمة الديناميكي واستخدام سمة حماية العين لجميع الخدمات</string>
     <string name="enable_eye_protection_title">تفعيل حماية العين</string>
     <string name="account">الحساب</string>
-    <string name="settings_category_niconico_account_title">حساب NicoNico</string>
-    <string name="settings_category_bilibili_account_title">حساب BiliBili</string>
     <string name="settings_category_youtube_account_title">حساب YouTube</string>
     <string name="login_warning">لن تُستخدم الرموز إلا عند الحاجة</string>
     <string name="login_title">تسجيل الدخول</string>

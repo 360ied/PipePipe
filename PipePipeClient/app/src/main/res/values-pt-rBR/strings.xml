@@ -111,14 +111,6 @@
         <item quantity="one">%s resposta</item>
         <item quantity="other">%s respostas</item>
     </plurals>
-    <string name="peertube_instance_url_title">Instâncias de PeerTube</string>
-    <string name="peertube_instance_url_summary">Escolha suas instâncias de PeerTube favoritas</string>
-    <string name="peertube_instance_url_help">Ache as instâncias que gosta em %s</string>
-    <string name="peertube_instance_add_title">Adicionar instância</string>
-    <string name="peertube_instance_add_help">Insira o URL da instância</string>
-    <string name="peertube_instance_add_fail">Não foi possível validar a instância</string>
-    <string name="peertube_instance_add_https_only">Apenas URLs HTTPS são suportados</string>
-    <string name="peertube_instance_add_exists">A instância já existe</string>
     <string name="settings_category_player_title">Reprodutor</string>
     <string name="settings_category_history_title">Histórico de cache</string>
     <string name="settings_category_appearance_title">Aparência</string>
@@ -565,7 +557,6 @@
     <string name="downloads_storage_ask_summary_no_saf_notice">Você será perguntado onde salvar cada transferência</string>
     <string name="downloads_storage_use_saf_title">Usar navegador de arquivos (SAF)</string>
     <string name="downloads_storage_use_saf_summary">O &quot;Framework de Acesso ao Armazenamento&quot; permite transferências para um card SD externo</string>
-    <string name="choose_instance_prompt">Escolha uma instância</string>
     <string name="app_language_title">Idioma do aplicativo</string>
     <string name="systems_language">Padrão do Sistema</string>
     <string name="remove_watched">Remover assistido</string>
@@ -698,8 +689,6 @@
     <string name="enable_eye_protection_summary">Desabilitar a mudança do tema dinâmico e usar um tema protetor ocular para todos os serviços</string>
     <string name="enable_eye_protection_title">Habilitar proteção ocular</string>
     <string name="account">Conta</string>
-    <string name="settings_category_niconico_account_title">Conta NicoNico</string>
-    <string name="settings_category_bilibili_account_title">Conta BiliBili</string>
     <string name="login_warning">Favor note que entrar com sua conta pode reduzir sua anonimidade</string>
     <string name="login_title">Entrar</string>
     <string name="logout_title">Sair</string>
@@ -1052,5 +1041,4 @@
     <string name="rotate_fullscreen_to_video_orientation_summary">Gira a tela para retrato ou paisagem de acordo com o vídeo em tela cheia</string>
     <string name="rotation_controls_fullscreen_title">Alternar tela cheia automaticamente ao girar</string>
     <string name="rotation_controls_fullscreen_summary">Com a rotação automática do sistema ativada, girar para paisagem entra em tela cheia e girar para retrato sai da tela cheia</string>
-    <string name="niconico_login_summary">Os tokens só serão usados quando necessário. A página de login pode não funcionar em dispositivos antigos com WebView desatualizado.</string>
 </resources>

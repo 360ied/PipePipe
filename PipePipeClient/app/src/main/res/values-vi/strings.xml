@@ -113,14 +113,6 @@
 <item quantity="one">%s trả lời</item>
 <item quantity="other">%s trả lời</item>
 </plurals>
-<string name="peertube_instance_url_title">Phiên bản PeerTube</string>
-<string name="peertube_instance_url_summary">Chọn phiên bản PeerTube yêu thích của bạn</string>
-<string name="peertube_instance_url_help">Tìm phiên bản bạn thích trên %s</string>
-<string name="peertube_instance_add_title">Thêm phiên bản</string>
-<string name="peertube_instance_add_help">Nhập URL phiên bản</string>
-<string name="peertube_instance_add_fail">Không thể xác thực phiên bản</string>
-<string name="peertube_instance_add_https_only">Chỉ hỗ trợ URL HTTPS</string>
-<string name="peertube_instance_add_exists">Phiên bản đã tồn tại</string>
 <string name="settings_category_player_title">Trình phát</string>
 <string name="settings_category_history_title">Lịch sử và bộ đệm</string>
 <string name="settings_category_appearance_title">Ngoại hình</string>
@@ -587,7 +579,6 @@ của YouTube
 <string name="downloads_storage_ask_summary_no_saf_notice">Bạn sẽ được hỏi nơi lưu mỗi lần tải xuống</string>
 <string name="downloads_storage_use_saf_title">Sử dụng bộ chọn thư mục hệ thống (SAF)</string>
 <string name="downloads_storage_use_saf_summary">\'Khung truy cập lưu trữ\' cho phép tải xuống thẻ SD bên ngoài</string>
-<string name="choose_instance_prompt">Chọn một phiên bản</string>
 <string name="app_language_title">Ngôn ngữ ứng dụng</string>
 <string name="systems_language">Mặc định hệ thống</string>
 <string name="remove_watched">Loại bỏ đã xem</string>
@@ -768,8 +759,6 @@ nSự khác biệt giữa hai loại này là cái nào nhanh thường thiếu 
     </string>
 <string name="enable_eye_protection_title">Bật tính năng bảo vệ mắt</string>
 <string name="account">Tài khoản</string>
-<string name="settings_category_niconico_account_title">Tài khoản NicoNico</string>
-<string name="settings_category_bilibili_account_title">Tài khoản BiliBili</string>
 <string name="login_warning">Mã thông báo chỉ được sử dụng khi cần thiết</string>
 <string name="login_title">Đăng nhập</string>
 <string name="logout_title">Đăng xuất</string>
@@ -1097,7 +1086,6 @@ nSự khác biệt giữa hai loại này là cái nào nhanh thường thiếu 
 <string name="rotate_fullscreen_to_video_orientation_summary">Xoay màn hình sang dọc hoặc ngang dựa trên video khi ở chế độ toàn màn hình</string>
 <string name="rotation_controls_fullscreen_title">Tự động chuyển đổi chế độ toàn màn hình khi xoay</string>
 <string name="rotation_controls_fullscreen_summary">Khi tính năng tự động xoay của hệ thống được bật, xoay sang hướng ngang sẽ vào chế độ toàn màn hình và xoay sang hướng dọc sẽ thoát chế độ toàn màn hình</string>
-<string name="niconico_login_summary">Token sẽ chỉ được sử dụng khi cần thiết. Trang đăng nhập có thể không hoạt động trên các thiết bị cũ với WebView đã lỗi thời.</string>
 <string name="minimize_gesture_control_title">Vuốt xuống để thu nhỏ</string>
 <string name="minimize_gesture_control_summary">Vuốt xuống trên trình phát để thu gọn thành trình phát thu nhỏ — %s</string>
 <string name="minimize_gesture_none_description">Đã tắt</string>

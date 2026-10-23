@@ -424,7 +424,6 @@
     <string name="remove_watched">Verwijder bekeken</string>
     <string name="systems_language">Systeem standaard</string>
     <string name="app_language_title">App taal</string>
-    <string name="choose_instance_prompt">Kies een instantie</string>
     <string name="downloads_storage_use_saf_summary">Het \'Storage Access Framework\' laat downloads naar een externe SD kaart toe.
 \nNiet alle toestellen zijn compatibel</string>
     <string name="downloads_storage_use_saf_title">Gebruik SAF</string>
@@ -499,14 +498,6 @@
     <string name="restricted_video">Deze video heeft een leeftijdsbeperking.
 \n
 \nSchakel \"%1$s\" in bij de instellingen als u die wilt zien.</string>
-    <string name="peertube_instance_add_exists">Kanaal bestaat al</string>
-    <string name="peertube_instance_add_https_only">Alleen HTTPS URL\'s worden ondersteund</string>
-    <string name="peertube_instance_add_fail">Kon kanaal niet valideren</string>
-    <string name="peertube_instance_add_help">Kanaal URL invoeren</string>
-    <string name="peertube_instance_add_title">Kanaal toevoegen</string>
-    <string name="peertube_instance_url_help">Vind het kanaal dat u leuk vindt op %s</string>
-    <string name="peertube_instance_url_summary">Selecteer je favoriete PeerTube kanaal</string>
-    <string name="peertube_instance_url_title">PeerTube kanaal</string>
     <string name="unsupported_url_dialog_message">Kon de URL niet herkennen. In een andere app openen\?</string>
     <string name="settings_category_clear_data_title">Wis data</string>
     <string name="enable_playback_resume_summary">Verder afspelen vanaf laatste positie</string>

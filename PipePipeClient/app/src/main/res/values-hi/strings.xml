@@ -424,7 +424,6 @@
     <string name="restricted_video">यह वीडियो उम्र प्रतिबंधित है।
 \n
 \nयदि आप इसे देखना चाहते हैं तो सेटिंग में \"%1$s\" चालू करें।</string>
-    <string name="peertube_instance_add_https_only">केवल HTTPS यूआरएल ही समर्थित हैं</string>
     <string name="unsupported_url_dialog_message">URL की पहचान नहीं हो सकी। दूसरे ऐप से खोलें\?</string>
     <string name="auto_queue_toggle">ऑटोमैटिकली कतार करे</string>
     <string name="seek_duration_title">तलाश अवधि फास्ट-फ़ॉरवर्ड /- रिवाइंड करे</string>
@@ -496,18 +495,11 @@
     <string name="download_has_started">डाउलोड शुरू हो गया है</string>
     <string name="restricted_video_no_stream">यह वीडियो आयु-प्रतिबंधित है।
 \nयूट्यूब की नई नीतियों के कारण न्यूपाइप किसी भी आयु प्रतिबंधित वीडियो स्ट्रीम का इस्तेमाल नहीं कर सकता है और इस कारण इसे वीडियो को प्ले करने में असमर्थ है।</string>
-    <string name="peertube_instance_url_title">पियरट्यूब उदाहरण</string>
     <string name="featured">विशेष रुप से प्रदर्शित</string>
     <string name="night_theme_title">रात्रि थीम</string>
     <string name="msg_calculating_hash">हैश की गणना</string>
     <string name="copy_for_github">स्वरूपित रिपोर्ट कॉपी करें</string>
     <string name="clear_cookie_summary">कुकी साफ़ करें जिसे न्यूपाइप आपके द्वारा रीकैप्चा हल करने पर संग्रहीत करता है</string>
-    <string name="peertube_instance_add_exists">उदाहरण पहले से मौजूद है</string>
-    <string name="peertube_instance_add_fail">उदाहरण मान्य नहीं किया जा सका</string>
-    <string name="peertube_instance_add_help">उदाहरण URL दर्ज करें</string>
-    <string name="peertube_instance_add_title">उदाहरण जोड़ें</string>
-    <string name="peertube_instance_url_help">%s . पर अपनी पसंद के उदाहरण ढूँढ़ें</string>
-    <string name="peertube_instance_url_summary">अपने पसंदीदा PeerTube उदाहरण चुनें</string>
     <string name="start_main_player_fullscreen_title">मुख्य प्लेयर को पूर्ण स्क्रीन में शुरू करें</string>
     <string name="start_main_player_fullscreen_summary">मिनी प्लेयर में वीडियो शुरू न करें, लेकिन ऑटो रोटेशन लॉक होने पर सीधे फुल स्क्रीन मोड पर जाएं। आप अब भी फ़ुलस्क्रीन से बाहर निकलकर मिनी प्लेयर तक पहुंच सकते हैं।</string>
     <string name="comments_are_disabled">टिप्पणियाँ करना बंद है</string>

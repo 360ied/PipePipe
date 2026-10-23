@@ -1,17 +1,14 @@
 package org.schabi.newpipe.util.service_display
 
 import androidx.annotation.StringRes
-import org.schabi.newpipe.extractor.ServiceList
 
 sealed class LocalizationService {
 
     companion object {
         @JvmStatic
         fun of(serviceId: Int): LocalizationService? =
-            when (serviceId) {
-                ServiceList.BiliBili.serviceId -> BiliBiliLocalizationService
-                else -> null
-            }
+            // No remaining service (YouTube, SoundCloud) needs localized stat keys.
+            null
     }
 
     @StringRes

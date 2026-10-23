@@ -518,7 +518,7 @@ public abstract class StreamExtractor extends Extractor {
     }
 
     /**
-     * The host of the stream (Eg. peertube.cpy.re).
+     * The host of the stream (Eg. www.youtube.com).
      * If the host is not available, or if the service doesn't use
      * a federated system, but a centralised system,
      * you can simply return an empty string.

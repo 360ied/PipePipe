@@ -304,14 +304,6 @@
     <string name="delete_playback_states_alert">Ștergeți toate pozițiile din playback\?</string>
     <string name="clear_playback_states_summary">Ștergeți toate pozițiile de redare</string>
     <string name="videos_string">Videoclipuri</string>
-    <string name="peertube_instance_add_exists">Instanța există deja</string>
-    <string name="peertube_instance_add_https_only">Sunt acceptate numai URL-urile HTTPS</string>
-    <string name="peertube_instance_add_fail">Nu s-a putut valida instanța</string>
-    <string name="peertube_instance_add_help">Introduceți URL-ul instanței</string>
-    <string name="peertube_instance_add_title">Adăugați o instanță</string>
-    <string name="peertube_instance_url_help">Găsiți instanțele care vă plac pe %s</string>
-    <string name="peertube_instance_url_summary">Selectați instanțele PeerTube preferate</string>
-    <string name="peertube_instance_url_title">Instanțe PeerTube</string>
     <string name="seek_duration_title">Durată derulare rapidă înainte/înapoi</string>
     <string name="recaptcha_done_button">Gata</string>
     <string name="subtitle_activity_recaptcha">Apăsați \"Gata\" după ce ați rezolvat problema</string>
@@ -415,7 +407,6 @@
     <string name="remove_watched">Eliminare cele urmărite</string>
     <string name="systems_language">Prestabilită de sistem</string>
     <string name="app_language_title">Limba aplicației</string>
-    <string name="choose_instance_prompt">Alegeți o instanță</string>
     <string name="downloads_storage_use_saf_summary">\"Storage Access Framework\" permite descărcări pe un card SD extern</string>
     <string name="downloads_storage_use_saf_title">Utilizați selectorul de dosare de sistem (SAF)</string>
     <string name="downloads_storage_ask_summary">Veți fi întrebat unde să salvați fiecare descărcare.
