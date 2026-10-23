@@ -104,9 +104,7 @@ class ErrorInfo(
 
         private fun getServiceNameFromId(serviceId: Int) = NewPipe.getNameOfService(serviceId) +
                 if (serviceId != -1) {
-                    // Service ids from old installs (removed services) may no longer exist.
-                    val loggedIn = ServiceList.all().getOrNull(serviceId)?.hasTokens() == true
-                    " (" + (if (loggedIn) "Logged in" else "Anonymous") + ")"
+                    " (" + (if (ServiceList.all()[serviceId].hasTokens()) "Logged in" else "Anonymous") + ")"
                 } else {
                     ""
                 }

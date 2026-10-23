@@ -369,18 +369,6 @@ public final class Migrations {
         }
     };
 
-    public static final Migration MIGRATION_6_900 = new Migration(DB_VER_6, DB_VER_900) {
-        @Override
-        public void migrate(@NonNull final SupportSQLiteDatabase database) {
-            String updateSql = "UPDATE " + "streams" +
-                    " SET " + "url" + " = REPLACE(" + "url" + ", '" + "https://bilibili.com" + "', '" + "https://www.bilibili.com/video" + "')" +
-                    " WHERE " + "url" + " LIKE '" + "https://bilibili.com" + "/%'"; // Use LIKE to ensure it's a prefix match
-
-            // Execute the SQL
-            database.execSQL(updateSql);
-        }
-    };
-
     public static final Migration MIGRATION_9_900 = new Migration(DB_VER_9, DB_VER_900) {
         public void migrate(@NonNull final SupportSQLiteDatabase database) {
             // Re-create the thumbnail_url field in the playlist table
