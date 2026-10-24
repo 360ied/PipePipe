@@ -46,7 +46,7 @@ spike → SABR → HLS → delete (section 9).
 | `PipePipeClient/ffmpeg/build.gradle.kts` | `artifacts.add("default", file("ffmpeg-kit.aar"))` |
 | `PipePipeClient/settings.gradle:37` | `include ':ffmpeg'` |
 | `PipePipeClient/app/build.gradle:299-301` | commented-out Maven coordinate, `implementation project(':ffmpeg')`, `implementation 'com.arthenica:smart-exception-java:0.2.1'` (ffmpeg-kit transitive dep — goes away too) |
-| `.github/workflows/build-ffmpeg.yml` | manual (`workflow_dispatch`) rebuild job from the `InfinityLoop1308/ffmpeg-kit` fork, NDK 28.2, `--lts --enable-gmp --enable-openssl --enable-android-media-codec --enable-android-zlib --disable-arm-v7a` |
+| `.github/workflows/build-ffmpeg.yml` | manual (`workflow_dispatch`) rebuild job from the `InfinityLoop1308/ffmpeg-kit` fork, NDK 28.2, `--lts --enable-gmp --enable-openssl --enable-android-media-codec --enable-android-zlib --disable-arm-v7a` (+ optional `extra_options` input, default empty) |
 
 Per-ABI native cost measured from the current debug APKs (uncompressed):
 
@@ -137,7 +137,7 @@ FFmpeg is replaceable.
   consistent with an NDK r27+ rebuild (the workflow pins NDK 28.2). So
   "the app will crash on 16 KB devices" is **not** a live argument — the
   urgency is maintenance/security debt, not an active crash.
-- **The rebuild workflow could not reproduce the committed AAR as committed.**
+- **The rebuild workflow could not reproduce the committed AAR as committed (with default options).** A non-empty `extra_options` input is appended to `BUILD_OPTIONS` and could explain outputs (e.g. `armeabi-v7a`/`x86`) the fixed flags would exclude; no recorded run documents which options produced the committed AAR.
   `.github/workflows/build-ffmpeg.yml` passed `--disable-arm-v7a`, yet the
   committed `.aar` contained `armeabi-v7a` and `x86` outputs. Either the AAR
   was built with different options or by a different run; neither was
@@ -283,9 +283,10 @@ Container decisions:
       `project(':ffmpeg')` + `smart-exception-java`.
 - [x] Delete `.github/workflows/build-ffmpeg.yml` (it built something
       nothing consumes afterward; repurposing was rejected).
-- [x] Remove the two `com.arthenica.ffmpegkit` imports and both
-      `remuxWithFfmpeg` methods (replaced by `SabrJavaMuxer` +
-      `HlsFrameworkMuxer`; verified no source references remain).
+- [x] Remove the `com.arthenica.ffmpegkit` imports (`FFmpegKit` +
+      `ReturnCode` in each of the two files) and both `remuxWithFfmpeg`
+      methods (replaced by `SabrJavaMuxer` + `HlsFrameworkMuxer`;
+      verified no source references remain).
 - [x] Verify `proguard-rules.pro` needs no change (no arthenica keep rules)
       and the manifest needs none.
 - [x] Verify APKs: no `libav*`/`libsw*`/`libffmpegkit*` under `lib/` per ABI;
@@ -414,18 +415,23 @@ HLS (`HlsDownloader.kt`, shell string via `FFmpegKit.execute`):
 
 ```text
 -y -i "<abs input-0>" [-i "<abs input-N>"]
-  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...])
+  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...]) | (no -map args)
   -c copy -movflags +faststart "<abs output>"
 ```
+
+Single non-audio input takes the no-`-map` alternative (old code adds
+`-map` only for single-audio or multi-input).
 
 SABR (`SabrFfmpegMuxer.kt`, argv via `executeWithArguments`):
 
 ```text
 -hide_banner -nostats -loglevel fatal -y
   -i <abs input-0> [-i <abs input-1>]
-  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...])
+  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...]) | (no -map args)
   -c copy [-movflags +faststart] <abs output>
 ```
+
+Same no-`-map` rule as HLS: single non-audio input gets no `-map` args.
 
 ### B. Size and ELF evidence (measured 2026-10-24)
 
