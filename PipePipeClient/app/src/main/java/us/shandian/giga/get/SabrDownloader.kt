@@ -36,8 +36,9 @@ internal class SabrDownloader(
                     'v' -> SabrDownloadFormatResolver.selectedVideoFormat(info, arrayOf(recovery))
                     else -> null
                 }
-            }.takeIf { formats -> formats.all { it != null && it.contentLength > 0 } }
-                ?.sumOf { it!!.contentLength }
+            }.filterNotNull()
+                .takeIf { formats -> formats.size == recoveries.size && formats.all { it.contentLength > 0 } }
+                ?.sumOf { it.contentLength }
                 ?: 0L
             prepareMission(expectedLength)
             val attestationRetryHandler = SabrAttestationRetryHandler(info.videoId)
@@ -47,18 +48,18 @@ internal class SabrDownloader(
         } catch (error: SocketTimeoutException) {
             // Timeouts are retried to exhaustion in requestWithNetworkRetry;
             // a timeout surfacing here is a genuine failure, not a pause.
-            notifyErrorAndCleanup(error)
+            notifyErrorIfRunning(error)
         } catch (error: InterruptedIOException) {
             Thread.currentThread().interrupt()
         } catch (error: ClosedByInterruptException) {
             // NIO interrupt: same pause semantics as InterruptedIOException.
             Thread.currentThread().interrupt()
         } catch (error: SabrProtocolException) {
-            notifyErrorAndCleanup(classifyProtocolException(error))
+            notifyErrorIfRunning(classifyProtocolException(error))
         } catch (error: ExtractionException) {
             // Reload/integrity failures from the session are protocol
             // errors, not unknown bugs.
-            notifyErrorAndCleanup(
+            notifyErrorIfRunning(
                 SabrDownloadException(
                     SabrDownloadException.Reason.PROTOCOL,
                     "SABR download failed: request failed (${error.message.orEmpty()})",
@@ -66,7 +67,7 @@ internal class SabrDownloader(
                 )
             )
         } catch (error: Exception) {
-            notifyErrorAndCleanup(error)
+            notifyErrorIfRunning(error)
         }
     }
 
@@ -527,8 +528,10 @@ internal class SabrDownloader(
     }
 
     // Retention is deliberate for resume: temp files are kept so a retry
-    // can restore progress instead of redownloading.
-    private fun notifyErrorAndCleanup(error: Exception) {
+    // can restore progress instead of redownloading. Named for what it
+    // does (no cleanup happens here) so a future reader does not "fix"
+    // it by deleting resume state.
+    private fun notifyErrorIfRunning(error: Exception) {
         if (mission.running) {
             mission.notifyError(error)
         }

@@ -47,11 +47,6 @@ internal class SabrSegmentWriter(
     }
 
     @Throws(IOException::class, SabrProtocolException::class)
-    fun writeInitializationData(target: SabrDownloadTarget, data: ByteArray): Boolean {
-        return writeInitializationSegment(target, outputs.getValue(target.resourceIndex), data)
-    }
-
-    @Throws(IOException::class, SabrProtocolException::class)
     private fun writeInitializationSegment(
         target: SabrDownloadTarget,
         output: OutputStream,
