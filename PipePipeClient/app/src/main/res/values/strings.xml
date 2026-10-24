@@ -287,7 +287,6 @@
 <string name="create">Create</string>
 <string name="delete">Delete</string>
 <string name="checksum">Checksum</string>
-<string name="dismiss">Dismiss</string>
 <string name="rename">Rename</string>
 <!-- Msg -->
 <string name="msg_name">Filename</string>
@@ -488,13 +487,8 @@
 <string name="never">Never</string>
 <string name="list">List</string>
 <string name="grid">Grid</string>
-<string name="large_grid">Large Grid</string>
-<string name="card">Card</string>
 <string name="auto">Auto</string>
 <!-- Seekbar Preview Thumbnail-->
-<string name="high_quality_larger">High quality (larger)</string>
-<string name="low_quality_smaller">Low quality (smaller)</string>
-<string name="dont_show">Don\'t show</string>
 <!-- App update notification -->
 <string name="missions_header_finished">Finished</string>
 <string name="missions_header_pending">Pending</string>
@@ -557,8 +551,6 @@
 <string name="pause_downloads_on_mobile">Interrupt on metered networks</string>
 <string name="pause_downloads_on_mobile_desc">Useful when switching to mobile data, although some downloads cannot be suspended</string>
 <string name="close">Close</string>
-<string name="enable_queue_limit">Limit download queue</string>
-<string name="enable_queue_limit_desc">One download will run at the same time</string>
 <string name="start_downloads">Start downloads</string>
 <string name="pause_downloads">Pause downloads</string>
 <string name="downloads_storage_ask_title">Ask where to download</string>
@@ -637,7 +629,6 @@
 <string name="sponsor_block_home_page_summary">View the official SponsorBlock website.</string>
 <string name="sponsor_block_enable_title">Enable SponsorBlock</string>
 <string name="sponsor_block_enable_summary">Automatically skip sponsors in videos. Works for YouTube.</string>
-<string name="sponsor_block_api_url_title">API Url</string>
 <string name="sponsor_block_notifications_title">Notify when sponsors are skipped</string>
 <string name="sponsor_block_notifications_summary">Show a toast notification when a sponsor is automatically skipped.</string>
 <string name="sponsor_block_privacy_title">View Privacy Policy</string>
@@ -745,7 +736,6 @@
 <string name="metadata_subscribers">Subscribers</string>
 <string name="detail_pinned_comment_view_description">Pinned comment</string>
 <string name="detail_heart_img_view_description">Hearted by creator</string>
-<string name="open_website_license">Open website</string>
 <string name="tablet_mode_title">Tablet mode</string>
 <string name="on">On</string>
 <string name="off">Off</string>
@@ -769,10 +759,6 @@
 <string name="channel_tab_info">Info</string>
 <string name="show_channel_tabs">Channel tabs</string>
 <string name="show_channel_tabs_summary">What tabs are shown on the channel pages</string>
-<string name="image_quality_none">Do not load images</string>
-<string name="image_quality_low">Low quality</string>
-<string name="image_quality_medium">Medium quality</string>
-<string name="image_quality_high">High quality</string>
 <string name="regular_bullet_comments_duration_summary">Change the duration of regular/rolling danmaku. A shorter duration may cause stutter/choppy/lag.</string>
 <string name="regular_bullet_comments_duration_title">Regular danmaku duration</string>
 <string name="top_bottom_bullet_comments_duration_summary">Change the duration of top/bottom danmaku. </string>
@@ -797,9 +783,6 @@
 <string name="import_urls_error">Error importing URLs: %s</string>
 <string name="import_urls_no_valid_urls">No valid URLs found in the selected file</string>
 <string name="bullet_comments_opacity_title">Opacity of danmaku</string>
-<string name="override_cookies_summary">Use manually input cookies instead of saved credentials</string>
-<string name="override_cookies_title">Override cookies</string>
-<string name="override_cookies_value_title">Edit cookies</string>
 <string name="lives">Lives</string>
 <string name="animes">Animes</string>
 <string name="movies_and_tv">Movies and TV</string>
@@ -837,7 +820,6 @@
 <string name="error_match_notification_text">Click to check</string>
 <string name="oldest_first">Oldest first</string>
 <string name="newest_first">Newest first</string>
-<string name="same_as_item_mode">Same as items</string>
 <string name="dont_auto_queue_long_title">Don\'t auto queue long videos</string>
 <string name="dont_auto_queue_long_description">Only auto queue videos shorter than 6 min</string>
 <string name="enable_notification_text">Please enable notifications for this app to ensure it functions normally. We will only alert you when necessary.</string>

@@ -115,7 +115,6 @@
     </string-array>
 
     <string name="seekbar_preview_thumbnail_key">seekbar_preview_thumbnail_key</string>
-    <string name="seekbar_preview_thumbnail_high_quality">seekbar_preview_thumbnail_high_quality</string>
     <string name="seekbar_preview_thumbnail_low_quality">seekbar_preview_thumbnail_low_quality</string>
     <string name="seekbar_preview_thumbnail_none">seekbar_preview_thumbnail_none</string>
     <string name="default_resolution_key">default_resolution</string>
@@ -161,11 +160,6 @@
 
     <string name="notification_colorize_key">notification_colorize_key</string>
 
-    <string name="video_mp4_key">video_mp4</string>
-    <string name="video_webm_key">video_webm</string>
-    <string name="video_3gp_key">video_3gp</string>
-    <string name="audio_m4a_key">audio_m4a</string>
-    <string name="audio_webm_key">audio_webm</string>
     <string name="last_resize_mode">last_resize_mode</string>
 
     <!-- DEBUG ONLY -->
@@ -260,7 +254,6 @@
     <string name="show_description_key">show_description</string>
     <string name="show_meta_info_key">show_meta_info</string>
     <string name="stream_info_selected_tab_key">stream_info_selected_tab</string>
-    <string name="show_hold_to_append_key">show_hold_to_append</string>
     <string name="content_country_key">content_country</string>
     <string name="show_auto_translated_subtitles_key">show_auto_translated_subtitles</string>
     <string name="enable_search_history_key">enable_search_history</string>
@@ -374,8 +367,6 @@
     </string-array>
 
     <string name="downloads_cross_network">cross_network_downloads</string>
-    <string name="downloads_queue_limit">downloads_queue_limit</string>
-
     <string name="default_download_threads">default_download_threads</string>
 
     <!-- Preferred action on open (open from external app) -->
