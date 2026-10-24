@@ -51,9 +51,11 @@ internal class SabrSegmentWriter(
         target: SabrDownloadTarget,
         output: OutputStream,
         data: ByteArray,
-    ): Boolean {
+    ) {
+        // Unit: the sole caller ignores any result; idempotence is
+        // already guarded by initializationWritten.
         if (target.initializationWritten) {
-            return false
+            return
         }
         // Validate before publishing: a corrupt init must not leave bad
         // bytes in the temp file with accounting already recorded.
@@ -64,7 +66,6 @@ internal class SabrSegmentWriter(
         target.timeline = timeline
         onBytesWritten(target, data.size.toLong())
         flushPendingMedia(target, output)
-        return true
     }
 
     @Throws(IOException::class)
@@ -91,9 +92,13 @@ internal class SabrSegmentWriter(
 
     private fun flushPendingMedia(target: SabrDownloadTarget, output: OutputStream) {
         while (true) {
-            val pending = target.pending.remove(target.nextWriteSequence) ?: return
-            target.pendingBytes = (target.pendingBytes - pending.size).coerceAtLeast(0)
+            // Peek first: removing before a throwing write would drop the
+            // sequence while nextWriteSequence stays put, idling the
+            // download into a misleading STALLED instead of failing here.
+            val pending = target.pending[target.nextWriteSequence] ?: return
             writeMediaBytes(target, output, pending)
+            target.pending.remove(target.nextWriteSequence)
+            target.pendingBytes = (target.pendingBytes - pending.size).coerceAtLeast(0)
         }
     }
 
