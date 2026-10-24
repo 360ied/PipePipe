@@ -4,7 +4,6 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
-import android.os.Build
 import android.util.Log
 import org.schabi.newpipe.BuildConfig
 import java.io.File
@@ -278,14 +277,10 @@ internal object HlsFrameworkMuxer {
 
     @Throws(IOException::class)
     private fun muxerOutputFormat(ext: String): Int {
+        // minSdk is 30, so WebM muxer output (API 26+) is always available.
         return when (ext) {
             "mp4", "m4a", "mov", "m4v" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
-            "webm" -> {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                    throw IOException("HLS framework remux failed: WebM output requires API 26+")
-                }
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
-            }
+            "webm" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
             else -> MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
         }
     }

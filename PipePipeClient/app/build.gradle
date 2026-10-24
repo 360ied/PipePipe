@@ -28,7 +28,7 @@ android {
 
     defaultConfig {
         applicationId "ca.bualy.pipepipefork"
-        minSdk 23
+        minSdk 30
         //noinspection OldTargetApi,ExpiredTargetSdkVersion
         targetSdk 36
         versionCode baseVersionCode
