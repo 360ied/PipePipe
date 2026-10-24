@@ -4,6 +4,7 @@ import org.schabi.newpipe.extractor.services.youtube.sabr.exception.SabrProtocol
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrFormatTimeline
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrInfo
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrRequest
+import org.schabi.newpipe.extractor.exceptions.ExtractionException
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrSession
 import org.schabi.newpipe.youtube.SabrAttestationRetryHandler
 import org.schabi.newpipe.youtube.SabrPlayerReloader
@@ -54,6 +55,16 @@ internal class SabrDownloader(
             Thread.currentThread().interrupt()
         } catch (error: SabrProtocolException) {
             notifyErrorAndCleanup(classifyProtocolException(error))
+        } catch (error: ExtractionException) {
+            // Reload/integrity failures from the session are protocol
+            // errors, not unknown bugs.
+            notifyErrorAndCleanup(
+                SabrDownloadException(
+                    SabrDownloadException.Reason.PROTOCOL,
+                    "SABR download failed: request failed (${error.message.orEmpty()})",
+                    error,
+                )
+            )
         } catch (error: Exception) {
             notifyErrorAndCleanup(error)
         }
@@ -90,6 +101,17 @@ internal class SabrDownloader(
                 SabrDownloadException.Reason.FORMAT,
                 "SABR download failed: duplicate audio/video targets " +
                     "(mimes=${targets.map { it.format.mimeType }})",
+            )
+        }
+        // YoutubeSabrRequest also rejects an audio and a video track
+        // sharing one itag; fail closed with FORMAT before playback().
+        val audioItags = targets.filter { it.format.isAudio }.map { it.format.itag }.toSet()
+        val videoItags = targets.filter { it.format.isVideo }.map { it.format.itag }.toSet()
+        val sharedItags = audioItags intersect videoItags
+        if (sharedItags.isNotEmpty()) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.FORMAT,
+                "SABR download failed: audio/video share itag $sharedItags",
             )
         }
         restoreTargets(targets)
@@ -150,7 +172,9 @@ internal class SabrDownloader(
                 "SABR download failed: recovery count ${recoveries.size} != url count ${mission.urls.size}",
             )
         }
-        if (recoveries.any { !it.isSabr }) {
+        // Elements are nullable (Java array); a null entry is corrupt
+        // recovery info, not a reason to NPE into UNKNOWN.
+        if (recoveries.any { it == null || !it.isSabr }) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.FORMAT,
                 "SABR download failed: mixed SABR/non-SABR resources are not supported",
@@ -256,9 +280,13 @@ internal class SabrDownloader(
     }
 
     private fun storageException(message: String, cause: IOException?): SabrDownloadException {
+        // Include the cause message: ENOSPC/permission detail is the
+        // diagnosable part of a storage failure.
+        val detail = cause?.message.orEmpty()
+        val suffix = if (detail.isBlank()) "" else " ($detail)"
         return SabrDownloadException(
             SabrDownloadException.Reason.STORAGE,
-            "SABR download failed: $message",
+            "SABR download failed: $message$suffix",
             cause,
         )
     }
@@ -314,7 +342,8 @@ internal class SabrDownloader(
     ) {
         writer.observeWrittenInitializations()
         prepareInitializations(requestCoordinator, targets, writer)
-        writer.observeWrittenInitializations()
+        // No second call: the loop-top observe below runs immediately and
+        // covers both restored and freshly prepared inits.
 
         var noProgressResponses = 0
         while (true) {
@@ -376,9 +405,11 @@ internal class SabrDownloader(
         }
 
         ensureRunning()
+        // Request only still-pending formats: restored inits must not be
+        // re-fetched (returned media would bloat pending toward STALLED).
         requestWithNetworkRetry(
             requestCoordinator,
-            YoutubeSabrRequest.preparation(0L, targets.map { it.format }),
+            YoutubeSabrRequest.preparation(0L, pendingTargets.map { it.format }),
             writer,
             { pendingTargets.all { it.initializationWritten } },
         )
@@ -473,6 +504,10 @@ internal class SabrDownloader(
         }
         mission.done = finalBytes
         mission.length = finalBytes
+        // Clear the itag-estimate ceiling: getLength() returns
+        // max(calculated, nearLength), which would otherwise keep
+        // reporting the over-estimate on a finished mission.
+        mission.nearLength = finalBytes
         mission.current = mission.urls.size
         mission.psState = 2
         mission.sabrCheckpoint = null

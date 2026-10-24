@@ -60,10 +60,13 @@ internal class SabrSegmentWriter(
         if (target.initializationWritten) {
             return false
         }
+        // Validate before publishing: a corrupt init must not leave bad
+        // bytes in the temp file with accounting already recorded.
+        val timeline = YoutubeSabrFormatTimeline.parse(target.format, data)
         writeToStorage(output, data)
         target.initializationWritten = true
         target.initializationData = data
-        target.timeline = YoutubeSabrFormatTimeline.parse(target.format, data)
+        target.timeline = timeline
         onBytesWritten(target, data.size.toLong())
         flushPendingMedia(target, output)
         return true
@@ -132,19 +135,22 @@ internal class SabrSegmentWriter(
         output: OutputStream,
         segment: SabrMediaSegment,
     ) {
-        try {
+        // Account actual copied bytes, not the declared length: short
+        // reads (spool truncation, early EOF) must not inflate done.
+        val copied = try {
             segment.openStream().use { input ->
                 input.copyTo(output)
             }
         } catch (error: IOException) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.STORAGE,
-                "SABR download failed: could not write temporary media",
+                "SABR download failed: could not write temporary media" +
+                    " for itag ${target.format.itag} (${error.message.orEmpty()})",
                 error,
             )
         }
         target.nextWriteSequence++
-        onBytesWritten(target, segment.length.toLong())
+        onBytesWritten(target, copied)
     }
 
     private fun writeToStorage(output: OutputStream, data: ByteArray) {

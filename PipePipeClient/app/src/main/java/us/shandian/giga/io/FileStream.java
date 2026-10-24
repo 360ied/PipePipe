@@ -1,6 +1,7 @@
 package us.shandian.giga.io;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import org.schabi.newpipe.streams.io.SharpStream;
 
@@ -32,22 +33,33 @@ public class FileStream extends SharpStream {
 
     @Override
     public int read() throws IOException {
-        return source.read();
+        return requireOpen().read();
     }
 
-    /** Visible for testing; all production access goes through the stream API. */
+    private RandomAccessFile requireOpen() throws IOException {
+        // Fail closed with IOException (not NPE): a read-after-close is a
+        // stream-state error the muxers map to STORAGE/MUXING, not a bug
+        // reportable as NullPointerException.
+        RandomAccessFile current = source;
+        if (current == null) {
+            throw new IOException("stream is closed");
+        }
+        return current;
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     RandomAccessFile getSourceForTest() {
         return source;
     }
 
     @Override
     public int read(byte[] b) throws IOException {
-        return source.read(b);
+        return requireOpen().read(b);
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        return source.read(b, off, len);
+        return requireOpen().read(b, off, len);
     }
 
     @Override
@@ -56,7 +68,7 @@ public class FileStream extends SharpStream {
         long remaining = pos;
         long skipped = 0;
         while (remaining > 0) {
-            int count = source.skipBytes((int) Math.min(remaining, Integer.MAX_VALUE));
+            int count = requireOpen().skipBytes((int) Math.min(remaining, Integer.MAX_VALUE));
             if (count <= 0) {
                 break;
             }
@@ -69,7 +81,7 @@ public class FileStream extends SharpStream {
     @Override
     public long available() {
         try {
-            return source.length() - source.getFilePointer();
+            return requireOpen().length() - requireOpen().getFilePointer();
         } catch (IOException e) {
             return 0;
         }
@@ -77,6 +89,8 @@ public class FileStream extends SharpStream {
 
     @Override
     public void close() {
+        // Idempotent by design: close() itself never throws, so it keeps
+        // direct access instead of requireOpen().
         if (source == null) return;
         try {
             source.close();
@@ -93,7 +107,7 @@ public class FileStream extends SharpStream {
 
     @Override
     public void rewind() throws IOException {
-        source.seek(0);
+        requireOpen().seek(0);
     }
 
     @Override
@@ -123,31 +137,31 @@ public class FileStream extends SharpStream {
 
     @Override
     public void write(byte value) throws IOException {
-        source.write(value);
+        requireOpen().write(value);
     }
 
     @Override
     public void write(byte[] buffer) throws IOException {
-        source.write(buffer);
+        requireOpen().write(buffer);
     }
 
     @Override
     public void write(byte[] buffer, int offset, int count) throws IOException {
-        source.write(buffer, offset, count);
+        requireOpen().write(buffer, offset, count);
     }
 
     @Override
     public void setLength(long length) throws IOException {
-        source.setLength(length);
+        requireOpen().setLength(length);
     }
 
     @Override
     public void seek(long offset) throws IOException {
-        source.seek(offset);
+        requireOpen().seek(offset);
     }
 
     @Override
     public long length() throws IOException {
-        return source.length();
+        return requireOpen().length();
     }
 }

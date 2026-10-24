@@ -51,6 +51,16 @@ internal class SabrJavaMuxer(
                 mission.psState = 0
                 mission.writeThisToFile()
                 throw error
+            } catch (error: Exception) {
+                // SAF write/seek can throw SecurityException (permission
+                // revoked mid-copy); reset psState like every other path.
+                mission.psState = 0
+                mission.writeThisToFile()
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.STORAGE,
+                    "SABR download failed: could not write final file (${error::class.simpleName}: ${error.message.orEmpty()})",
+                    error,
+                )
             }
         }
         val output = File(workDir, "output.$extension")
@@ -65,6 +75,16 @@ internal class SabrJavaMuxer(
             mission.psState = 0
             mission.writeThisToFile()
             throw error
+        } catch (error: Exception) {
+            // SAF write/seek can throw SecurityException (permission
+            // revoked mid-copy); reset psState like every other path.
+            mission.psState = 0
+            mission.writeThisToFile()
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.STORAGE,
+                "SABR download failed: could not write final file (${error::class.simpleName}: ${error.message.orEmpty()})",
+                error,
+            )
         } finally {
             deleteQuietly(output)
         }
@@ -122,16 +142,18 @@ internal class SabrJavaMuxer(
             )
         }
         inputs.forEach { input ->
+            // Report the file name only: temp-dir absolute paths would leak
+            // device layout into user-visible errors.
             if (!input.exists()) {
                 throw SabrDownloadException(
                     SabrDownloadException.Reason.MUXING,
-                    "SABR download failed: java mux failed (missing input ${input.absolutePath})",
+                    "SABR download failed: java mux failed (missing input ${input.name})",
                 )
             }
             if (input.length() <= 0) {
                 throw SabrDownloadException(
                     SabrDownloadException.Reason.MUXING,
-                    "SABR download failed: java mux failed (empty input ${input.absolutePath})",
+                    "SABR download failed: java mux failed (empty input ${input.name})",
                 )
             }
         }
@@ -139,18 +161,16 @@ internal class SabrJavaMuxer(
 
     @Throws(IOException::class)
     private fun storageExtension(): String {
-        // StoredFileHelper.getName() throws on invalid storage; map that to
-        // STORAGE rather than letting it escape as an unknown error.
-        val name = try {
-            mission.storage.name
-        } catch (error: IllegalStateException) {
+        // getName() never throws (it returns the fallback srcName), so
+        // check validity explicitly — otherwise invalid storage does temp
+        // mux work before copyOutputToStorage fails on getStream().
+        if (mission.storage.isInvalid) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.STORAGE,
-                "SABR download failed: invalid storage (${error.message.orEmpty()})",
-                error,
+                "SABR download failed: invalid storage",
             )
         }
-        return downloadOutputExtension(name)
+        return downloadOutputExtension(mission.storage.name)
     }
 
     @Throws(IOException::class, InterruptedException::class)

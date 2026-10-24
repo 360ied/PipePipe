@@ -6,8 +6,8 @@ package us.shandian.giga.get
  * muxer validates the suffix against the containers it can write and fails
  * closed on mismatch. Non-ASCII alphanumerics fall back to `mp4` since no
  * container family matches them. A leading-dot name (e.g. `.mp4`) yields
- * its tail as the suffix; dotfiles are not a real storage case and fail
- * closed downstream like any other mismatch.
+ * its tail as the suffix, which then passes the family check like any
+ * other matching suffix (dotfiles are not a real storage case).
  */
 internal fun downloadOutputExtension(storageName: String?): String {
     val extension = storageName?.substringAfterLast('.', missingDelimiterValue = "").orEmpty()
