@@ -86,6 +86,14 @@ class PlayerMenuController(
     val selectedVideoStream: VideoStream?
         get() = quality?.selectedVideoStream
 
+    /**
+     * Deduped bucket list behind the open quality menu, with the quality that built it.
+     * The click handler consumes this instead of rebuilding, so an item change while
+     * the popup is open cannot silently remap the tapped index into another video.
+     */
+    private var qualityMenuStreams: List<VideoStream> = emptyList()
+    private var qualityMenuSource: MediaItemQuality? = null
+
     init {
         val binding = player.binding
         val themeWrapper = ContextThemeWrapper(player.context, R.style.DarkPopupMenu)
@@ -185,11 +193,18 @@ class PlayerMenuController(
         }
 
         // One row per resolution bucket; itemId indexes the deduped list, not the raw
-        // sorted list. The click handler rebuilds the same deduped list from the
-        // current streams to map the item back to its representative stream.
+        // sorted list. The built list is retained so the click handler maps the item
+        // back to the same representative even if the underlying streams change.
+        val currentQuality = quality
         val distinctStreams =
             VideoStreamSelector.getDistinctResolutionStreams(
-                quality?.sortedVideoStreams ?: return)
+                currentQuality?.sortedVideoStreams ?: run {
+                    qualityMenuStreams = emptyList()
+                    qualityMenuSource = null
+                    return
+                })
+        qualityMenuStreams = distinctStreams
+        qualityMenuSource = currentQuality
         for (i in distinctStreams.indices) {
             qualityPopupMenu.menu.add(
                 POPUP_MENU_ID_QUALITY, i, Menu.NONE,
@@ -441,8 +456,16 @@ class PlayerMenuController(
 
         if (menuItem.groupId == POPUP_MENU_ID_QUALITY) {
             val menuItemIndex = menuItem.itemId
-            val distinctStreams = VideoStreamSelector.getDistinctResolutionStreams(
-                quality?.sortedVideoStreams ?: return true)
+            // Prefer the list captured at build time; rebuild only when the source
+            // moved on (item change while open), with the same bounds check.
+            val currentQuality = quality
+            var distinctStreams = qualityMenuStreams
+            if (currentQuality !== qualityMenuSource || distinctStreams.isEmpty()) {
+                distinctStreams = VideoStreamSelector.getDistinctResolutionStreams(
+                    currentQuality?.sortedVideoStreams ?: return true)
+                qualityMenuStreams = distinctStreams
+                qualityMenuSource = currentQuality
+            }
             if (menuItemIndex < 0 || distinctStreams.size <= menuItemIndex) {
                 return true
             }
@@ -466,6 +489,9 @@ class PlayerMenuController(
             return true
         } else if (menuItem.groupId == POPUP_MENU_ID_PLAYBACK_SPEED) {
             val speedIndex = menuItem.itemId
+            if (speedIndex < 0 || speedIndex >= PLAYBACK_SPEEDS.size) {
+                return true
+            }
             val speed = PLAYBACK_SPEEDS[speedIndex]
 
             player.setPlaybackSpeed(speed)
@@ -497,6 +523,7 @@ class PlayerMenuController(
         qualityPopupMenu.dismiss()
         playbackSpeedPopupMenu.dismiss()
         captionPopupMenu.dismiss()
+        audioTrackPopupMenu.dismiss()
         displayModePopupMenu.dismiss()
         isSomePopupMenuVisible = false
     }

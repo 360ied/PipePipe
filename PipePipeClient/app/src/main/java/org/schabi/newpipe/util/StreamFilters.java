@@ -12,7 +12,15 @@ import org.schabi.newpipe.extractor.stream.DeliveryMethod;
 import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class StreamFilters {
@@ -92,8 +100,12 @@ public final class StreamFilters {
                                                              @NonNull final Context context) {
         final SharedPreferences sharedPreferences = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        Set<String> advancedFormats = sharedPreferences.getStringSet(context.getString(R.string.advanced_formats_key), new HashSet<>());
-        boolean useDolbyAudio = advancedFormats.contains("EC-3");
+        Set<String> advancedFormats = sharedPreferences.getStringSet(
+                context.getString(R.string.advanced_formats_key), new HashSet<>());
+        if (advancedFormats == null) {
+            advancedFormats = Collections.emptySet();
+        }
+        final boolean useDolbyAudio = advancedFormats.contains("EC-3");
         return streamList.stream()
                 .filter(stream -> {
                     if (stream.getCodec() == null) {
@@ -146,7 +158,14 @@ public final class StreamFilters {
                     + getCodecPrefix(stream) + "|" + stream.getResolution() + "|"
                     + stream.isVideoOnly();
             final VideoStream existing = result.get(key);
-            if (existing == null || shouldPreferCollapsedVariant(existing, stream)) {
+            // Legacy preference first (non-HLS over HLS, original track over dub);
+            // otherwise keep the comparator-best copy so a higher-bitrate/HFR
+            // duplicate is never lost before resolution bucketing runs.
+            if (existing == null
+                    || shouldPreferCollapsedVariant(existing, stream)
+                    || (!shouldPreferCollapsedVariant(stream, existing)
+                    && VideoStreamSelector.compareVideoStreamResolution(stream, existing)
+                    > 0)) {
                 result.put(key, stream);
             }
         }

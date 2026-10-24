@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 import org.schabi.newpipe.extractor.MediaFormat;
@@ -171,8 +172,116 @@ public class VideoStreamSelectorTest {
         assertEquals("720p",
                 VideoStreamSelector.qualityLabelOf(
                         stream("720p", null, 2500000)));
-        assertEquals("",
+        assertEquals(VideoStreamSelector.UNKNOWN_RESOLUTION_LABEL,
                 VideoStreamSelector.qualityLabelOf(stream("", null, 0)));
+    }
+
+    @Test
+    public void unknownResolutionAndCodecFallsBackToPlaceholder() {
+        assertEquals(VideoStreamSelector.UNKNOWN_RESOLUTION_LABEL,
+                VideoStreamSelector.qualityLabelOf(stream("", null, 0)));
+        assertEquals(VideoStreamSelector.UNKNOWN_RESOLUTION_LABEL,
+                VideoStreamSelector.qualityLabelOf(stream("", "", 0)));
+    }
+
+    @Test
+    public void bare4kBucketsWithNumericHeight() {
+        final List<VideoStream> distinct = VideoStreamSelector.getDistinctResolutionStreams(
+                Arrays.asList(
+                        stream("4K", "avc1.640028", 15000000),
+                        stream("2160p", "avc1.640028", 14000000)));
+        assertEquals(1, distinct.size());
+    }
+
+    @Test
+    public void hfrFpsVariantsAbove30WinBucket() {
+        assertEquals("720p60 AVC", VideoStreamSelector.qualityLabelOf(
+                stream("720p50", "avc1.64001f", 1000000)));
+        final List<VideoStream> distinct = VideoStreamSelector.getDistinctResolutionStreams(
+                Arrays.asList(
+                        stream("1080p", "avc1.640028", 9000000),
+                        stream("1080p120", "avc1.640028", 5000000)));
+        assertEquals(1, distinct.size());
+        assertEquals("1080p120", distinct.get(0).getResolution());
+    }
+
+    @Test
+    public void dubbedTrackDisambiguatesLabel() {
+        final VideoStream dubbed = new VideoStream.Builder()
+                .setId("dubbed-label")
+                .setContent("https://example.invalid/dubbed-label", true)
+                .setDeliveryMethod(DeliveryMethod.PROGRESSIVE_HTTP)
+                .setIsVideoOnly(false)
+                .setResolution("720p")
+                .setCodec("avc1.64001f")
+                .setAudioTrackId("dubbed-track")
+                .setAudioTrackName("Deutsch")
+                .build();
+        assertEquals("720p AVC \u00B7 Deutsch",
+                VideoStreamSelector.qualityLabelOf(dubbed));
+    }
+
+    @Test
+    public void stickyPathPrefersExactVariantThenNormalized() {
+        final List<VideoStream> streams = Arrays.asList(
+                stream("1080p", "avc1.640028", 8000000),
+                stream("1080p60", "avc1.640028", 9000000),
+                stream("720p", "avc1.64001f", 4000000));
+        // Exact sticky variant wins.
+        assertEquals(1, VideoStreamSelector.getResolutionAndCodecIndex(
+                "1080p60", "avc1.640028", streams));
+        // Same codec, normalized resolution: best in bucket.
+        assertEquals(0, VideoStreamSelector.getResolutionAndCodecIndex(
+                "1080p HFR", "avc1.640028",
+                Arrays.asList(streams.get(0), streams.get(2))));
+        // Codec mismatch falls back to the resolution match.
+        assertEquals(0, VideoStreamSelector.getResolutionAndCodecIndex(
+                "1080p", "av01.0.08M.08",
+                Arrays.asList(streams.get(0), streams.get(2))));
+        // Nothing close: closest lower, then lowest, then empty.
+        assertEquals(0, VideoStreamSelector.getResolutionAndCodecIndex(
+                "2160p", "avc1.640028",
+                Arrays.asList(streams.get(0), streams.get(2))));
+        assertEquals(-1, VideoStreamSelector.getResolutionAndCodecIndex(
+                "1080p", "avc1.640028", Arrays.asList()));
+    }
+
+    @Test
+    public void nullAdvancedFormatsFallsBackToDefaults() {
+        final List<VideoStream> sorted = VideoStreamSelector.getSortedStreamVideosList(
+                (Set<String>) null,
+                Arrays.asList(stream("720p", "avc1.64001f", 4000000)),
+                null, true, false);
+        assertEquals(1, sorted.size());
+    }
+
+    @Test
+    public void vp9CodecSpellingsShareDedupKey() {
+        final List<VideoStream> sorted = VideoStreamSelector.getSortedStreamVideosList(
+                new HashSet<>(Arrays.asList("VP9")),
+                Arrays.asList(
+                        stream("1080p", "vp09.00.40.08", 8000000, MediaFormat.WEBM),
+                        stream("1080p", "vp9", 9000000, MediaFormat.WEBM)),
+                null, true, false);
+        assertEquals(1, sorted.size());
+        assertEquals(9000000, sorted.get(0).getBitrate());
+    }
+
+    @Test
+    public void vp9InMp4AnswersToVp9Toggle() {
+        final VideoStream vp9Mp4 =
+                stream("720p", "vp09.00.40.08", 4000000, MediaFormat.MPEG_4);
+        assertEquals(0, VideoStreamSelector.getSortedStreamVideosList(
+                new HashSet<>(), Arrays.asList(vp9Mp4), null, true, false).size());
+        assertEquals(1, VideoStreamSelector.getSortedStreamVideosList(
+                new HashSet<>(Arrays.asList("VP9")),
+                Arrays.asList(vp9Mp4), null, true, false).size());
+    }
+
+    @Test
+    public void nullStreamsCompareEqual() {
+        assertEquals(0, VideoStreamSelector.compareVideoStreamResolution(
+                (VideoStream) null, (VideoStream) null));
     }
 
     @Test

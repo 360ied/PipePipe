@@ -324,8 +324,9 @@ external-player dialog shows no duplicate labels; check downloads
 - Bitrate tiebreak: **prefer higher bitrate** inside a bucket.
   The current `return -A + B` reads inverted (lower wins); flip the
   sign with a named comment + unit test (`HFR` vs `HFR High`).
-- HEVC cleanup: **remove fully** — `useH265` gate, `hevc` codec
+- HEVC cleanup: **remove fully on the VOD path** — `useH265` gate, `hevc` codec
   branch, and the HEVC toggle entry. YouTube serves no HEVC, so the
-  preference is dead.
+  preference is dead. `LiveQualityController` keeps an HEVC fallback
+  label/rank for exotic live manifests; that path is out of scope.
 - Fps merge: **height-only buckets** — `1080p / 1080p60 / 1080p HFR /
   1080p HFR High` collapse to one row, winner preferably HFR.
