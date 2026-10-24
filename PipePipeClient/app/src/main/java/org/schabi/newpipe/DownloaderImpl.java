@@ -15,7 +15,6 @@ import org.schabi.newpipe.extractor.downloader.StreamingResponse;
 import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
-import org.schabi.newpipe.extractor.services.bilibili.BilibiliService;
 import org.schabi.newpipe.util.CookieUtils;
 import org.schabi.newpipe.util.InfoCache;
 import org.schabi.newpipe.util.TLSSocketFactoryCompat;
@@ -38,7 +37,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.schabi.newpipe.MainActivity.DEBUG;
-import static org.schabi.newpipe.extractor.services.bilibili.BilibiliService.WWW_REFERER;
 
 public final class DownloaderImpl extends Downloader {
     public static final String USER_AGENT
@@ -202,13 +200,11 @@ public final class DownloaderImpl extends Downloader {
      */
     public long getContentLength(final String url) throws IOException {
         try {
-            final boolean isBilibili = BilibiliService.isBiliBiliDownloadUrl(url);
-            final Map<String, List<String>> bilibiliHeaders = isBilibili ? BilibiliService.getUserAgentHeaders(WWW_REFERER) : null;
-            final Response response = head(url, bilibiliHeaders);
-            if (isBilibili && response.responseCode() >= 400) {
-                // some Bilibili edge nodes do not implement HEAD,
+            final Response response = head(url, null);
+            if (response.responseCode() >= 400) {
+                // some edge nodes do not implement HEAD,
                 // fall back to a single byte range GET probe
-                return getContentLengthViaRangeProbe(url, bilibiliHeaders);
+                return getContentLengthViaRangeProbe(url, null);
             }
             return Long.parseLong(response.getHeader("Content-Length"));
         } catch (final NumberFormatException e) {

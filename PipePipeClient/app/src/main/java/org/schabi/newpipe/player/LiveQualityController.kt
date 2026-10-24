@@ -64,8 +64,8 @@ class LiveQualityController(private val player: Player) {
     /**
      * Whether the item being played is a video live stream played from an adaptive manifest.
      *
-     * A live stream whose metadata already carries a per-stream quality (e.g. a BiliBili
-     * round-play room, which exposes separate streams just like video on demand) is handled by
+     * A live stream whose metadata already carries a per-stream quality (e.g. a round-play
+     * room, which exposes separate streams just like video on demand) is handled by
      * the regular selection pipeline, so it must not enter the track-override one.
      */
     val isLivePlayback: Boolean
@@ -238,10 +238,9 @@ class LiveQualityController(private val player: Player) {
     }
 
     /**
-     * Locates the track to pin to. Several tracks can normalize to one option: BiliBili live
-     * lists every ladder twice (one per content-steering pathway) and keeps 蓝光 and 原画 at the
-     * same 1080p resolution, differing only in bitrate. The highest bitrate match wins, so one
-     * "1080p" entry selects 原画 and the CDN mirror choice becomes arbitrary.
+     * Locates the track to pin to. Several tracks can normalize to one option: some live
+     * sources list every ladder twice (one per content-steering pathway), so the highest
+     * bitrate match wins and the CDN mirror choice becomes arbitrary.
      */
     private fun findTrack(tracks: Tracks, option: Option): Pair<TrackGroup, Int>? {
         var best: Pair<TrackGroup, Int>? = null

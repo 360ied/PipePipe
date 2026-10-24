@@ -6,7 +6,6 @@ import android.util.SparseArray;
 import androidx.preference.PreferenceManager;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.MediaFormat;
-import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.stream.*;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
@@ -20,7 +19,6 @@ import us.shandian.giga.service.DownloadManager;
 import us.shandian.giga.service.DownloadManagerService;
 
 import java.io.IOException;
-// Keep for BiliBili video case if it writes to outputstream directly
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,11 +178,6 @@ public class DirectDownloader {
             throw new RuntimeException("Can't write to file");
         }
 
-        if(currentInfo.getServiceId() == ServiceList.BiliBili.getServiceId() && type == DownloadType.VIDEO){
-            mainStorage.createFile(filename.replace(".mp4", ".tmp.mp4"), "video/mp4");
-            mainStorage.createFile(filename.replace(".mp4", ".tmp"), String.valueOf(MediaFormat.M4A));
-        }
-
         startDownload(storage);
     }
 
@@ -206,9 +199,7 @@ public class DirectDownloader {
                 kind = 'a';
                 selectedStream = audioStreamsAdapter.getItem(selectedAudioIndex);
 
-                if (currentInfo.getService() == ServiceList.NicoNico) {
-                    psName = Postprocessing.NICONICO_MUXER;
-                } else if (selectedStream.getFormat() == MediaFormat.M4A && currentInfo.getServiceId() != ServiceList.BiliBili.getServiceId()) {
+                if (selectedStream.getFormat() == MediaFormat.M4A) {
                     psName = Postprocessing.ALGORITHM_M4A_NO_DASH;
                 } else if (selectedStream.getFormat() == MediaFormat.WEBMA_OPUS) {
                     psName = Postprocessing.ALGORITHM_OGG_FROM_WEBM_DEMUXER;
@@ -225,16 +216,10 @@ public class DirectDownloader {
                 if (secondary != null) {
                     secondaryStream = secondary.getStream();
 
-                    if(currentInfo.getServiceId() == ServiceList.BiliBili.getServiceId()) {
-                        psName = Postprocessing.BILIBILI_MUXER;
-                    } else if (currentInfo.getService() == ServiceList.NicoNico) {
-                        psName = Postprocessing.NICONICO_MUXER;
+                    if (selectedStream.getFormat() == MediaFormat.MPEG_4) {
+                        psName = Postprocessing.ALGORITHM_MP4_FROM_DASH_MUXER;
                     } else {
-                        if (selectedStream.getFormat() == MediaFormat.MPEG_4) {
-                            psName = Postprocessing.ALGORITHM_MP4_FROM_DASH_MUXER;
-                        } else {
-                            psName = Postprocessing.ALGORITHM_WEBM_MUXER;
-                        }
+                        psName = Postprocessing.ALGORITHM_WEBM_MUXER;
                     }
 
                     psArgs = null;

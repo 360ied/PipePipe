@@ -446,7 +446,6 @@ public final class Player {
         queueController.disposeAdapters();
         bulletCommentsController.destroy();
         autoQueueController.cancelEnqueueTimer();
-        dataSource.disconnectWebSocketClients();
     }
 
     public void destroy() {
@@ -537,7 +536,6 @@ public final class Player {
         }
         // The live chat extractor owns its own connection/poll and is not driven by ExoPlayer.
         bulletCommentsController.disconnect();
-        dataSource.disconnectWebSocketClients();
         // Releasing the source is what actually stops the manifest / playlist refresh and the
         // segment downloads ExoPlayer would otherwise keep doing for a prepared live source.
         simpleExoPlayer.stop();
@@ -1774,6 +1772,5 @@ public final class Player {
         bulletCommentsController.pause();
         setCurrentState(PlayerPlaybackState.PAUSED);
         notifyPlaybackUpdateToListeners();
-        dataSource.disconnectWebSocketClients();
     }
 }

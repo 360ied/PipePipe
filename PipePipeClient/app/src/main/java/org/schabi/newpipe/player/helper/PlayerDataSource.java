@@ -1,7 +1,6 @@
 package org.schabi.newpipe.player.helper;
 
 import android.content.Context;
-import android.net.Uri;
 
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -18,36 +17,14 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.DefaultLoadErrorHandlingPolicy;
-import com.google.android.exoplayer2.upstream.ResolvingDataSource;
 import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheKeyFactory;
-import com.grack.nanojson.JsonObject;
-import com.grack.nanojson.JsonParser;
-import com.grack.nanojson.JsonParserException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.schabi.newpipe.DownloaderImpl;
-import org.schabi.newpipe.extractor.ServiceList;
-import org.schabi.newpipe.extractor.downloader.Response;
-import org.schabi.newpipe.extractor.exceptions.ParsingException;
-import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
-import org.schabi.newpipe.extractor.services.niconico.NicoWebSocketClient;
-import org.schabi.newpipe.extractor.services.niconico.NiconicoService;
-import org.schabi.newpipe.extractor.services.niconico.extractors.NiconicoDMCPayloadBuilder;
-
 import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import com.google.android.exoplayer2.source.hls.playlist.HlsPlaylistParserFactory;
 
@@ -78,12 +55,9 @@ public class PlayerDataSource {
     private final int continueLoadingCheckIntervalBytes;
     private final CacheFactory.Builder cacheDataSourceFactoryBuilder;
     private final DataSource.Factory cachelessDataSourceFactory;
-    private final DataSource.Factory biliCachelessDataSourceFactory;
     private final TransferListener transferListener;
     private final Context context;
     private final String userAgent;
-
-    private NicoWebSocketClient nicoWebSocketClient;
 
     /** Clear only downloaded media while retaining fetched extractor responses in memory. */
     public static void clearMediaCacheForBenchmark() throws IOException {
@@ -97,7 +71,7 @@ public class PlayerDataSource {
         cacheDataSourceFactoryBuilder = new CacheFactory.Builder(context, userAgent,
                 transferListener);
         cachelessDataSourceFactory = new DefaultDataSource.Factory(context,
-                new DefaultHttpDataSource.Factory().setUserAgent(userAgent).setDefaultRequestProperties(Map.of("Referer", "https://www.bilibili.com")))
+                new DefaultHttpDataSource.Factory().setUserAgent(userAgent))
                 .setTransferListener(transferListener);
 
         this.context = context;
@@ -110,11 +84,6 @@ public class PlayerDataSource {
                 MAXIMUM_SIZE_CACHED_GENERATED_MANIFESTS_PER_CACHE);
         YoutubePostLiveStreamDvrDashManifestCreator.getCache().setMaximumSize(
                 MAXIMUM_SIZE_CACHED_GENERATED_MANIFESTS_PER_CACHE);
-
-        biliCachelessDataSourceFactory = new PurifiedDataSource.Factory(context,
-                new PurifiedHttpDataSource.Factory().setUserAgent(userAgent)
-                        .setDefaultRequestProperties(Map.of("Referer", "https://www.bilibili.com")))
-                .setTransferListener(transferListener);
     }
 
     public SsMediaSource.Factory getLiveSsMediaSourceFactory() {
@@ -224,108 +193,5 @@ public class PlayerDataSource {
         return new YoutubeHttpDataSource.Factory()
                 .setRangeParameterEnabled(rangeParameterEnabled)
                 .setRnParameterEnabled(rnParameterEnabled);
-    }
-
-    // NicoNicoMediaSourceFactories
-    private static final class NiconicoLiveStreamData {
-        private final String url;
-        private final String cookie;
-
-        private NiconicoLiveStreamData(final String url, final String cookie) {
-            this.url = url;
-            this.cookie = cookie;
-        }
-    }
-
-    private NiconicoLiveStreamData getNicoLiveStreamData(final String url)
-            throws ParsingException, IOException, ReCaptchaException, JsonParserException {
-        DownloaderImpl downloader = DownloaderImpl.getInstance();
-        Document liveResponse = Jsoup.parse(downloader.get(url).responseBody());
-        String result = JsonParser.object().from(liveResponse
-                        .select("script#embedded-data").attr("data-props"))
-                .getObject("site").getObject("relive").getString("webSocketUrl");
-        disconnectWebSocketClients();
-        nicoWebSocketClient = new NicoWebSocketClient(URI.create(result), NiconicoService.getWebSocketHeaders());
-        NicoWebSocketClient.WrappedWebSocketClient webSocketClient = nicoWebSocketClient.getWebSocketClient();
-        webSocketClient.connect();
-        long startTime = System.nanoTime();
-        do {
-            String liveUrl = nicoWebSocketClient.getUrl();
-            String streamCookie = nicoWebSocketClient.getStreamCookie();
-            if (liveUrl != null && streamCookie != null && !streamCookie.isEmpty()) {
-                return new NiconicoLiveStreamData(liveUrl, streamCookie);
-            }
-        } while (TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - startTime) <= 10);
-        webSocketClient.close();
-        throw new RuntimeException("Failed to get live url"); // TODO: throw other kind of Exception
-    }
-
-    public MediaSource.Factory getNicoMediaSourceFactory(String cookie) {
-        cacheDataSourceFactoryBuilder.setUpstreamDataSourceFactory(new PurifiedDataSource.Factory(context,
-                new PurifiedHttpDataSource.Factory()
-                        .setDefaultRequestProperties(Map.of("Cookie", cookie)))
-                .setTransferListener(transferListener));
-
-        return new HlsMediaSource.Factory(cacheDataSourceFactoryBuilder.build());
-    }
-
-    public HlsMediaSource.Factory getNicoLiveHlsMediaSourceFactory(String liveUrl) {
-        final NiconicoLiveHttpDataSource.Factory httpDataSourceFactory =
-                new NiconicoLiveHttpDataSource.Factory(liveUrl)
-                        .setDefaultRequestProperties(Map.of(
-                                "Referer", "https://live.nicovideo.jp",
-                                "Origin", "https://live.nicovideo.jp",
-                                "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                        + "AppleWebKit/537.36 (KHTML, like Gecko) "
-                                        + "Chrome/89.0.4389.90 Safari/537.36"))
-                        .setTransferListener(transferListener);
-        DataSource.Factory newFactory = new ResolvingDataSource.Factory(new NiconicoLiveDataSource
-                .Factory(context, httpDataSourceFactory), dataSpec -> {
-            try {
-                if(dataSpec.uri.toString().contains("live.nicovideo.jp/watch")){
-                    final NiconicoLiveStreamData streamData = getNicoLiveStreamData(
-                            String.valueOf(dataSpec.uri));
-                    httpDataSourceFactory.setDefaultRequestProperty("Cookie", streamData.cookie);
-                    return dataSpec.withUri(Uri.parse(streamData.url));
-                }
-                return dataSpec;
-            } catch (ParsingException | ReCaptchaException | JsonParserException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        return new HlsMediaSource.Factory(newFactory)
-                .setAllowChunklessPreparation(true)
-                .setPlaylistTrackerFactory((dataSourceFactory, loadErrorHandlingPolicy,
-                                            playlistParserFactory) ->
-                        new DefaultHlsPlaylistTracker(dataSourceFactory, loadErrorHandlingPolicy,
-                                playlistParserFactory,
-                                PLAYLIST_STUCK_TARGET_DURATION_COEFFICIENT)).setLoadErrorHandlingPolicy(new DefaultLoadErrorHandlingPolicy());
-    }
-
-    // BiliBiliMediaSourceFactories
-    public MediaSource.Factory getBiliMediaSourceFactory(String url){
-        DataSource.Factory factory;
-        if(url.contains("live.bilibili.com")){
-            factory = biliCachelessDataSourceFactory;
-        } else {
-            cacheDataSourceFactoryBuilder.setUpstreamDataSourceFactory(biliCachelessDataSourceFactory);
-            factory = cacheDataSourceFactoryBuilder.build();
-        }
-        return new ProgressiveMediaSource.Factory(factory)
-                .setContinueLoadingCheckIntervalBytes(continueLoadingCheckIntervalBytes);
-    }
-
-    public DashMediaSource.Factory getBiliDashMediaSourceFactory(){
-        cacheDataSourceFactoryBuilder.setUpstreamDataSourceFactory(biliCachelessDataSourceFactory);
-        return new DashMediaSource.Factory(
-                getDefaultDashChunkSourceFactory(cacheDataSourceFactoryBuilder.build()),
-                cacheDataSourceFactoryBuilder.build());
-    }
-
-    public void disconnectWebSocketClients() {
-        try {
-            nicoWebSocketClient.disconnect();
-        } catch (Exception ignore) {
-        }
     }
 }

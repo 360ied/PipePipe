@@ -100,7 +100,7 @@ public final class StreamFilters {
                         return true;
                     }
                     if (stream.getCodec().toLowerCase(Locale.ROOT).equals("flac")) {
-                        return false; // flac support has issue: InsufficientCapacityException, at least for BiliBili
+                        return false; // flac support has issue: InsufficientCapacityException
                     } else if (stream.getCodec().equals("ec-3")) {
                         return useDolbyAudio;
                     } else {

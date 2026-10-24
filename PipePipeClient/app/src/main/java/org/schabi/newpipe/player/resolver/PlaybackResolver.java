@@ -30,7 +30,6 @@ import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.downloader.Response;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
-import org.schabi.newpipe.extractor.services.niconico.NiconicoService;
 import org.schabi.newpipe.extractor.services.youtube.ItagItem;
 import org.schabi.newpipe.extractor.services.youtube.dashmanifestcreators.CreationException;
 import org.schabi.newpipe.extractor.services.youtube.dashmanifestcreators.YoutubeOtfDashManifestCreator;
@@ -59,7 +58,6 @@ import androidx.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
@@ -97,19 +95,6 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                                             @C.ContentType final int type,
                                             @NonNull final PlayerMediaItem metadata) {
         final MediaSource.Factory factory;
-        if(sourceUrl.contains("live.nicovideo.jp/watch")){
-            factory = dataSource.getNicoLiveHlsMediaSourceFactory(sourceUrl);
-            return factory.createMediaSource(
-                    new MediaItem.Builder()
-                            .setTag(metadata)
-                            .setUri(Uri.parse(sourceUrl))
-                            .setLiveConfiguration(
-                                    new MediaItem.LiveConfiguration.Builder()
-                                            .setTargetOffsetMs(LIVE_STREAM_EDGE_GAP_MILLIS)
-                                            .build())
-                            .build()
-            );
-        }
         switch (type) {
             case C.CONTENT_TYPE_SS:
                 factory = dataSource.getLiveSsMediaSourceFactory();
@@ -163,10 +148,6 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
         if (ServiceList.YouTube.equals(service)) {
             return createYoutubeMediaSource(stream, streamInfo, dataSource, cacheKey, metadata,
                     initialPositionMs);
-        } else if (ServiceList.NicoNico.equals(service)) {
-            return createNicoNicoMediaSource(stream, streamInfo, dataSource, cacheKey, metadata);
-        } else if (ServiceList.BiliBili.equals(service)) {
-            return createBiliBiliMediaSource(stream, streamInfo, dataSource, cacheKey, metadata);
         }
 
         final DeliveryMethod deliveryMethod = stream.getDeliveryMethod();
@@ -533,121 +514,5 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                         .setUri(Uri.parse(stream.getContent()))
                         .setCustomCacheKey(cacheKey)
                         .build());
-    }
-    private static <T extends Stream> MediaSource createNicoNicoMediaSource(
-            final T stream,
-            final StreamInfo streamInfo,
-            final PlayerDataSource dataSource,
-            final String cacheKey,
-            final PlayerMediaItem metadata) throws IOException{
-        String sourceUrl = stream.getContent();
-        MediaSource.Factory factory;
-        String additionalParam = URLDecoder.decode(sourceUrl.split("cookie=")[1]);
-        String cookie = additionalParam.split("&length=")[0];
-        String length = additionalParam.split("&length=")[1];
-        sourceUrl = sourceUrl.split("#cookie=")[0];
-        Uri uri = Uri.parse(sourceUrl);
-        factory = dataSource.getNicoMediaSourceFactory(cookie);
-        return factory.createMediaSource(
-                new MediaItem.Builder()
-                        .setTag(metadata)
-                        .setUri(uri)
-                        .setCustomCacheKey(cacheKey)
-                        .build()
-        );
-    }
-
-    private static <T extends Stream> MediaSource createBiliBiliMediaSource(
-            final T stream,
-            final StreamInfo streamInfo,
-            final PlayerDataSource dataSource,
-            final String cacheKey,
-            final PlayerMediaItem metadata) throws IOException{
-        final String url = stream.getContent();
-        final String manifest = createBiliBiliDashManifest(stream, streamInfo);
-        if (manifest != null) {
-            return dataSource.getBiliDashMediaSourceFactory().createMediaSource(
-                    createDashManifest(manifest, stream),
-                    new MediaItem.Builder()
-                            .setTag(metadata)
-                            .setUri(Uri.parse(url))
-                            .setCustomCacheKey(cacheKey)
-                            .build());
-        }
-        return dataSource.getBiliMediaSourceFactory(streamInfo.getUrl()).createMediaSource(
-                new MediaItem.Builder()
-                        .setTag(metadata)
-                        .setUri(Uri.parse(url))
-                        .setCustomCacheKey(cacheKey)
-                        .build());
-    }
-
-    @Nullable
-    private static <T extends Stream> String createBiliBiliDashManifest(
-            final T stream,
-            final StreamInfo streamInfo) {
-        final boolean isAudio = stream instanceof AudioStream;
-        final boolean isVideo = stream instanceof VideoStream;
-        if (!isAudio && !isVideo) {
-            return null;
-        }
-        final int initStart;
-        final int initEnd;
-        final int indexStart;
-        final int indexEnd;
-        final String mimeType;
-        final String codecs;
-        final int bandwidth;
-        final String extraAttributes;
-        if (isAudio) {
-            final AudioStream audioStream = (AudioStream) stream;
-            initStart = audioStream.getInitStart();
-            initEnd = audioStream.getInitEnd();
-            indexStart = audioStream.getIndexStart();
-            indexEnd = audioStream.getIndexEnd();
-            mimeType = "audio/mp4";
-            codecs = audioStream.getCodec();
-            bandwidth = audioStream.getBitrate() > 0
-                    ? audioStream.getBitrate() : audioStream.getAverageBitrate();
-            extraAttributes = "";
-        } else {
-            final VideoStream videoStream = (VideoStream) stream;
-            initStart = videoStream.getInitStart();
-            initEnd = videoStream.getInitEnd();
-            indexStart = videoStream.getIndexStart();
-            indexEnd = videoStream.getIndexEnd();
-            mimeType = "video/mp4";
-            codecs = videoStream.getCodec();
-            bandwidth = videoStream.getBitrate();
-            extraAttributes = (videoStream.getWidth() > 0 ? " width=\"" + videoStream.getWidth() + "\"" : "")
-                    + (videoStream.getHeight() > 0 ? " height=\"" + videoStream.getHeight() + "\"" : "")
-                    + (videoStream.getFps() > 0 ? " frameRate=\"" + videoStream.getFps() + "\"" : "");
-        }
-        if (initEnd <= initStart || indexEnd <= indexStart || bandwidth <= 0
-                || codecs == null || codecs.isEmpty()) {
-            return null;
-        }
-        final String contentType = isAudio ? "audio" : "video";
-        final long duration = Math.max(1, streamInfo.getDuration());
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" type=\"static\" profiles=\"urn:mpeg:dash:profile:isoff-on-demand:2011\" minBufferTime=\"PT1.5S\" mediaPresentationDuration=\"PT" + duration + "S\">"
-                + "<Period duration=\"PT" + duration + "S\">"
-                + "<AdaptationSet contentType=\"" + contentType + "\" mimeType=\"" + mimeType + "\" subsegmentAlignment=\"true\">"
-                + "<Representation id=\"" + escapeXml(stream.getId()) + "\" bandwidth=\"" + bandwidth + "\" codecs=\"" + escapeXml(codecs) + "\"" + extraAttributes + ">"
-                + "<BaseURL>" + escapeXml(stream.getContent()) + "</BaseURL>"
-                + "<SegmentBase indexRange=\"" + indexStart + "-" + indexEnd + "\">"
-                + "<Initialization range=\"" + initStart + "-" + initEnd + "\"/>"
-                + "</SegmentBase>"
-                + "</Representation>"
-                + "</AdaptationSet>"
-                + "</Period>"
-                + "</MPD>";
-    }
-
-    private static String escapeXml(final String value) {
-        return value.replace("&", "&amp;")
-                .replace("\"", "&quot;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;");
     }
 }

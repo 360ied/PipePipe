@@ -7,7 +7,7 @@ import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandlerFactory;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
 import org.schabi.newpipe.extractor.localization.Localization;
-import org.schabi.newpipe.extractor.services.bilibili.linkHandler.BilibiliFeedLinkHandlerFactory;
+import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeTrendingLinkHandlerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -151,7 +151,7 @@ public class KioskList {
             System.out.println("Error: ");
             System.out.println("kioskList: " + kioskList);
             System.out.println("type: " + type);
-            return new BilibiliFeedLinkHandlerFactory();
+            return new YoutubeTrendingLinkHandlerFactory();
         }
     }
 

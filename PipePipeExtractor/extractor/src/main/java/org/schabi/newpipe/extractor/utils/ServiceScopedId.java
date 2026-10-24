@@ -4,9 +4,9 @@ import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.StreamingService;
 
 /**
- * Channel/user ids are only unique inside one service (BiliBili and NicoNico both use plain
- * numbers), so block rules store them as {@code <serviceName>:<id>}, e.g.
- * {@code BiliBili:12345}. The service name is a stable part of the stored format.
+ * Channel/user ids are only unique inside one service, so block rules store them as
+ * {@code <serviceName>:<id>}, e.g. {@code YouTube:UCxxxxxxxxxxxxxxxxxxxxxx}. The service name
+ * is a stable part of the stored format.
  */
 public final class ServiceScopedId {
     private static final char SEPARATOR = ':';
