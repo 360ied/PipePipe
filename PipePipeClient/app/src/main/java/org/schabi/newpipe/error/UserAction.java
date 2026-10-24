@@ -17,7 +17,6 @@ public enum UserAction {
     REQUESTED_STREAM("requested stream"),
     REQUESTED_CHANNEL("requested channel"),
     REQUESTED_PLAYLIST("requested playlist"),
-    REQUESTED_KIOSK("requested kiosk"),
     REQUESTED_COMMENTS("requested comments"),
     REQUESTED_FEED("requested feed"),
     REQUESTED_BOOKMARK("bookmark"),

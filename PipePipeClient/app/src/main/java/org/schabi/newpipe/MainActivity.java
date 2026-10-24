@@ -58,7 +58,6 @@ import org.schabi.newpipe.databinding.ToolbarLayoutBinding;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
 import org.schabi.newpipe.fragments.BackPressable;
 import org.schabi.newpipe.fragments.MainFragment;
@@ -185,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupDrawer() throws ExtractionException {
+    private void setupDrawer() {
         addDrawerMenuForCurrentService();
 
         toggle = new ActionBarDrawerToggle(this, mainBinding.getRoot(),
@@ -199,24 +198,9 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Builds the drawer menu for the current service.
-     *
-     * @throws ExtractionException if the service didn't provide available kiosks
      */
-    private void addDrawerMenuForCurrentService() throws ExtractionException {
+    private void addDrawerMenuForCurrentService() {
         //Tabs
-        final int currentServiceId = ServiceHelper.getSelectedServiceId(this);
-        final StreamingService service = NewPipe.getService(currentServiceId);
-
-        int kioskId = 0;
-
-        for (final String ks : service.getKioskList().getAvailableKiosks()) {
-            drawerLayoutBinding.navigation.getMenu()
-                    .add(R.id.menu_tabs_group, kioskId, 0, KioskTranslator
-                            .getTranslatedKioskName(ks, this))
-                    .setIcon(KioskTranslator.getKioskIcon(ks));
-            kioskId++;
-        }
-
         drawerLayoutBinding.navigation.getMenu()
                 .add(R.id.menu_tabs_group, ITEM_ID_SUBSCRIPTIONS, ORDER,
                         R.string.tab_subscriptions)
@@ -260,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void tabSelected(final MenuItem item) throws ExtractionException {
+    private void tabSelected(final MenuItem item) {
         switch (item.getItemId()) {
             case ITEM_ID_SUBSCRIPTIONS:
                 NavigationHelper.openSubscriptionFragment(getSupportFragmentManager());
@@ -278,20 +262,6 @@ public class MainActivity extends AppCompatActivity {
                 NavigationHelper.openStatisticFragment(getSupportFragmentManager());
                 break;
             default:
-                final int currentServiceId = ServiceHelper.getSelectedServiceId(this);
-                final StreamingService service = NewPipe.getService(currentServiceId);
-                String serviceName = "";
-
-                int kioskId = 0;
-                for (final String ks : service.getKioskList().getAvailableKiosks()) {
-                    if (kioskId == item.getItemId()) {
-                        serviceName = ks;
-                    }
-                    kioskId++;
-                }
-
-                NavigationHelper.openKioskFragment(getSupportFragmentManager(), currentServiceId,
-                        serviceName);
                 break;
         }
     }
@@ -591,7 +561,7 @@ public class MainActivity extends AppCompatActivity {
         StateSaver.clearStateFiles();
         if (getIntent() != null && getIntent().hasExtra(Constants.KEY_LINK_TYPE)) {
             // When user watch a video inside popup and then tries to open the video in main player
-            // while the app is closed he will see a blank fragment on place of kiosk.
+            // while the app is closed he will see a blank fragment on place of the main screen.
             // Let's open it first
             if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
                 NavigationHelper.openMainFragment(getSupportFragmentManager());

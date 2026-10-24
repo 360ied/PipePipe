@@ -129,8 +129,6 @@
     <dimen name="play_queue_thumbnail_width">62dp</dimen>
     <dimen name="play_queue_thumbnail_height">35dp</dimen>
 
-    <!-- Kiosk view Dimensions-->
-
     <!-- File picker dimensions -->
     <dimen name="file_picker_items_text_size">14sp</dimen>
 

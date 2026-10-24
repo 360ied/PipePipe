@@ -46,7 +46,6 @@ import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.extractor.feed.FeedExtractor;
 import org.schabi.newpipe.extractor.feed.FeedInfo;
 import org.schabi.newpipe.extractor.bulletComments.BulletCommentsInfo;
-import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.search.SearchInfo;
@@ -284,19 +283,6 @@ public final class ExtractorHelper {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->
                 PlaylistInfo.getMoreItems(NewPipe.getService(serviceId), url, nextPage));
-    }
-
-    public static Single<KioskInfo> getKioskInfo(final int serviceId, final String url,
-                                                 final boolean forceLoad) {
-        return checkCache(forceLoad, serviceId, url, InfoItem.InfoType.PLAYLIST,
-                Single.fromCallable(() -> KioskInfo.getInfo(NewPipe.getService(serviceId), url)));
-    }
-
-    public static Single<InfoItemsPage<StreamInfoItem>> getMoreKioskItems(final int serviceId,
-                                                                          final String url,
-                                                                          final Page nextPage) {
-        return Single.fromCallable(() ->
-                KioskInfo.getMoreItems(NewPipe.getService(serviceId), url, nextPage));
     }
 
     /*//////////////////////////////////////////////////////////////////////////

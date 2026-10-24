@@ -7,7 +7,6 @@ import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandlerFactory;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
 import org.schabi.newpipe.extractor.localization.Localization;
-import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeTrendingLinkHandlerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -143,16 +142,11 @@ public class KioskList {
     }
 
     public ListLinkHandlerFactory getListLinkHandlerFactoryByType(final String type) {
-        try {
-            return kioskList.get(type).handlerFactory;
-        } catch (Exception e) {
-            e.printStackTrace();
-            // Log the current kioskList and type, with telling this is an error
-            System.out.println("Error: ");
-            System.out.println("kioskList: " + kioskList);
-            System.out.println("type: " + type);
-            return new YoutubeTrendingLinkHandlerFactory();
+        final KioskEntry entry = kioskList.get(type);
+        if (entry == null) {
+            throw new IllegalArgumentException("No kiosk found with type: " + type);
         }
+        return entry.handlerFactory;
     }
 
     public void forceLocalization(@Nullable final Localization localization) {

@@ -40,7 +40,6 @@ import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.fragments.MainFragment;
 import org.schabi.newpipe.fragments.detail.VideoDetailFragment;
 import org.schabi.newpipe.fragments.list.channel.ChannelFragment;
-import org.schabi.newpipe.fragments.list.kiosk.KioskFragment;
 import org.schabi.newpipe.fragments.list.playlist.PlaylistFragment;
 import org.schabi.newpipe.fragments.list.search.SearchFragment;
 import org.schabi.newpipe.local.bookmark.BookmarkFragment;
@@ -499,14 +498,6 @@ public final class NavigationHelper {
     public static void openSubscriptionFragment(final FragmentManager fragmentManager) {
         defaultTransaction(fragmentManager)
                 .replace(R.id.fragment_holder, new SubscriptionFragment())
-                .addToBackStack(null)
-                .commit();
-    }
-
-    public static void openKioskFragment(final FragmentManager fragmentManager, final int serviceId,
-                                         final String kioskId) throws ExtractionException {
-        defaultTransaction(fragmentManager)
-                .replace(R.id.fragment_holder, KioskFragment.getInstance(serviceId, kioskId))
                 .addToBackStack(null)
                 .commit();
     }

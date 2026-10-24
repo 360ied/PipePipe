@@ -341,14 +341,11 @@
 <string name="main_page_content_summary">What tabs are shown on the main page</string>
 <string name="main_page_content_swipe_remove">Swipe items to remove them</string>
 <string name="blank_page_summary">Blank Page</string>
-<string name="kiosk_page_summary">Kiosk Page</string>
-<string name="default_kiosk_page_summary">Default Kiosk</string>
 <string name="channel_page_summary">Channel Page</string>
 <string name="select_a_channel">Select a channel</string>
 <string name="no_channel_subscribed_yet">No channel subscriptions yet</string>
 <string name="select_a_playlist">Select a playlist</string>
 <string name="no_playlist_bookmarked_yet">No playlist bookmarks yet</string>
-<string name="select_a_kiosk">Select a kiosk</string>
 <string name="export_complete_toast">Exported</string>
 <string name="import_complete_toast">Imported</string>
 <string name="no_valid_zip_file">No valid ZIP file</string>
@@ -818,8 +815,6 @@
 <string name="bullet_comments_outline_radius_title">Outline radius of danmaku</string>
 <string name="top_100">Top 100</string>
 <string name="recommended_videos">Recommended Videos</string>
-<string name="top_lives">Top Lives</string>
-<string name="recommended_lives">Recommended Lives</string>
 <string name="enable_eye_protection_summary">Disable dynamic theme changing and use a eye protection theme for all services</string>
 <string name="enable_eye_protection_title">Enable eye protection</string>
 <string name="account">Account</string>

@@ -38,14 +38,12 @@ import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeSearchExt
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor;
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeSubscriptionExtractor;
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeSuggestionExtractor;
-import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeTrendingExtractor;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeChannelLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeChannelTabLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeCommentsLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubePlaylistLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory;
-import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeTrendingLinkHandlerFactory;
 import org.schabi.newpipe.extractor.stream.StreamExtractor;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor;
@@ -159,25 +157,7 @@ public class YoutubeService extends StreamingService {
 
     @Override
     public KioskList getKioskList() throws ExtractionException {
-        final KioskList list = new KioskList(this);
-
-        // add kiosks here e.g.:
-        try {
-            list.addKioskEntry(
-                    (streamingService, url, id) -> new YoutubeTrendingExtractor(
-                            YoutubeService.this,
-                            new YoutubeTrendingLinkHandlerFactory().fromUrl(url),
-                            id
-                    ),
-                    new YoutubeTrendingLinkHandlerFactory(),
-                    "Recommended Lives"
-            );
-            list.setDefaultKiosk("Recommended Lives");
-        } catch (final Exception e) {
-            throw new ExtractionException(e);
-        }
-
-        return list;
+        return new KioskList(this);
     }
 
     @Override
