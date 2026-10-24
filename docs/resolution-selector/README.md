@@ -27,13 +27,14 @@ dialog (`VideoDetailFragment.showExternalPlaybackDialog()`), which
 shows `resolution` only, renders literally indistinguishable
 duplicates (`1080p, 1080p, 1080p`).
 
-Proposal: dedup at the UI layer by **height + fps-class** (with
-`HFR ≡ 60`), one row per bucket, auto-picking the best stream inside
-each bucket with the existing comparator. Player menu + external-player
-dialog adopt it; the download dialog keeps per-codec rows (there codec
-+ size is real information). YouTube-only status lets us define the
-bucket narrowly and delete the multi-service branches this exposes as
-dead (section 4).
+Proposal: dedup at the UI layer by **numeric height only**
+(`1080p`, `1080p60`, `1080p HFR`, `1080p HFR High` → one `1080p`
+row), auto-picking the best stream inside each bucket with the
+existing comparator. Player menu + external-player dialog adopt it;
+the download dialog keeps per-codec rows (there codec + size is real
+information). YouTube-only status lets us define the bucket narrowly
+and delete the multi-service branches this exposes as dead
+(section 4).
 
 ## 2. Current behavior (evidence)
 
@@ -101,14 +102,16 @@ itags default to `fps = 30` in `ItagItem` until overwritten, so `HFR`
 vs `60` is a labeling distinction for the same fps-class, split across
 codecs: AV1 says `1080p HFR`, AVC/VP9 say `1080p60`.
 
-Consequence: neither exact-string grouping (leaves `1080p / 1080p60 /
-1080p HFR / 1080p HFR High` = 4 picks for one bucket) nor the current
-`normalizeResolutionVariantKey()` (maps `1080p HFR → 1080p` but
-`1080p60 → 1080p60`, splitting one fps-class in two) is right. The
-YouTube-only bucket is **numeric height + fps-class, `HFR ≡ 60`**:
-`1080p, 1080p HFR, 1080p HFR High → "1080p"`; `1080p60 (+ HLS 1080p60)
-→ "1080p60"`. `HFR High` collapses into the bucket and is decided by
-the bitrate tiebreak (see 6.3).
+Consequence: exact-string grouping (leaves `1080p / 1080p60 /
+1080p HFR / 1080p HFR High` = 4 picks for one height) is wrong, and
+the current `normalizeResolutionVariantKey()` (maps `1080p HFR →
+1080p` but `1080p60 → 1080p60`) preserves an fps split we have
+decided to drop. The bucket is **numeric height only** —
+`normalizeResolutionKey()` semantics (`1080p60 → 1080p`,
+`1080p HFR → 1080p`): `1080p, 1080p60, 1080p HFR, 1080p HFR High
+(+ HLS 1080p60) → one "1080p" row`. Fps and bitrate-tier stop
+being user choices; both are decided by the in-bucket winner
+(see 6.2–6.3).
 
 ## 4. Vestigial logic this exposes
 
@@ -143,14 +146,14 @@ the vocabulary in section 3:
    `getDistinctResolutionStreams()` / `bucketKeyOf()`:
    `LinkedHashMap<bucketKey, best VideoStream>` over the already-sorted
    list, best picked by the existing `compareVideoStreamResolution`
-   (resolution → codec priority AV1 > VP9 > AVC → bitrate). Bucket key
-   per section 3, preserving fps-class (`1080p` vs `1080p60` stay
-   separate). Insertion order follows the sorted list so menu order
-   (descending) is unchanged.
+   (resolution → codec priority AV1 > VP9 > AVC → bitrate, with the
+   6.3 fixes). Bucket key per section 3: numeric height only, i.e.
+   `normalizeResolutionKey()` semantics. Insertion order follows the
+   sorted list so menu order (descending) is unchanged.
 2. `PlayerMenuController.buildQualityMenu()` builds from the deduped
    list; keep a `dedupedList ↔ stream` map because `itemId` can no
    longer double as the `sortedVideoStreams` index. Label rows with the
-   plain resolution (`1080p`, `1080p60`), matching the button. Click
+   plain height (`1080p`), matching the button. Click
    maps back to the representative stream and calls the existing
    `setSelectedStream()` — resolver, persistence, and sticky-codec
    behavior unchanged.
@@ -171,15 +174,22 @@ the vocabulary in section 3:
   old-device compat) or AV1 (data saving) lose per-playback control;
   the remaining lever is the coarse `advanced_formats` toggles. This is
   the main cost, and the reason dedup stays out of downloads.
-- **60 fps stays user-visible.** Bucket preserves fps-class, so
-  `1080p` vs `1080p60` remain two rows. Merging them (pure-height
-  buckets) would silently force 60 fps on everyone; not proposed.
-- **Bitrate tiebreak becomes the picker.** Same-height same-codec
-  duplicates (AVC `480p` itag 135 vs 212; VP9 `480p` 244/245/246;
-  AV1 `… HFR` vs `… HFR High`) differ only by bitrate, and the current
-  tiebreak (`:496-498`, `return -A + B`) prefers the *lower* bitrate.
-  Confirm intent (quality vs data-saving) before wiring it as the
-  bucket winner — it reads like a sign bug.
+- **HFR and 30fps merge (decided).** Each height is one row, so
+  picking `1080p` silently takes the 60fps/HFR encode whenever one
+  exists. This is the strictest reading of "one pick per
+  resolution" and the shortest menu, at the cost of the fps choice:
+  no filmic-30fps option, ~1.5–2× bitrate/battery vs 30fps, and
+  users who preferred the smaller 30fps stream lose that lever
+  (same class of cost as the codec override above).
+- **Bitrate tiebreak becomes the picker (decided: higher wins).**
+  Same-height same-codec duplicates (AVC `480p` itag 135 vs 212;
+  VP9 `480p` 244/245/246; AV1 `… HFR` vs `… HFR High`) differ only
+  by bitrate, and the current tiebreak (`:496-498`, `return -A + B`)
+  prefers the *lower* bitrate — reads like a sign bug, flip it with
+  a named comment + unit test. Note the tiebreak now also decides
+  fps: fix `calculateResolution` so `HFR` scores above plain `1080p`
+  (today `1080p60 → 10801` outranks `1080p` but `1080p HFR → 1080`
+  ties it, leaving the fps outcome to codec/bitrate accident).
 - **Multi-audio HLS.** `getSortedStreamVideosList` output is already
   pre-filtered by preferred audio track (`VideoPlaybackResolver`
   audio-track block; `StreamFilters.filterVideoStreamsByPreferredLanguage`
@@ -196,10 +206,12 @@ the vocabulary in section 3:
 ## 7. Cleanup bundled with the change
 
 Delete `HIGH_RESOLUTION_LIST`; replace `calculateResolution`'s
-non-YouTube branches with the section-3 parser; fix `HFR ≡ 60` in the
-variant/bucket key; remove the HEVC branch + gate (or the whole
+non-YouTube branches with the section-3 height parser and score `60` /
+`HFR` above plain height so the in-bucket winner prefers HFR;
+collapse the bucket/variant key to height only (`normalizeResolutionKey`
+semantics); remove the HEVC branch + gate (or the whole
 `VIDEO_FORMAT_QUALITY_RANKING` tiebreak if review agrees it is dead);
-resolve the bitrate-tiebreak sign with a named comment + unit test.
+flip the bitrate-tiebreak sign with a named comment + unit test.
 Each is independently revertable but they all touch the same comparator,
 so one pass avoids three re-reviews of `compareVideoStreamResolution`.
 
@@ -207,16 +219,15 @@ so one pass avoids three re-reviews of `compareVideoStreamResolution`.
 
 - Unit tests (no device needed): bucketing of a representative YouTube
   set (`1080p` AVC + `1080p` VP9 + `1080p HFR` AV1 + `1080p HFR High`
-  AV1 + `1080p60` AVC + `1080p60` VP9 + `720p` AVC → buckets
-  `{1080p: 1 row, best codec}`, `{1080p60: 1 row}`, `{720p: 1 row}`);
-  `HFR ≡ 60`-class separation (`1080p` vs `1080p60` stay split);
-  unknown-resolution fallback; sticky-codec re-resolution via
-  `getResolutionAndCodecIndex` unchanged.
+  AV1 + `1080p60` AVC + `1080p60` VP9 + `720p` AVC → `{1080p: 1 row,
+  HFR High AV1 wins}`, `{720p: 1 row}`); unknown-resolution fallback;
+  sticky-codec re-resolution via `getResolutionAndCodecIndex` unchanged.
 - Manual: open a video with VP9 + AV1 enabled and check the menu shows
-  each height once (with/without its `60` twin); disable AV1/VP9 in
-  `advanced_formats` and confirm the bucket winner downgrades to the
-  remaining codec; check external-player dialog shows no duplicate
-  labels; check downloads still list per-codec rows with sizes.
+  each height exactly once (no `60` twins); picking `1080p` plays the
+  HFR encode; disable AV1/VP9 in `advanced_formats` and confirm the
+  bucket winner downgrades to the remaining codec; check
+external-player dialog shows no duplicate labels; check downloads
+  still list per-codec rows with sizes.
 - Gate: `./scripts/check.sh` fast gate from the feature worktree
   (this doc itself is standalone `docs/` and needs no gate).
 
@@ -246,3 +257,5 @@ so one pass avoids three re-reviews of `compareVideoStreamResolution`.
 - HEVC cleanup: **remove fully** — `useH265` gate, `hevc` codec
   branch, and the HEVC toggle entry. YouTube serves no HEVC, so the
   preference is dead.
+- Fps merge: **height-only buckets** — `1080p / 1080p60 / 1080p HFR /
+  1080p HFR High` collapse to one row, winner preferably HFR.
