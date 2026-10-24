@@ -465,12 +465,12 @@ internal object HlsFrameworkMuxer {
             val chunk = ByteArray(64 * 1024)
             output.outputStream().use { out ->
                 inputs.forEach { input ->
-                    if (Thread.currentThread().isInterrupted) {
-                        Thread.currentThread().interrupt()
-                        throw TransferInterruptedException()
-                    }
                     input.inputStream().use { source ->
                         while (true) {
+                            if (Thread.currentThread().isInterrupted) {
+                                Thread.currentThread().interrupt()
+                                throw TransferInterruptedException()
+                            }
                             val read = source.read(chunk)
                             if (read == -1) {
                                 break
@@ -480,6 +480,12 @@ internal object HlsFrameworkMuxer {
                     }
                 }
             }
+        } catch (error: TransferInterruptedException) {
+            try {
+                output.delete()
+            } catch (ignored: Exception) {
+            }
+            throw error
         } catch (error: IOException) {
             try {
                 output.delete()

@@ -16,6 +16,7 @@ import us.shandian.giga.hls.transfer.useTransferConnection
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.io.InterruptedIOException
 
 internal class HlsDownloader(
     private val mission: DownloadMission,
@@ -236,22 +237,27 @@ internal class HlsDownloader(
     @Throws(IOException::class)
     private fun copyOutputToStorage(output: File): Long {
         var copied = 0L
-        output.inputStream().use { input ->
-            mission.storage.getStream().use { storage ->
-                storage.setLength(0)
-                storage.seek(0)
+        try {
+            output.inputStream().use { input ->
+                mission.storage.getStream().use { storage ->
+                    storage.setLength(0)
+                    storage.seek(0)
 
-                val buffer = ByteArray(transferConfig.bufferSize)
-                while (true) {
-                    ensureRunning()
-                    val read = input.read(buffer)
-                    if (read == -1) {
-                        break
+                    val buffer = ByteArray(transferConfig.bufferSize)
+                    while (true) {
+                        ensureRunning()
+                        val read = input.read(buffer)
+                        if (read == -1) {
+                            break
+                        }
+                        storage.write(buffer, 0, read)
+                        copied += read.toLong()
                     }
-                    storage.write(buffer, 0, read)
-                    copied += read.toLong()
                 }
             }
+        } catch (error: InterruptedIOException) {
+            // SABR parity: an interrupt surfacing as I/O is a pause.
+            throw TransferInterruptedException()
         }
         return copied
     }
@@ -366,7 +372,11 @@ internal class HlsDownloader(
             val missionId = if (mission.timestamp > 0) {
                 mission.timestamp.toString()
             } else {
-                (mission.storage.name?.hashCode() ?: 0).toString()
+                // SABR parity: salt with the url list so same-named
+                // missions never share a work dir and clobber inputs.
+                val nameHash = mission.storage.name?.hashCode() ?: 0
+                val urlsHash = mission.urls?.contentHashCode() ?: 0
+                "${nameHash}_${urlsHash}"
             }
             return File(base, "hls-downloader/$missionId")
         }

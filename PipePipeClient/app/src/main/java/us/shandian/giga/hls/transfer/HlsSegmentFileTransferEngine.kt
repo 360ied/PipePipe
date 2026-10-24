@@ -99,8 +99,10 @@ class HlsSegmentFileTransferEngine(
             output.setLength(outputPosition)
 
             if (!canResume && playlist.initSegment != null) {
-                val result = retryPolicy.withRetries {
-                    if (playlist.initSegment.encryptionKey == null) {
+                // Only the download itself is retried: decrypt/append
+                // failures are deterministic and must not re-download.
+                val result = if (playlist.initSegment.encryptionKey == null) {
+                    retryPolicy.withRetries {
                         downloadPart(
                             url = withManifestCookie(playlist.initSegment.url, resolved.rawMediaPlaylistUrl),
                             byteRange = playlist.initSegment.byteRange,
@@ -109,29 +111,31 @@ class HlsSegmentFileTransferEngine(
                             outputPosition = outputPosition,
                             listener = listener,
                         )
-                    } else {
-                        val memory = downloadPartToMemory(
+                    }
+                } else {
+                    val memory = retryPolicy.withRetries {
+                        downloadPartToMemory(
                             url = withManifestCookie(playlist.initSegment.url, resolved.rawMediaPlaylistUrl),
                             byteRange = playlist.initSegment.byteRange,
                             defaultByteRangeStart = 0L,
                         )
-                        val decrypted = decryptHlsBytes(
-                            encrypted = memory.bytes,
-                            encryptionKey = playlist.initSegment.encryptionKey,
-                            sequenceNumber = playlist.mediaSequence,
-                            rawMediaPlaylistUrl = resolved.rawMediaPlaylistUrl,
-                            keyCache = keyCache,
-                        )
-                        appendBytesToOutput(
-                            bytes = decrypted,
-                            output = output,
-                            outputPosition = outputPosition,
-                            expectedOutputBytes = outputPosition + decrypted.size,
-                            listener = listener,
-                            resourceUrl = memory.finalUrl,
-                        )
-                        TransferResult(decrypted.size.toLong(), decrypted.size.toLong(), memory.statusCode, memory.finalUrl)
                     }
+                    val decrypted = decryptHlsBytes(
+                        encrypted = memory.bytes,
+                        encryptionKey = playlist.initSegment.encryptionKey,
+                        sequenceNumber = playlist.mediaSequence,
+                        rawMediaPlaylistUrl = resolved.rawMediaPlaylistUrl,
+                        keyCache = keyCache,
+                    )
+                    appendBytesToOutput(
+                        bytes = decrypted,
+                        output = output,
+                        outputPosition = outputPosition,
+                        expectedOutputBytes = outputPosition + decrypted.size,
+                        listener = listener,
+                        resourceUrl = memory.finalUrl,
+                    )
+                    TransferResult(decrypted.size.toLong(), decrypted.size.toLong(), memory.statusCode, memory.finalUrl)
                 }
                 outputPosition += result.bytesWritten
                 lastStatusCode = result.statusCode
@@ -313,6 +317,11 @@ class HlsSegmentFileTransferEngine(
             }
         } finally {
             executor.shutdownNow()
+            try {
+                executor.awaitTermination(1, TimeUnit.SECONDS)
+            } catch (error: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
         }
 
         return TransferResult(
@@ -406,6 +415,15 @@ class HlsSegmentFileTransferEngine(
         }
     }
 
+    private fun rangeWindow(
+        byteRange: HlsByteRange?,
+        defaultByteRangeStart: Long,
+    ): Pair<Long?, Long?> {
+        val rangeStart = byteRange?.offset ?: if (byteRange == null) null else defaultByteRangeStart
+        val rangeEnd = byteRange?.let { rangeStart!! + it.length - 1 }
+        return rangeStart to rangeEnd
+    }
+
     @Throws(IOException::class)
     private fun downloadPart(
         url: String,
@@ -415,8 +433,7 @@ class HlsSegmentFileTransferEngine(
         outputPosition: Long,
         listener: TransferProgressListener?,
     ): TransferResult {
-        val rangeStart = byteRange?.offset ?: if (byteRange == null) null else defaultByteRangeStart
-        val rangeEnd = byteRange?.let { rangeStart!! + it.length - 1 }
+        val (rangeStart, rangeEnd) = rangeWindow(byteRange, defaultByteRangeStart)
 
         connectionFactory.open(url, "GET", rangeStart, rangeEnd)
             .useTransferConnection { connection ->
@@ -455,8 +472,7 @@ class HlsSegmentFileTransferEngine(
         byteRange: HlsByteRange?,
         defaultByteRangeStart: Long,
     ): MemoryTransferResult {
-        val rangeStart = byteRange?.offset ?: if (byteRange == null) null else defaultByteRangeStart
-        val rangeEnd = byteRange?.let { rangeStart!! + it.length - 1 }
+        val (rangeStart, rangeEnd) = rangeWindow(byteRange, defaultByteRangeStart)
         connectionFactory.open(url, "GET", rangeStart, rangeEnd)
             .useTransferConnection { connection ->
                 val statusCode = connection.responseCode
@@ -589,10 +605,16 @@ class HlsSegmentFileTransferEngine(
         }
         val keyUrl = encryptionKey.url
             ?: throw UnsupportedHlsPlaylistException("HLS encryption key URI is missing")
-        val key = synchronized(keyCache) {
-            keyCache[keyUrl] ?: downloadEncryptionKey(withManifestCookie(keyUrl, rawMediaPlaylistUrl))
-                .also { keyCache[keyUrl] = it }
+        // Double-checked lookup: never hold the cache monitor across
+        // network I/O with retry backoff, which would serialize all
+        // parallel segment workers on the first key download.
+        synchronized(keyCache) { keyCache[keyUrl] }?.let { return it }
+        val fresh = downloadEncryptionKey(withManifestCookie(keyUrl, rawMediaPlaylistUrl))
+        synchronized(keyCache) {
+            keyCache[keyUrl]?.let { return it }
+            keyCache[keyUrl] = fresh
         }
+        val key = fresh
         val iv = encryptionKey.iv?.let { parseIv(it) } ?: ivFromSequence(sequenceNumber)
 
         return try {
@@ -778,11 +800,18 @@ class HlsSegmentFileTransferEngine(
     }
 
     private fun withManifestCookie(url: String, manifestUrl: String): String {
-        if (url.contains("#cookie=") || url.contains('#')) {
+        if (url.contains("#cookie=")) {
             return url
         }
         val cookieIndex = manifestUrl.indexOf("#cookie=")
-        return if (cookieIndex < 0) url else url + manifestUrl.substring(cookieIndex)
+        if (cookieIndex < 0) {
+            return url
+        }
+        val cookie = manifestUrl.substring(cookieIndex)
+        // Fragments are never sent to servers; a non-cookie fragment would
+        // otherwise silently drop the manifest cookie, so attach the cookie
+        // in its place.
+        return if (url.contains('#')) url.substringBefore('#') + cookie else url + cookie
     }
 
     @Throws(TransferInterruptedException::class)
@@ -828,8 +857,8 @@ class HlsSegmentFileTransferEngine(
         }
     }
 
-    private companion object {
-        const val TAG = "HlsSegmentTransfer"
+    companion object {
+        const val TAG = "HlsSegmentFileTransferEngine"
         const val MAX_INITIAL_MEMORY_BUFFER_BYTES = 16L * 1024L * 1024L
         const val AES_128_KEY_BYTES = 16
         const val AES_128_IV_BYTES = 16
