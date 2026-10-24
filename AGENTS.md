@@ -71,6 +71,27 @@ Always use the Gradle wrapper (`./gradlew`); never a system `gradle`.
 - **Quick Loop** (`./scripts/check.sh --quick`, iteration only): Python unit tests plus `assembleDebug` (single universal APK) with no lint. Use freely while iterating; always run the default Fast Gate once before completing a task.
 - **Full Gate** (`./scripts/check.sh --full`): Fast gate plus JVM unit tests (`testDebugUnitTest` in `PipePipeClient/`).
 
+## Versioning
+
+- **Dynamic versionName**: `PipePipeClient/app/build.gradle` resolves
+  `appVersionName` at configuration time via
+  `git describe --tags --dirty --match "v[0-9]*.[0-9]*.[0-9]*" --match "[0-9]*.[0-9]*.[0-9]*" --always`
+  (lazy `providers.exec`, configuration-cache safe), with the leading
+  `v` stripped. Never hardcode `appVersionName`. Uncommitted changes
+  append `-dirty`; checkouts without git fall back to `0.0.0-unknown`.
+- **Release tagging**: tag releases with annotated tags, `v` prefix
+  canonical: `git tag -a v<version> -m "Release v<version>"`
+  (e.g. `git tag -a v5.5.0-beta4 -m "Release v5.5.0-beta4"`).
+  Debug builds append `-debug` via `versionNameSuffix`.
+- **APK filename** interpolates the raw tag
+  (`PipePipe_<tag>-<variant>.apk`), not the runtime `versionName`, so
+  it never carries `-debug`/`-dirty`; the variant name already
+  disambiguates.
+- **versionCode**: frozen at `100 * baseVersionCode` (stays above the
+  legacy per-ABI split codes). Bump `baseVersionCode` only if
+  store-style upgrade ordering ever requires it; it is not tied to
+  tags.
+
 ## Code Review
 
 For exhaustive line-by-line inspection, follow the `pipepipe-pedantic-code-review` skill (`.agents/skills/pipepipe-pedantic-code-review/SKILL.md`): diff against the fork-point (`main...HEAD`, never `main` tip directly), size single vs. fan-out review, and report `[DEFECT]` / `[PEDANTIC]` tiers with exact file:line links.

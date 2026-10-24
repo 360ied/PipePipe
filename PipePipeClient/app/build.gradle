@@ -18,7 +18,25 @@ def keyStorePassword = System.getenv("KEY_STORE_PASSWORD") ?: keystoreProps.getP
 def signingKeyAlias = System.getenv("KEY_ALIAS") ?: keystoreProps.getProperty("keyAlias")
 def signingKeyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProps.getProperty("keyPassword")
 def baseVersionCode = 1110
-def appVersionName = "5.5.0-beta3"
+// versionName is tag-driven (see AGENTS.md "Versioning"): the release
+// tag is the single source of truth. Never hardcode appVersionName.
+def gitDescribeRaw
+try {
+    gitDescribeRaw = providers.exec {
+        // --always: never fails for missing tags; falls back to a bare
+        // commit hash when no tag is reachable (e.g. CI checkout without
+        // fetch-tags). Still requires a git checkout (see fallback below).
+        // --dirty marks uncommitted changes; the dual --match accepts both
+        // v-prefixed and legacy bare tags.
+        commandLine "git", "describe", "--tags", "--dirty", "--match", "v[0-9]*.[0-9]*.[0-9]*", "--match", "[0-9]*.[0-9]*.[0-9]*", "--always"
+    }.standardOutput.asText.get().trim()
+} catch (Exception describeFailed) {
+    // Source tarball without .git, or git binary unavailable.
+    logger.warn("git describe failed ({}); using fallback version", describeFailed.getMessage())
+    gitDescribeRaw = "0.0.0-unknown"
+}
+// Strip the leading 'v' so the tag prefix never leaks into versionName.
+def appVersionName = gitDescribeRaw.replaceFirst(/^v(?=\d)/, "")
 // Single universal APK: ABI splits were dropped with ffmpeg-kit (the per-ABI
 // APKs were identical apart from a ~10 KB transitive AndroidX .so). The x100
 // scale is kept so the versionCode stays above the old per-ABI split codes
@@ -60,9 +78,12 @@ android {
     buildTypes {
         debug {
             debuggable true
+            versionNameSuffix "-debug"
 
-            // Branch-specific suffixes stay disabled: probing git at
-            // configuration time breaks the configuration cache.
+            // Branch-specific (git-branch-derived) suffixes stay disabled.
+            // The only git probing at configuration time is the
+            // providers.exec-based versionName above, and that API is
+            // configuration-cache safe.
             applicationIdSuffix ".debug"
             resValue "string", "app_name", "pipepipefork Debug"
         }

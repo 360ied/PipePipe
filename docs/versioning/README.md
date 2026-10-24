@@ -1,9 +1,9 @@
-# Tag-driven versioning proposal
+# Tag-driven versioning
 
-How `versionName` should be resolved from git tags (mumla-oled style),
+How `versionName` is resolved from git tags (mumla-oled style),
 without touching `versionCode`.
 
-- Status: proposed, not implemented.
+- Status: implemented.
 - Scope: `PipePipeClient/app/build.gradle` (`appVersionName`,
   `universalVersionCode`), release-tagging workflow.
 - Reference implementation: mumla-oled `app/build.gradle`
@@ -13,14 +13,14 @@ without touching `versionCode`.
 
 ## Background
 
-Today `appVersionName` is a hardcoded string in
-`PipePipeClient/app/build.gradle` (currently `"5.5.0-beta3"`), and the
-repository has no tags. Every build — release, worktree, or
-three-commits-after-release — reports the same version in the About
+Before this change, `appVersionName` was a hardcoded string in
+`PipePipeClient/app/build.gradle` (then `"5.5.0-beta3"`), and the
+repository had no tags. Every build — release, worktree, or
+three-commits-after-release — reported the same version in the About
 screen, crash reports (`BuildConfig.VERSION_NAME`), and subscription
-exports. Releasing means hand-editing `build.gradle`, and the audit
-notes under `docs/*` must separately pin "audited at commit X, app
-version Y" because the version is not derivable from git history.
+exports. Releasing meant hand-editing `build.gradle`, and the audit
+notes under `docs/*` had to separately pin "audited at commit X, app
+version Y" because the version was not derivable from git history.
 
 Mumla-oled avoids this: `versionName` is resolved at configuration
 time from `git describe --tags ... --always` with the leading `v`
@@ -30,14 +30,14 @@ annotated tags. Its `versionCode`, by contrast, is a frozen constant
 (`3070300`, never bumped in history) plus news-items bookkeeping —
 vestigial, and not applicable here.
 
-## Proposal
+## Design (as implemented)
 
-Port only the `versionName`-from-tag half. Keep `versionCode` exactly
+Ports only the `versionName`-from-tag half. Keeps `versionCode` exactly
 as-is.
 
 ### 1. `PipePipeClient/app/build.gradle` (~10 lines)
 
-Replace the hardcoded string:
+Replaced the hardcoded string:
 
 ```groovy
 def baseVersionCode = 1110
@@ -58,6 +58,9 @@ def gitDescribeRaw = providers.exec {
 // Strip the leading 'v' so versionName stays bare semver.
 def appVersionName = gitDescribeRaw.replaceFirst(/^v(?=\d)/, "")
 ```
+
+Hardened after pedantic review: a `--dirty` flag and a `try/catch`
+fallback to `0.0.0-unknown` — see the build file for the final form.
 
 Everything downstream keeps working unchanged: `versionName
 appVersionName`, the APK filename
@@ -81,15 +84,18 @@ On the configuration-cache concern: the existing comment in
 time. `providers.exec` is Gradle's lazy provider API — the value is
 tracked as a build input, not an untracked side effect — which is why
 mumla gets away with it under the same
-`org.gradle.configuration-cache=true`. Verify with two consecutive
-cached builds during review.
+`org.gradle.configuration-cache=true`. Verified with consecutive
+cached builds during review: Gradle re-runs the provider when
+checking the cache fingerprint, so new commits and tags correctly
+invalidate the entry (observed: "cannot be reused because output of
+the external process 'git' has changed").
 
 ### 2. Tag convention and bootstrapping
 
 `appVersionName` has been `"5.5.0-beta3"` since the repo's squashed
-import, and there are no tags. The change therefore ships with a
-genesis anchor tag — created *before* the implementation lands, so
-`git describe` resolves from the start:
+import, and there are no tags. The change shipped with a
+genesis anchor tag — created *before* the implementation landed, so
+`git describe` resolved from the start:
 
 ```sh
 git tag -a v0.0.0 -m "Release v0.0.0"
@@ -130,8 +136,7 @@ mumla's section minus the code parts:
 
 ## Verification
 
-Per repo rules this lands as a worktree change, verified before
-review:
+This landed as a worktree change, verified before review:
 
 - `./scripts/check.sh --quick`, then the default Fast Gate
   (`assembleDebug` + `lintDebug`).
@@ -146,10 +151,10 @@ review:
 
 - No-tags / shallow-clone builds report a hash version. Fine for dev,
   never ships.
-- A source tarball without `.git` would fail configuration (mumla
-  shares this). F-Droid builds from git, so this is a non-issue
-  today; a `try/catch` fallback (e.g. `"0.0.0-unknown"`) is possible
-  but deferred until needed.
+- A source tarball without `.git` (or a missing `git` binary) falls
+  back to `0.0.0-unknown` with a logged warning instead of failing
+  configuration. F-Droid builds from git, so this path is a
+  backstop, not the norm.
 - `PipePipeExtractor/build.gradle`'s `version 'v5.4.0'` is a
   separate Maven-style coordinate and out of scope.
 
