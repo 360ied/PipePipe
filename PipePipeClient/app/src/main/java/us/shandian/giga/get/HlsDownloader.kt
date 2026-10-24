@@ -1,8 +1,6 @@
 package us.shandian.giga.get
 
 import android.util.Log
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
 import us.shandian.giga.hls.state.HlsDownloadCheckpoint
 import us.shandian.giga.hls.state.HlsResourceCheckpoint
 import us.shandian.giga.hls.transfer.HlsSegmentFileTransferEngine
@@ -66,7 +64,7 @@ internal class HlsDownloader(
 
             ensureRunning()
             val output = File(workDir, "output.${outputExtension()}")
-            remuxWithFfmpeg(inputs, output)
+            remuxWithFramework(inputs, output)
             markRemuxOutput(output)
             val finalBytes = copyOutputToStorage(output)
             completeMission(finalBytes)
@@ -209,31 +207,17 @@ internal class HlsDownloader(
     }
 
     @Throws(IOException::class)
-    private fun remuxWithFfmpeg(inputs: List<File>, output: File) {
+    private fun remuxWithFramework(inputs: List<File>, output: File) {
         mission.psState = 1
         mission.writeThisToFile()
 
-        val command = buildString {
-            append("-y ")
-            inputs.forEach { input ->
-                append("-i ").append(quote(input.absolutePath)).append(' ')
-            }
-            if (mission.kind == 'a' && inputs.size == 1) {
-                append("-map 0:a? -vn ")
-            } else if (inputs.size > 1) {
-                inputs.indices.forEach { index ->
-                    append("-map ").append(index).append(":v? ")
-                    append("-map ").append(index).append(":a? ")
-                }
-            }
-            append("-c copy -movflags +faststart ").append(quote(output.absolutePath))
-        }
-
-        Log.d(TAG, "remuxWithFfmpeg inputs=${inputs.size}")
-        val session = FFmpegKit.execute(command)
-        if (!ReturnCode.isSuccess(session.returnCode)) {
+        Log.d(TAG, "remuxWithFramework inputs=${inputs.size}")
+        try {
+            HlsFrameworkMuxer.remux(inputs, output, mission.kind, outputExtension())
+        } catch (error: IOException) {
             mission.psState = 0
-            throw IOException("HLS ffmpeg remux failed: ${session.returnCode}")
+            // Keep the old message shape (detail appended) so error buckets don't churn.
+            throw IOException("HLS framework remux failed: ${error.message.orEmpty()}", error)
         }
     }
 
@@ -332,10 +316,6 @@ internal class HlsDownloader(
         if (!mission.running || Thread.currentThread().isInterrupted) {
             throw TransferInterruptedException()
         }
-    }
-
-    private fun quote(value: String): String {
-        return '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"'
     }
 
     private fun outputExtension(): String {
