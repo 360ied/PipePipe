@@ -2,6 +2,7 @@ package us.shandian.giga.get
 
 import android.util.Log
 import org.schabi.newpipe.BuildConfig
+import org.schabi.newpipe.streams.Mp4DashReader
 import org.schabi.newpipe.streams.Mp4FromDashWriter
 import org.schabi.newpipe.streams.WebMReader
 import org.schabi.newpipe.streams.WebMWriter
@@ -10,12 +11,13 @@ import java.io.File
 import java.io.IOException
 
 /**
- * Pure-Java SABR remuxer replacing [SabrFfmpegMuxer].
+ * Pure-Java SABR remuxer (replaces the retired ffmpeg-kit wrapper).
  *
  * SABR temp files are init + media segments concatenated per track — the same
  * shape classic DASH feeds the in-repo Java muxers. Dispatch on the formats'
- * mimeType (mp4 vs webm, via [YoutubeSabrFormatTimeline] rules):
- * - mp4+mp4 -> [Mp4FromDashWriter]
+ * mimeType (mp4 vs webm, same case-sensitive contains rules as
+ * YoutubeSabrFormatTimeline):
+ * - mp4+mp4 -> [Mp4FromDashWriter], track picked by audio/video kind
  * - webm+webm -> [WebMWriter] (video track from video source, audio from audio)
  * - single input -> direct copy for webm/webm (legacy fast path), otherwise
  *   single-track Java mux
@@ -60,8 +62,8 @@ internal class SabrJavaMuxer(
             mission.psState = 0
             throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
-                "SABR download failed: java mux failed (${error.message.orEmpty()})",
-                if (error is IOException) error else IOException(error.message, error),
+                "SABR download failed: java mux failed (${error::class.simpleName}: ${error.message.orEmpty()})",
+                error,
             )
         }
     }
@@ -83,8 +85,9 @@ internal class SabrJavaMuxer(
             }
         }
 
+        // Same case-sensitive contains rules as YoutubeSabrFormatTimeline.parse.
         val containers = targets.map { target ->
-            val mime = target.format.mimeType?.lowercase().orEmpty()
+            val mime = target.format.mimeType.orEmpty()
             when {
                 mime.contains("mp4") -> Container.MP4
                 mime.contains("webm") -> Container.WEBM
@@ -103,7 +106,26 @@ internal class SabrJavaMuxer(
         if (containers.distinct().size > 1) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
-                "SABR download failed: java mux failed (mixed containers $containers, itags=${targets.map { it.format.itag }})",
+                "SABR download failed: java mux failed (incompatible mixed containers " +
+                    "$containers, itags=${targets.map { it.format.itag }}, " +
+                    "mimes=${targets.map { it.format.mimeType }})",
+            )
+        }
+
+        // The output filename selects the container; never write bytes the
+        // suffix mislabels.
+        val extension = outputExtension().lowercase()
+        val unanimous = containers.first()
+        val agrees = when (unanimous) {
+            Container.MP4 -> extension in MP4_FAMILY_EXTENSIONS
+            Container.WEBM -> extension == "webm"
+            Container.UNKNOWN -> false
+        }
+        if (!agrees) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.MUXING,
+                "SABR download failed: java mux failed (output .$extension disagrees " +
+                    "with $unanimous inputs, mimes=${targets.map { it.format.mimeType }})",
             )
         }
 
@@ -112,8 +134,8 @@ internal class SabrJavaMuxer(
             throw IOException("Could not reset java mux output ${output.absolutePath}")
         }
 
-        when (containers.first()) {
-            Container.MP4 -> remuxMp4(inputs, output)
+        when (unanimous) {
+            Container.MP4 -> remuxMp4(inputs, targets, output)
             Container.WEBM -> remuxWebm(inputs, targets, output)
             Container.UNKNOWN -> throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
@@ -123,7 +145,7 @@ internal class SabrJavaMuxer(
     }
 
     @Throws(IOException::class)
-    private fun remuxMp4(inputs: List<File>, output: File) {
+    private fun remuxMp4(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
         val sources = inputs.map { FileStream(it) }
         var muxer: Mp4FromDashWriter? = null
         var out: FileStream? = null
@@ -131,18 +153,14 @@ internal class SabrJavaMuxer(
         try {
             muxer = Mp4FromDashWriter(*sources.toTypedArray())
             muxer.parseSources()
-            // Validate each source exposes at least one track (index 0 is the
-            // only track for single-track DASH/SABR fragments).
-            sources.indices.forEach { index ->
-                val tracks = muxer.getTracksFromSource(index)
-                if (tracks.isEmpty()) {
-                    throw IOException("MP4 source $index has no tracks")
-                }
+            val indexes = IntArray(sources.size) { sourceIndex ->
+                val tracks = muxer.getTracksFromSource(sourceIndex)
+                pickMp4Track(tracks, targets[sourceIndex].format.isVideo, sourceIndex)
             }
-            muxer.selectTracks(*IntArray(sources.size) { 0 })
+            muxer.selectTracks(*indexes)
             if (mission.kind == 'a') {
                 // Audio-only MP4 must carry the M4A brand (M4aNoDash precedent).
-                muxer.setMainBrand(0x4D344120)
+                muxer.setMainBrand(M4A_BRAND)
             }
             out = FileStream(output)
             out.setLength(0)
@@ -182,11 +200,7 @@ internal class SabrJavaMuxer(
             muxer.parseSources()
             val indexes = IntArray(sources.size) { sourceIndex ->
                 val tracks = muxer.getTracksFromSource(sourceIndex)
-                if (tracks.isEmpty()) {
-                    throw IOException("WebM source $sourceIndex has no tracks")
-                }
-                val wantVideo = targets[sourceIndex].format.isVideo
-                pickWebmTrack(tracks, wantVideo)
+                pickWebmTrack(tracks, targets[sourceIndex].format.isVideo, sourceIndex)
             }
             muxer.selectTracks(*indexes)
             out = FileStream(output)
@@ -214,7 +228,35 @@ internal class SabrJavaMuxer(
         }
     }
 
-    private fun pickWebmTrack(tracks: Array<WebMReader.WebMTrack>, wantVideo: Boolean): Int {
+    private fun pickMp4Track(
+        tracks: Array<Mp4DashReader.Mp4Track>,
+        wantVideo: Boolean,
+        sourceIndex: Int,
+    ): Int {
+        // Same hazard as the WebM "fake video cover track": enumerate via kind,
+        // don't assume index 0. An audio MP4 exposing cover art at index 0 must
+        // not land a video track in an M4A-branded file.
+        for (index in tracks.indices) {
+            val kind = tracks[index].kind
+            if (wantVideo && kind == Mp4DashReader.TrackKind.Video) {
+                return index
+            }
+            if (!wantVideo && kind == Mp4DashReader.TrackKind.Audio) {
+                return index
+            }
+        }
+        throw SabrDownloadException(
+            SabrDownloadException.Reason.MUXING,
+            "SABR download failed: java mux failed (no ${if (wantVideo) "video" else "audio"} " +
+                "MP4 track in source $sourceIndex)",
+        )
+    }
+
+    private fun pickWebmTrack(
+        tracks: Array<WebMReader.WebMTrack>,
+        wantVideo: Boolean,
+        sourceIndex: Int,
+    ): Int {
         // Unlike WebMMuxer (audio-per-source for its DASH case), SABR needs the
         // video track from the video source. Mind the "fake video cover track"
         // quirk: enumerate via kind, don't assume index 0.
@@ -229,7 +271,8 @@ internal class SabrJavaMuxer(
         }
         throw SabrDownloadException(
             SabrDownloadException.Reason.MUXING,
-            "SABR download failed: java mux failed (no ${if (wantVideo) "video" else "audio"} WebM track)",
+            "SABR download failed: java mux failed (no ${if (wantVideo) "video" else "audio"} " +
+                "WebM track in source $sourceIndex)",
         )
     }
 
@@ -309,5 +352,7 @@ internal class SabrJavaMuxer(
 
     private companion object {
         private const val TAG = "SabrJavaMuxer"
+        private const val M4A_BRAND = 0x4D344120
+        private val MP4_FAMILY_EXTENSIONS = setOf("mp4", "m4a", "m4v", "mov")
     }
 }
