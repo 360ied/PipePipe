@@ -129,6 +129,10 @@ internal class HlsSegmentFileTransferEngine(
                             url = withManifestCookie(playlist.initSegment.url, resolved.rawMediaPlaylistUrl),
                             byteRange = playlist.initSegment.byteRange,
                             defaultByteRangeStart = 0L,
+                            // Same init cap as the unencrypted path: a
+                            // playlist-controlled init URL must not fill
+                            // memory unboundedly before decrypt/append.
+                            maxTotalBytes = MAX_INIT_SEGMENT_BYTES,
                         )
                     }
                     val decrypted = decryptHlsBytes(
@@ -225,7 +229,12 @@ internal class HlsSegmentFileTransferEngine(
         playlist.segments.forEachIndexed { index, segment ->
             expectedSegmentBytes[index] = segment.byteRange?.length ?: -1L
         }
+        // Bound concurrency by memory, not just slots: each worker can
+        // buffer a whole segment (up to MAX_SEGMENT_BYTES) before the
+        // in-flight ledger sees a byte, so uncapped parallelism makes the
+        // retained ceiling a fiction (~parallelism x 256 MiB off-ledger).
         val parallelism = config.parallelism.coerceIn(1, remainingSegments)
+            .coerceAtMost(maxOf(1, (MAX_RETAINED_BYTES / MAX_SEGMENT_BYTES).toInt()))
         val executor = Executors.newFixedThreadPool(parallelism)
         val completion = ExecutorCompletionService<DownloadedSegment>(executor)
         val downloadedSegments = mutableMapOf<Int, DownloadedSegment>()
@@ -517,6 +526,7 @@ internal class HlsSegmentFileTransferEngine(
         byteRange: HlsByteRange?,
         defaultByteRangeStart: Long,
         onBuffered: (Long) -> Unit = {},
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
     ): MemoryTransferResult {
         val (rangeStart, rangeEnd) = rangeWindow(byteRange, defaultByteRangeStart)
         connectionFactory.open(url, "GET", rangeStart, rangeEnd)
@@ -532,7 +542,12 @@ internal class HlsSegmentFileTransferEngine(
                 }
 
                 val bytes = connection.inputStream.use { input ->
-                    copyPartToMemory(input, initialMemoryBufferCapacity(connection.contentLengthLong), onBuffered)
+                    copyPartToMemory(
+                        input,
+                        initialMemoryBufferCapacity(connection.contentLengthLong),
+                        onBuffered,
+                        maxTotalBytes,
+                    )
                 }
                 val expected = expectedBytes(byteRange, connection.contentLengthLong)
                 if (expected > 0 && bytes.size.toLong() != expected) {
@@ -590,6 +605,7 @@ internal class HlsSegmentFileTransferEngine(
         input: InputStream,
         initialCapacity: Int = config.bufferSize,
         onBuffered: (Long) -> Unit = {},
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
     ): ByteArray {
         val buffer = ByteArray(config.bufferSize)
         val output = ByteArrayOutputStream(initialCapacity)
@@ -607,7 +623,7 @@ internal class HlsSegmentFileTransferEngine(
             onBuffered(read.toLong())
             // In-loop ceiling: the post-hoc size check cannot save a process
             // that already OOMed while buffering a lying stream.
-            if (total > MAX_SEGMENT_BYTES) {
+            if (total > maxTotalBytes) {
                 throw IOException("HLS segment too large")
             }
         }
@@ -990,7 +1006,9 @@ internal class HlsSegmentFileTransferEngine(
         const val MAX_KEY_BYTES = 64
         // Aggregate retained ceiling: out-of-order completions wait for the
         // in-order prefix, so cap their sum and let submission stall until
-        // the prefix drains instead of retaining ~parallelism x segment.
+        // the prefix drains. Together with the memory-bounded parallelism
+        // above, worst-case residency is bounded (not just the retained
+        // map): ~parallelism x segment in-flight plus this retained cap.
         const val MAX_RETAINED_BYTES = 512L * 1024L * 1024L
         const val MAX_INITIAL_MEMORY_BUFFER_BYTES = 16L * 1024L * 1024L
         const val AES_128_KEY_BYTES = 16

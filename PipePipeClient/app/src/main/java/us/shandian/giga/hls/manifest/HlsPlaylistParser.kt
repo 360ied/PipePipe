@@ -35,30 +35,32 @@ internal class HlsPlaylistParser {
                     url = resolveUrl(sourceUrl, variant.url.toString()),
                     bandwidth = positiveLong(format.peakBitrate) ?: positiveLong(format.bitrate),
                     averageBandwidth = positiveLong(format.averageBitrate),
-                    codecs = format.codecs,
-                    resolution = resolutionOf(format),
-                    frameRate = format.frameRate.takeIf { it > 0 }?.toDouble(),
-                    audioGroupId = variant.audioGroupId,
                 )
             },
         )
     }
 
     private fun ExoHlsMediaPlaylist.toInternalMediaPlaylist(sourceUrl: String): HlsMediaPlaylist {
+        // The engine prepends a single init: a playlist rotating EXT-X-MAP
+        // mid-list would join later segments to the wrong init (remux
+        // failure or corrupt output), so reject instead of collapsing.
+        // Checked here rather than validatePlaylist, which only sees the
+        // collapsed model.
+        val distinctInitUrls = segments.mapNotNull { it.initializationSegment?.url }.toSet()
+        if (distinctInitUrls.size > 1) {
+            throw UnsupportedHlsPlaylistException("Multiple HLS init segments are not supported")
+        }
         val initSegment = segments
             .firstOrNull { it.initializationSegment != null }
             ?.initializationSegment
             ?.toInternalInitSegment(sourceUrl)
         return HlsMediaPlaylist(
             sourceUrl = sourceUrl,
-            targetDurationSeconds = secondsOf(targetDurationUs),
             mediaSequence = mediaSequence,
             segments = segments.map { it.toInternalSegment(sourceUrl) },
             isEndList = hasEndTag,
             initSegment = initSegment,
-            hasEncryption = hasAes128Encryption(),
             hasUnsupportedEncryption = hasUnsupportedEncryption(),
-            hasDiscontinuity = hasDiscontinuity(),
         )
     }
 
@@ -66,9 +68,7 @@ internal class HlsPlaylistParser {
         return HlsSegment(
             url = resolveUrl(sourceUrl, url),
             durationSeconds = secondsOf(durationUs),
-            title = title.ifBlank { null },
             byteRange = byteRange(),
-            discontinuity = relativeDiscontinuitySequence > 0,
             encryptionKey = encryptionKey(sourceUrl),
         )
     }
@@ -79,11 +79,6 @@ internal class HlsPlaylistParser {
             byteRange = byteRange(),
             encryptionKey = encryptionKey(sourceUrl),
         )
-    }
-
-    private fun ExoHlsMediaPlaylist.hasAes128Encryption(): Boolean {
-        return segments.any { it.fullSegmentEncryptionKeyUri != null }
-            || segments.any { it.initializationSegment?.fullSegmentEncryptionKeyUri != null }
     }
 
     private fun ExoHlsMediaPlaylist.hasUnsupportedEncryption(): Boolean {
@@ -97,11 +92,6 @@ internal class HlsPlaylistParser {
                     && !method.equals("AES-128", ignoreCase = true)
             }
         }
-    }
-
-    private fun ExoHlsMediaPlaylist.hasDiscontinuity(): Boolean {
-        return tags.any { it == EXT_X_DISCONTINUITY }
-            || segments.any { it.relativeDiscontinuitySequence > 0 }
     }
 
     private fun ExoHlsSegmentBase.byteRange(): HlsByteRange? {
@@ -128,14 +118,6 @@ internal class HlsPlaylistParser {
             ?.trim('"')
     }
 
-    private fun resolutionOf(format: Format): String? {
-        return if (format.width > 0 && format.height > 0) {
-            "${format.width}x${format.height}"
-        } else {
-            null
-        }
-    }
-
     private fun positiveLong(value: Int): Long? {
         return value.takeIf { it > 0 }?.toLong()
     }
@@ -158,6 +140,5 @@ internal class HlsPlaylistParser {
 
     private companion object {
         const val EXT_X_KEY = "#EXT-X-KEY:"
-        const val EXT_X_DISCONTINUITY = "#EXT-X-DISCONTINUITY"
     }
 }

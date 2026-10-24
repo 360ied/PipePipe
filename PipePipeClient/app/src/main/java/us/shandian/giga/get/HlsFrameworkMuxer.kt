@@ -141,8 +141,18 @@ internal object HlsFrameworkMuxer {
         var muxer: MediaMuxer? = null
         var completed = false
         try {
-            // muxerOutputFormat is infallible here (ext validated above).
-            muxer = MediaMuxer(output.absolutePath, muxerOutputFormat(ext, isAudioOnly))
+            // Wrap the constructor like every other muxer call: it throws
+            // unchecked IllegalArgumentException/IllegalStateException
+            // despite the IOException contract.
+            muxer = try {
+                // muxerOutputFormat is infallible here (ext validated above).
+                MediaMuxer(output.absolutePath, muxerOutputFormat(ext, isAudioOnly))
+            } catch (error: TransferInterruptedException) {
+                // Never wrap pause as failure.
+                throw error
+            } catch (error: Exception) {
+                throw IOException("HLS framework remux failed: muxer (${error.message.orEmpty()})", error)
+            }
             // Phase 2: add every selected track (1:1 per input-track).
             val muxerTrackFor = mutableListOf<MutableMap<Int, Int>>()
             val lastPts = mutableListOf<Long>()
@@ -359,7 +369,12 @@ internal object HlsFrameworkMuxer {
         val trackCount = try {
             extractor.trackCount
         } catch (error: Exception) {
-            extractor.release()
+            // Guard the release like the setDataSource catch: a throwing
+            // release must not mask the IOException being built.
+            try {
+                extractor.release()
+            } catch (ignored: Exception) {
+            }
             throw IOException("HLS framework remux failed: no tracks in input-$inputIndex", error)
         }
         val allTracks = (0 until trackCount).mapNotNull { index ->
