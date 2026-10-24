@@ -66,9 +66,9 @@ Always use the Gradle wrapper (`./gradlew`); never a system `gradle`.
 ## Verification
 
 - **Pre-Completion Check**: Run `./scripts/check.sh` inside the dedicated worktree before completing any code task. Passing verification signifies that the branch is ready for user review — it does NOT trigger or authorize merging into `main`. Standalone documentation-only changes (committed on `main`) are exempt from `./scripts/check.sh`.
-- **Fast Gate** (default, mirrors CI): Python unit tests for `scripts/` plus `assembleDebug` + `lintDebug` (`-DskipFormatKtlint`) in `PipePipeClient/`:
+- **Fast Gate** (default): Python unit tests for `scripts/` plus `assembleDebug` + `lintDebug` (`-DskipFormatKtlint`) in `PipePipeClient/`:
   `nix develop --command ./gradlew assembleDebug lintDebug --stacktrace -DskipFormatKtlint` (run from `PipePipeClient/` inside the worktree).
-- **Quick Loop** (`./scripts/check.sh --quick`, iteration only): Python unit tests plus single-ABI `assembleDebug` (`-PsingleAbi=arm64-v8a` by default, override with `QUICK_ABI=<abi>`) with no lint. Use freely while iterating; always run the default Fast Gate once before completing a task.
+- **Quick Loop** (`./scripts/check.sh --quick`, iteration only): Python unit tests plus `assembleDebug` (single universal APK) with no lint. Use freely while iterating; always run the default Fast Gate once before completing a task.
 - **Full Gate** (`./scripts/check.sh --full`): Fast gate plus JVM unit tests (`testDebugUnitTest` in `PipePipeClient/`).
 
 ## Code Review
