@@ -171,7 +171,7 @@ and the `smart-exception-java` dependency.
   not supported yet") and no inline-manifest support (already rejected) —
   keep rejecting them.
 
-## 4. Current-state inventory (for the implementer)
+## 4. Pre-removal inventory (`main@15ed881` snapshot, for reference)
 
 | Path | Role |
 |---|---|
@@ -203,7 +203,7 @@ muxers. New `SabrJavaMuxer` (same call shape as `SabrFfmpegMuxer`:
 | mp4 | mp4 | `Mp4FromDashWriter` over both inputs, `selectTracks(0, 0)` (== today's `-map i:v? -map i:a?` for the well-formed case). Model on `Mp4FromDashMuxer`. |
 | webm | webm | `WebMWriter` over both inputs. Model on `WebMMuxer`, but select the **video** track from the video source (WebMMuxer picks audio-per-source for its DASH case) and keep its fake-video-cover-track handling in mind; verify with `getTracksFromSource`. |
 | single input, any | — | keep today's fast paths: direct copy when the single track can be copied verbatim (extend `canCopySingleInputDirectly` reasoning to mp4: concatenated init+fragments are already playable fragmented MP4 — but confirm players/seek behavior, else run the single-track muxer), and `M4aNoDash`-style (`setMainBrand("M4A ")`) single-track mux for audio-only missions (`kind == 'a'`). |
-| **mixed** (mp4↔webm) | — | decide in the spike (section 7.1): option A — constrain pairing where the format is chosen (prefer same-container audio for the picked video; needs a `SabrDownloadFormatResolver`/UI-adjacent change); option B — `MediaExtractor`→`MediaMuxer` MP4 fallback for mixed pairs only. Do not silently produce unplayable files: mixed input that cannot be muxed must raise `Reason.MUXING`, never a corrupt output. |
+| **mixed** (mp4↔webm) | — | decide in the spike (section 9.1): option A — constrain pairing where the format is chosen (prefer same-container audio for the picked video; needs a `SabrDownloadFormatResolver`/UI-adjacent change); option B — `MediaExtractor`→`MediaMuxer` MP4 fallback for mixed pairs only. Do not silently produce unplayable files: mixed input that cannot be muxed must raise `Reason.MUXING`, never a corrupt output. |
 
 Preserve today's observable behavior: `mission.psState = 1` + `writeThisToFile()`
 before muxing; `psState = 0` + `SabrDownloadException(Reason.MUXING, …)` on
@@ -241,10 +241,13 @@ dependency, no native code. Per temp input file:
 Container decisions:
 
 - Output container follows today's `outputExtension()` (storage filename).
-  `mp4/m4a/mov/m4v` → `MUXER_OUTPUT_MPEG_4`; `webm` → `MUXER_OUTPUT_WEBM`
-  (always available at `minSdk` 30; the pre-bump plan failed closed below
-  API 26 — HLS outputs are MP4-family in practice via the manifest/audio
-  fallbacks, so this is a backstop). Unknown extensions fail closed.
+  `mp4` → `MUXER_OUTPUT_MPEG_4`; `m4a` (audio-only) → `MUXER_OUTPUT_MPEG_4`;
+  `webm` → `MUXER_OUTPUT_WEBM` (always available at `minSdk` 30 — HLS outputs
+  are MP4-family in practice via the manifest/audio fallbacks, so this is a
+  backstop). `mov`/`m4v`/anything else fails closed with `IOException`
+  (MediaMuxer always writes MP4 brands, so those suffixes would mislabel).
+  The `mp4` default applies only to blank/non-alphanumeric names via
+  `downloadOutputExtension`.
 - **MP3 fast path:** if all selected tracks are MP3 and the output extension
   is `mp3` (SoundCloud-style audio HLS), skip the muxer entirely and
   concatenate inputs — remuxing MP3→MP4 via `MediaMuxer` is unsupported and
@@ -300,7 +303,7 @@ Container decisions:
 | 6.7 | Pause/resume across the mux step | Checkpoint classes unchanged; remux-output reuse validation unchanged; test pause-during-remux explicitly (pause during postprocessing is a no-op by design — keep that) |
 | 6.8 | WebM "fake video cover track" | `WebMMuxer` precedent: enumerate via `getTracksFromSource`, pick by `TrackKind`, don't assume index 0 |
 | 6.9 | Single-track outputs' brands | audio-only MP4 must keep the `M4A ` main brand (`M4aNoDash` precedent), else players mislabel |
-| 6.10 | Unknown/future output extensions | keep today's `mp4` default; never crash on an unrecognized suffix |
+| 6.10 | Unknown/future output extensions | fail closed with `IOException` (`mp4` default applies only to blank/non-alphanumeric names); never crash, never mislabel |
 | 6.11 | `M4aNoDash.test()`-style skip | if a single input is already a plain (non-fragmented) file of the right brand, skip muxing as `M4aNoDash.test()` does for `dash`/`iso5` brands |
 
 ## 7. Fixtures to capture BEFORE deleting anything
@@ -370,7 +373,7 @@ Per `AGENTS.md`: each code step in its own worktree off `main`
   pipeline + MP3 concat fast path. Keep method signature, checkpoint calls
   (`markRemuxOutput`), progress/`psState` behavior, `outputExtension()`.
 - Tests with fixtures: TS single, fMP4+init, encrypted, dual-resource,
-  audio-only, discontinuity playlist, unknown-extension default.
+  audio-only, discontinuity playlist, unknown-extension rejection.
 - Commit atomically; `./scripts/check.sh` green.
 
 ### 9.4 Delete ffmpeg (0.5 day)
