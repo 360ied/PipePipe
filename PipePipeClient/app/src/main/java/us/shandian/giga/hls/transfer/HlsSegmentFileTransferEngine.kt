@@ -98,7 +98,11 @@ class HlsSegmentFileTransferEngine(
         RandomAccessFile(target, "rw").use { output ->
             output.setLength(outputPosition)
 
-            if (!canResume && playlist.initSegment != null) {
+            // Gate on bytes actually on disk, not the resume flag: if a prior
+            // attempt published a reset checkpoint and then failed the init
+            // download, `canResume` is true with 0 bytes and the init must
+            // still be written, or every later resume skips it forever.
+            if (outputPosition == 0L && playlist.initSegment != null) {
                 // Only the download itself is retried: decrypt/append
                 // failures are deterministic and must not re-download.
                 val result = if (playlist.initSegment.encryptionKey == null) {
@@ -349,6 +353,9 @@ class HlsSegmentFileTransferEngine(
                 defaultByteRangeStart = defaultByteRangeStart,
             )
         }
+        if (result.bytes.size.toLong() > MAX_SEGMENT_BYTES) {
+            throw IOException("HLS segment too large: ${result.bytes.size}")
+        }
         val bytes = decryptHlsBytes(
             encrypted = result.bytes,
             encryptionKey = segment.encryptionKey,
@@ -456,6 +463,9 @@ class HlsSegmentFileTransferEngine(
                         resourceUrl = url,
                     )
                 }
+                if (expectedBytes > 0 && bytesWritten != expectedBytes) {
+                    throw IOException("HLS segment truncated: got $bytesWritten, expected $expectedBytes")
+                }
 
                 return TransferResult(
                     bytesWritten = bytesWritten,
@@ -485,6 +495,10 @@ class HlsSegmentFileTransferEngine(
 
                 val bytes = connection.inputStream.use { input ->
                     copyPartToMemory(input, initialMemoryBufferCapacity(connection.contentLengthLong))
+                }
+                val expected = expectedBytes(byteRange, connection.contentLengthLong)
+                if (expected > 0 && bytes.size.toLong() != expected) {
+                    throw IOException("HLS segment truncated: got ${bytes.size}, expected $expected")
                 }
 
                 return MemoryTransferResult(
@@ -860,6 +874,9 @@ class HlsSegmentFileTransferEngine(
 
     private companion object {
         const val TAG = "HlsSegmentFileTransferEngine"
+        // Per-segment in-memory ceiling (parallel workers each buffer one
+        // whole segment): fail closed instead of risking OOM.
+        const val MAX_SEGMENT_BYTES = 256L * 1024L * 1024L
         const val MAX_INITIAL_MEMORY_BUFFER_BYTES = 16L * 1024L * 1024L
         const val AES_128_KEY_BYTES = 16
         const val AES_128_IV_BYTES = 16

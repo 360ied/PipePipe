@@ -10,6 +10,7 @@ import us.shandian.giga.hls.transfer.HttpTransferConnectionFactory
 import us.shandian.giga.hls.transfer.TransferController
 import us.shandian.giga.hls.transfer.TransferHttpException
 import us.shandian.giga.hls.transfer.TransferInterruptedException
+import us.shandian.giga.hls.transfer.TransferRetryPolicy
 import us.shandian.giga.hls.transfer.TransferProgress
 import us.shandian.giga.hls.transfer.TransferProgressListener
 import us.shandian.giga.hls.transfer.useTransferConnection
@@ -28,6 +29,7 @@ internal class HlsDownloader(
         maxRetries = mission.maxRetry,
         parallelism = mission.threadCount.coerceIn(1, MAX_PARALLELISM),
     )
+    private val retryPolicy = TransferRetryPolicy(transferConfig.maxRetries)
     private val hlsTransfer = HlsSegmentFileTransferEngine(transferConfig, controller)
     private val connectionFactory = HttpTransferConnectionFactory(transferConfig)
 
@@ -48,7 +50,7 @@ internal class HlsDownloader(
             }
 
             remuxedOutputFromCheckpoint(workDir)?.let { output ->
-                val finalBytes = copyOutputToStorage(output)
+                val finalBytes = copyWithPsStateReset { copyOutputToStorage(output) }
                 completeMission(finalBytes)
                 return
             }
@@ -68,7 +70,7 @@ internal class HlsDownloader(
             val output = File(workDir, "output.${outputExtension()}")
             remuxWithFramework(inputs, output)
             markRemuxOutput(output)
-            val finalBytes = copyOutputToStorage(output)
+            val finalBytes = copyWithPsStateReset { copyOutputToStorage(output) }
             completeMission(finalBytes)
         } catch (error: TransferInterruptedException) {
             // Pause/stop requested. The mission state has already been persisted by checkpoints.
@@ -133,7 +135,8 @@ internal class HlsDownloader(
         if (previous != null && previousFile?.exists() == true && previous.bytesWritten > 0) {
             if (previousFile.absolutePath == targetFile.absolutePath &&
                 previousFile.length() == previous.bytesWritten &&
-                previous.nextSegmentIndex == 1
+                previous.nextSegmentIndex == 1 &&
+                previous.manifestUrl == mission.urls[index]
             ) {
                 return
             }
@@ -155,19 +158,22 @@ internal class HlsDownloader(
 
         var written = 0L
         targetFile.outputStream().use { output ->
-            connectionFactory.open(mission.urls[index], "GET", null, null).useTransferConnection { connection ->
-                val statusCode = connection.responseCode
-                if (statusCode < 200 || statusCode > 299) {
-                    throw TransferHttpException(statusCode)
-                }
-                val contentLength = connection.contentLengthLong
-                if (contentLength > 0) {
-                    updateEstimatedLength(index, contentLength, 0)
-                }
-                connection.inputStream.use { input ->
-                    copyDirectCompanion(input, output) { delta ->
-                        written += delta
-                        mission.notifyProgress(delta)
+            // Same retry parity as every other network path in the engine.
+            retryPolicy.withRetries {
+                connectionFactory.open(mission.urls[index], "GET", null, null).useTransferConnection { connection ->
+                    val statusCode = connection.responseCode
+                    if (statusCode < 200 || statusCode > 299) {
+                        throw TransferHttpException(statusCode)
+                    }
+                    val contentLength = connection.contentLengthLong
+                    if (contentLength > 0) {
+                        updateEstimatedLength(index, contentLength, 0)
+                    }
+                    connection.inputStream.use { input ->
+                        copyDirectCompanion(input, output) { delta ->
+                            written += delta
+                            mission.notifyProgress(delta)
+                        }
                     }
                 }
             }
@@ -207,15 +213,35 @@ internal class HlsDownloader(
         output: java.io.OutputStream,
         onProgress: (Long) -> Unit,
     ) {
-        val buffer = ByteArray(transferConfig.bufferSize)
-        while (true) {
-            ensureRunning()
-            val read = input.read(buffer)
-            if (read == -1) {
-                return
+        try {
+            val buffer = ByteArray(transferConfig.bufferSize)
+            while (true) {
+                ensureRunning()
+                val read = input.read(buffer)
+                if (read == -1) {
+                    return
+                }
+                output.write(buffer, 0, read)
+                onProgress(read.toLong())
             }
-            output.write(buffer, 0, read)
-            onProgress(read.toLong())
+        } catch (error: InterruptedIOException) {
+            throw TransferInterruptedException()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun copyWithPsStateReset(copy: () -> Long): Long {
+        // The copy phases run with psState == 1; a storage failure must reset
+        // it or pause() stays disabled, mirroring SabrJavaMuxer.
+        try {
+            return copy()
+        } catch (error: TransferInterruptedException) {
+            mission.psState = 0
+            throw error
+        } catch (error: Exception) {
+            mission.psState = 0
+            mission.writeThisToFile()
+            throw error
         }
     }
 
