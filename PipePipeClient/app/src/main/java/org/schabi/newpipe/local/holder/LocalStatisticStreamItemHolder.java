@@ -16,6 +16,7 @@ import org.schabi.newpipe.ktx.ViewUtils;
 import org.schabi.newpipe.local.LocalItemBuilder;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.Localization;
+import org.schabi.newpipe.util.PicassoHelper;
 import org.schabi.newpipe.views.AnimatedProgressBar;
 
 import java.time.format.DateTimeFormatter;
@@ -111,6 +112,9 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         if (itemAdditionalDetails != null) {
             itemAdditionalDetails.setText(getStreamInfoDetailLine(item, dateTimeFormatter));
         }
+
+        PicassoHelper.loadScaledDownThumbnail(itemThumbnailView.getContext(),
+                item.getStreamEntity().getThumbnailUrl()).into(itemThumbnailView);
 
         itemView.setOnClickListener(view -> {
             if (itemBuilder.getOnItemSelectedListener() != null) {

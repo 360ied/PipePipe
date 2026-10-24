@@ -18,6 +18,7 @@ import org.schabi.newpipe.local.history.HistoryRecordManager;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.util.Localization;
+import org.schabi.newpipe.util.PicassoHelper;
 import org.schabi.newpipe.views.AnimatedProgressBar;
 
 import java.util.concurrent.TimeUnit;
@@ -115,6 +116,9 @@ public class StreamInfoItemHolder extends InfoItemHolder {
             itemDurationView.setVisibility(View.GONE);
             itemProgressView.setVisibility(View.GONE);
         }
+
+        PicassoHelper.loadScaledDownThumbnail(itemThumbnailView.getContext(),
+                item.getThumbnailUrl()).into(itemThumbnailView);
 
         itemView.setOnClickListener(view -> {
             if (itemBuilder.getOnStreamSelectedListener() != null) {
