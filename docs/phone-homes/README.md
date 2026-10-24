@@ -11,6 +11,7 @@ advertising SDKs are present in this codebase.
   cross-check `PipePipeClient/app/build.gradle` dependencies, and re-read the
   files cited below. Any new hardcoded host or new third-party dependency
   should land in this document.
+- All code paths below are relative to the repository root.
 
 ## Summary
 
