@@ -243,8 +243,10 @@ internal class SabrDownloader(
                         target.file.length() >= it.bytesWritten
                 }
                 if (checkpoint == null) {
+                    // File name only: the temp-dir absolute path would leak
+                    // device layout into the user-visible storage message.
                     if (target.file.exists() && !target.file.delete()) {
-                        throw IOException("Could not reset ${target.file}")
+                        throw IOException("Could not reset ${target.file.name}")
                     }
                     return@forEach
                 }

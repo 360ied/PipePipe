@@ -271,7 +271,7 @@ internal class SabrJavaMuxer(
             // not mux failures.
             try {
                 if (output.exists() && !output.delete()) {
-                    throw IOException("Could not reset java mux output ${output.absolutePath}")
+                    throw IOException("Could not reset java mux output ${output.name}")
                 }
                 out = FileStream(output)
                 out.setLength(0)
@@ -367,7 +367,7 @@ internal class SabrJavaMuxer(
             // Fresh output: see remuxMp4 comment (same STORAGE taxonomy).
             try {
                 if (output.exists() && !output.delete()) {
-                    throw IOException("Could not reset java mux output ${output.absolutePath}")
+                    throw IOException("Could not reset java mux output ${output.name}")
                 }
                 out = FileStream(output)
                 out.setLength(0)

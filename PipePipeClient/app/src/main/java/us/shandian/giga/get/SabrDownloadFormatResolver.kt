@@ -7,9 +7,15 @@ import java.io.IOException
 internal object SabrDownloadFormatResolver {
     @Throws(IOException::class)
     fun resolveInfo(recoveries: Array<MissionRecoveryInfo>): YoutubeSabrInfo {
+        // FORMAT, not a bare IOException: corrupt/legacy recovery info is a
+        // format problem, and only SabrDownloadException maps to
+        // ERROR_SABR_DOWNLOAD in notifyError.
         return recoveries.firstNotNullOfOrNull {
             it.deliveryMethodInfo as? YoutubeSabrInfo
-        } ?: throw IOException("Missing SABR info")
+        } ?: throw SabrDownloadException(
+            SabrDownloadException.Reason.FORMAT,
+            "SABR download failed: missing SABR info",
+        )
     }
 
     @Throws(IOException::class)
