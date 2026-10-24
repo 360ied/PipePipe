@@ -27,8 +27,11 @@ internal class HlsDownloader(
     private val controller = object : TransferController {
         override fun isRunning(): Boolean = mission.running
     }
+    // Coerced here so the HttpTransferConfig requires (added round-9) fire
+    // only on genuine programmer error, never on user pref values: this
+    // field initializer runs outside run()'s try/catch -> notifyError path.
     private val transferConfig = HttpTransferConfig(
-        maxRetries = mission.maxRetry,
+        maxRetries = mission.maxRetry.coerceAtLeast(0),
         parallelism = mission.threadCount.coerceIn(1, MAX_PARALLELISM),
     )
     private val retryPolicy = TransferRetryPolicy(transferConfig.maxRetries)
@@ -47,7 +50,9 @@ internal class HlsDownloader(
             mission.writeThisToFile()
 
             val workDir = workDirectory(mission)
-            if (!workDir.exists() && !workDir.mkdirs()) {
+            // mkdirs() returns false both when creation failed and when a
+            // concurrent creator won the race; re-check before failing.
+            if (!workDir.exists() && !workDir.mkdirs() && !workDir.exists()) {
                 throw IOException("Cannot create HLS work directory: $workDir")
             }
 

@@ -8,10 +8,13 @@ data class HttpTransferConfig(
     val readTimeoutMillis: Int = 30_000,
 ) {
     init {
-        // Fail fast at construction: a bad bufferSize escapes the
-        // IOException contract as a runtime crash in ByteArray().
+        // Fail fast at construction: bad values escape the IOException
+        // contract as runtime crashes (ByteArray, setConnectTimeout).
+        // Callers pass coerced user prefs; these guard programmer error.
         require(maxRetries >= 0) { "maxRetries must be >= 0" }
         require(parallelism >= 1) { "parallelism must be >= 1" }
         require(bufferSize > 0) { "bufferSize must be > 0" }
+        require(connectTimeoutMillis > 0) { "connectTimeoutMillis must be > 0" }
+        require(readTimeoutMillis > 0) { "readTimeoutMillis must be > 0" }
     }
 }
