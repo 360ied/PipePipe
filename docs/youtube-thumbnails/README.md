@@ -8,11 +8,15 @@ window, and why the removal itself is not the cause.
   extraction) + `docs/ffmpeg-removal/README.md` (removal blast radius).
 - Audited: 2026-10-24, `main` at `65ecb32`, app version `5.5.0-beta3`.
 - All paths below are relative to the repository root.
-- Status: **investigation, not fixed.** `ffmpeg` removal ruled out as
-  causal (section 2). Leading hypothesis is a YouTube server-side switch
-  to `WebP` bytes for `hq720.jpg?sqp=…&rs=…` URLs (section 3) interacting
-  with the pre-existing Picasso pipeline (section 4). Repro/confirm steps
-  in section 5. No code changed by this document.
+- Status: **root cause found and fixed in branch
+  `fix-youtube-thumbnails`.** `ffmpeg` removal ruled out as causal
+  (section 2). The WebP CDN switch (section 3) was a red herring: the
+  real cause is `15ed881` (DeArrow removal) deleting the only Picasso
+  load in every stream row (section 6). Fixed by `53be8d9` (restore
+  loads) plus `af00f17` (Compose `Target` strong-ref hardening); the
+  interim `sqp-rs` strip (`9aa485c`) was reverted by `28e6da6`.
+  Verified on-device: gray placeholders before, real thumbnails after
+  (screenshots `thumb_broken.png` vs `thumb_fixed.png` in task log).
 
 ## 1. Summary
 
@@ -103,13 +107,14 @@ disk cache) with `defaultBitmapConfig(RGB_565)` plus a scaling
 but drops alpha and can interact badly with `VP8X`/animated storyboards.
 
 `PipePipeClient/app/src/main/java/org/schabi/newpipe/info_list/ComposeItemUiHelper.kt:157`
-`rememberPicassoBitmap(key, request)` creates its `Target` as a local
-inside `DisposableEffect` and never holds a strong reference. Picasso holds
-`Target` weakly (upstream `square/picasso#39`, `#1658`, `#1667`,
-`SO#24180805`); GC before `onBitmapLoaded` leaves `bitmap = null` → gray
-`surfaceVariant` box. RecyclerView holders (`into(ImageView)`) are not
-affected the same way, so Compose lists can look broken while detail pages
-work, or vice versa.
+`rememberPicassoBitmap(key, request)` created its `Target` as a local
+inside `DisposableEffect` and never held a strong reference (pre-`af00f17`).
+Picasso holds `Target` weakly (upstream `square/picasso#39`, `#1658`,
+`#1667`, `SO#24180805`); GC before `onBitmapLoaded` left `bitmap = null`
+→ gray `surfaceVariant` box. Fixed by strong-holding the `Target` in
+`remember` (`af00f17`); failure now also renders `dummy_thumbnail` instead
+of the gray box. RecyclerView holders (`into(ImageView)`) were never
+affected the same way.
 
 Other amplifiers, all pre-existing and unchanged by the `ffmpeg` merge:
 
@@ -132,12 +137,14 @@ Other amplifiers, all pre-existing and unchanged by the `ffmpeg` merge:
    fresh search (fresh `rs`) vs History/Saved-Playlists (DB-cached `rs`).
    `onBitmapFailed` vs HTTP `404 image/jpeg 120x90` placeholder
    distinguishes decode failure from stale-URL failure. No code change.
-2. Force-JPEG probe (test worktree only): strip `?…` in `fixThumbnailUrl`
-   or prefer `hqdefault.jpg`; if thumbnails return, the cause is the WebP
-   variant, not `ffmpeg`. Cost is larger bytes (`292 KB` JPEG vs `89 KB`
-   WebP for the `720` variant measured above).
-3. Strong-ref probe: hoist the Compose `Target` into `remember` state and
-   retest lists. Fixes intermittent Compose-only gaps if GC is the trigger.
+2. ~~Force-JPEG probe~~ — done, reverted: the strip (`9aa485c`) did not
+   restore thumbnails (no image requests fired at all — the holders never
+   called Picasso), so the WebP variant was exonerated and the strip
+   reverted (`28e6da6`) to avoid larger bytes (`292 KB` JPEG vs `89 KB`
+   WebP) and upstream divergence.
+3. ~~Strong-ref probe~~ — done: `Target` hoisted into `remember`
+   (`af00f17`), plus `Target`-overload cancel fix and failure placeholder
+   in the review follow-up.
 4. Device split: API 30 vs 31+ on the same build. API-30-only failure
    points at platform WebP/`ImageDecoder` + `RGB_565`; all-API failure
    points at URL/caching.
@@ -145,6 +152,36 @@ Other amplifiers, all pre-existing and unchanged by the `ffmpeg` merge:
    (Picasso delegates to framework `BitmapFactory`/`ImageDecoder`), and
    upstream retired it Jan 2025. An image-loader change (Coil/Glide, or
    explicit WebP handling) is the correct layer if (2) confirms WebP.
+
+## 6. Root cause (update): DeArrow removal deleted the image load
+
+`git show 15ed881 -- StreamInfoItemHolder.java StreamMiniInfoItemHolder.java`
+removes the only thumbnail bind in each stream row:
+
+```java
+DeArrowBinder.bind(DeArrowRow.from(item, item.getThumbnailUrl()),
+        itemVideoTitleView, itemThumbnailView);
+```
+
+`DeArrowBinder.attach()` called `loadOriginal()` when DeArrow was
+inactive, which ran
+`PicassoHelper.loadScaledDownThumbnail(...).into(thumbnailView)`. No
+replacement load was added, so `StreamInfoItemHolder`,
+`StreamMiniInfoItemHolder`, feed `StreamItem.kt`, and
+`LocalStatisticStreamItemHolder` set titles/metadata but never touched
+`itemThumbnailView` — the layout default `dummy_thumbnail` (gray play
+button) shows forever. Same window as the `ffmpeg` merge, hence the
+misattribution. `VideoDetailFragment` was unaffected (loads via
+`initThumbnailViews`). Channel/playlist/staff holders were unaffected
+(they call `PicassoHelper` directly). The WebP `sqp-rs` variant is real
+but decodes fine on `minSdk 30+`; the interim strip was reverted.
+
+Fix (`53be8d9`): direct `PicassoHelper.loadScaledDownThumbnail(...).into(...)`
+in the four row bind sites, matching the channel/staff pattern.
+Hardening (`af00f17`): `ComposeItemUiHelper.rememberPicassoBitmap`
+strong-holds its `Target` (Picasso keeps weak refs) and cancels on
+dispose. Verified with `./scripts/check.sh` (fast gate green) and
+on-device install + screenshot.
 
 ## References
 

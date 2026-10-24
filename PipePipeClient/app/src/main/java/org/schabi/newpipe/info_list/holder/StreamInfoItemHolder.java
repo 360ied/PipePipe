@@ -18,6 +18,7 @@ import org.schabi.newpipe.local.history.HistoryRecordManager;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.util.Localization;
+import org.schabi.newpipe.util.PicassoHelper;
 import org.schabi.newpipe.views.AnimatedProgressBar;
 
 import java.util.concurrent.TimeUnit;
@@ -94,8 +95,10 @@ public class StreamInfoItemHolder extends InfoItemHolder {
                     R.color.duration_background_color));
             itemDurationView.setVisibility(View.VISIBLE);
 
-            final StreamStateEntity state = historyRecordManager.loadStreamState(infoItem)
-                    .blockingGet()[0];
+            // An empty result (e.g. never played) yields null instead of crashing on [0].
+            final StreamStateEntity[] states = historyRecordManager.loadStreamState(infoItem)
+                    .blockingGet();
+            final StreamStateEntity state = states.length > 0 ? states[0] : null;
             if (state != null) {
                 itemProgressView.setVisibility(View.VISIBLE);
                 itemProgressView.setMax((int) item.getDuration());
@@ -115,6 +118,9 @@ public class StreamInfoItemHolder extends InfoItemHolder {
             itemDurationView.setVisibility(View.GONE);
             itemProgressView.setVisibility(View.GONE);
         }
+
+        PicassoHelper.loadScaledDownThumbnail(itemThumbnailView.getContext(),
+                item.getThumbnailUrl()).into(itemThumbnailView);
 
         itemView.setOnClickListener(view -> {
             if (itemBuilder.getOnStreamSelectedListener() != null) {
@@ -143,7 +149,9 @@ public class StreamInfoItemHolder extends InfoItemHolder {
                             final HistoryRecordManager historyRecordManager) {
         final StreamInfoItem item = (StreamInfoItem) infoItem;
 
-        final StreamStateEntity state = historyRecordManager.loadStreamState(infoItem).blockingGet()[0];
+        final StreamStateEntity[] states =
+                historyRecordManager.loadStreamState(infoItem).blockingGet();
+        final StreamStateEntity state = states.length > 0 ? states[0] : null;
         if (state != null && item.getDuration() > 0
                 && item.getStreamType() != StreamType.LIVE_STREAM) {
             itemProgressView.setMax((int) item.getDuration());

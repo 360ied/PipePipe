@@ -21,6 +21,9 @@ import org.schabi.newpipe.R;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -138,6 +141,18 @@ public final class PicassoHelper {
         picassoInstance.cancelRequest(view);
     }
 
+    /**
+     * Stops any load still running for this target.
+     *
+     * Must be used instead of {@code Picasso.get().cancelRequest(...)}: all requests are
+     * created by this helper's own instance, never by the global singleton.
+     *
+     * @param target the target whose pending request should be abandoned
+     */
+    public static void cancelRequest(final Target target) {
+        picassoInstance.cancelRequest(target);
+    }
+
     public static void setIndicatorsEnabled(final boolean enabled) {
         picassoInstance.setIndicatorsEnabled(enabled); // useful for debugging
     }
@@ -188,25 +203,37 @@ public final class PicassoHelper {
     }
 
 
+    /**
+     * Targets passed to notification icons, held strongly until Picasso answers.
+     *
+     * Picasso keeps {@code Target} references weakly, so an anonymous target with no other
+     * owner may be garbage-collected before the callback fires and the consumer never called.
+     */
+    private static final Set<Target> notificationTargets =
+            Collections.synchronizedSet(new HashSet<>());
+
     public static void loadNotificationIcon(final String url,
                                             final Consumer<Bitmap> bitmapConsumer) {
-        loadImageDefault(url, R.drawable.ic_pipepipe)
-                .into(new Target() {
-                    @Override
-                    public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
-                        bitmapConsumer.accept(bitmap);
-                    }
+        final Target target = new Target() {
+            @Override
+            public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
+                notificationTargets.remove(this);
+                bitmapConsumer.accept(bitmap);
+            }
 
-                    @Override
-                    public void onBitmapFailed(final Exception e, final Drawable errorDrawable) {
-                        bitmapConsumer.accept(null);
-                    }
+            @Override
+            public void onBitmapFailed(final Exception e, final Drawable errorDrawable) {
+                notificationTargets.remove(this);
+                bitmapConsumer.accept(null);
+            }
 
-                    @Override
-                    public void onPrepareLoad(final Drawable placeHolderDrawable) {
-                        // Nothing to do
-                    }
-                });
+            @Override
+            public void onPrepareLoad(final Drawable placeHolderDrawable) {
+                // Nothing to do
+            }
+        };
+        notificationTargets.add(target);
+        loadImageDefault(url, R.drawable.ic_pipepipe).into(target);
     }
 
 
