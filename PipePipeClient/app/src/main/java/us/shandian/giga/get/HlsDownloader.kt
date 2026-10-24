@@ -1,6 +1,7 @@
 package us.shandian.giga.get
 
 import android.util.Log
+import org.schabi.newpipe.BuildConfig
 import us.shandian.giga.hls.state.HlsDownloadCheckpoint
 import us.shandian.giga.hls.state.HlsResourceCheckpoint
 import us.shandian.giga.hls.transfer.HlsSegmentFileTransferEngine
@@ -211,9 +212,14 @@ internal class HlsDownloader(
         mission.psState = 1
         mission.writeThisToFile()
 
-        Log.d(TAG, "remuxWithFramework inputs=${inputs.size}")
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "remuxWithFramework inputs=${inputs.size}")
+        }
         try {
             HlsFrameworkMuxer.remux(inputs, output, mission.kind, outputExtension())
+        } catch (error: TransferInterruptedException) {
+            mission.psState = 0
+            throw error
         } catch (error: Exception) {
             mission.psState = 0
             // MediaMuxer throws unchecked (IllegalStateException, etc.); reset
@@ -222,7 +228,7 @@ internal class HlsDownloader(
             // don't churn, without double-prefixing framework detail.
             val detail = if (error is IOException) error.message.orEmpty() else "${error::class.simpleName}: ${error.message.orEmpty()}"
             val message = if (detail.startsWith("HLS framework remux failed")) detail else "HLS framework remux failed: $detail"
-            throw IOException(message, if (error is IOException) error else IOException(detail, error))
+            throw IOException(message, error)
         }
     }
 
@@ -256,6 +262,11 @@ internal class HlsDownloader(
         }
         val output = checkpoint.remuxOutputPath?.let { File(it) }?.absoluteFile ?: return null
         if (!output.absolutePath.startsWith(workDir.absolutePath + File.separator) || !output.exists() || output.length() <= 0) {
+            return null
+        }
+        // A storage rename changes the container; never copy a stale remux
+        // whose suffix no longer matches the current target.
+        if (output.extension.lowercase() != outputExtension().lowercase()) {
             return null
         }
         return output
@@ -323,11 +334,7 @@ internal class HlsDownloader(
         }
     }
 
-    private fun outputExtension(): String {
-        val name = mission.storage.name ?: return "mp4"
-        val extension = name.substringAfterLast('.', missingDelimiterValue = "")
-        return extension.takeIf { it.isNotBlank() && it.all { char -> char.isLetterOrDigit() } } ?: "mp4"
-    }
+    private fun outputExtension(): String = downloadOutputExtension(mission.storage.name)
 
     private fun shouldRecover(statusCode: Int): Boolean {
         return statusCode == DownloadMission.ERROR_HTTP_AUTH ||
