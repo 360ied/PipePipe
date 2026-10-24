@@ -579,6 +579,16 @@ public class DownloadMission extends Mission {
             hlsCheckpoint = null;
             sabrCheckpoint = null;
             sabrStarted = false;
+            try {
+                HlsDownloader.cleanup(this);
+            } catch (Exception ignored) {
+                // Nothing to do.
+            }
+            try {
+                SabrDownloader.cleanup(this);
+            } catch (Exception ignored) {
+                // Nothing to do.
+            }
         }
 
         if (rollback) current = 0;

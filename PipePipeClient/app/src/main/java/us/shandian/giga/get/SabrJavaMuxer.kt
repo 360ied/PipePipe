@@ -30,14 +30,35 @@ internal class SabrJavaMuxer(
 ) {
     @Throws(IOException::class, InterruptedException::class)
     fun remuxAndCopy(inputs: List<File>, targets: List<SabrDownloadTarget>, workDir: File): Long {
+        if (inputs.isEmpty() || targets.isEmpty() || inputs.size != targets.size) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.MUXING,
+                "SABR download failed: java mux failed (inputs=${inputs.size} targets=${targets.size})",
+            )
+        }
+        inputs.forEach { input ->
+            if (!input.exists() || input.length() <= 0) {
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.MUXING,
+                    "SABR download failed: java mux failed (missing input ${input.absolutePath})",
+                )
+            }
+        }
         if (canCopySingleInputDirectly(inputs, targets)) {
             logDebug("copySingleInputDirectly input=${inputs.first().length()}")
             return copyOutputToStorage(inputs.first())
         }
         val output = File(workDir, "output.${downloadOutputExtension(mission.storage.name)}")
         remux(inputs, targets, output)
-        return try {
-            copyOutputToStorage(output)
+        try {
+            return copyOutputToStorage(output)
+        } catch (error: InterruptedException) {
+            mission.psState = 0
+            throw error
+        } catch (error: IOException) {
+            mission.psState = 0
+            mission.writeThisToFile()
+            throw error
         } finally {
             deleteQuietly(output)
         }
@@ -80,15 +101,7 @@ internal class SabrJavaMuxer(
                 "SABR download failed: java mux failed (inputs=${inputs.size} targets=${targets.size})",
             )
         }
-        inputs.forEach { input ->
-            if (!input.exists() || input.length() <= 0) {
-                throw SabrDownloadException(
-                    SabrDownloadException.Reason.MUXING,
-                    "SABR download failed: java mux failed (missing input ${input.name})",
-                )
-            }
-        }
-
+        // Existence already validated in remuxAndCopy.
         // Same case-sensitive contains rules as YoutubeSabrFormatTimeline.parse.
         val containers = targets.map { target ->
             val mime = target.format.mimeType.orEmpty()
@@ -153,7 +166,7 @@ internal class SabrJavaMuxer(
         var out: FileStream? = null
         var completed = false
         try {
-            sources = inputs.map { FileStream(it) }
+            sources = openSources(inputs)
             ensureRunning()
             muxer = Mp4FromDashWriter(*sources.toTypedArray())
             muxer.parseSources()
@@ -177,9 +190,13 @@ internal class SabrJavaMuxer(
             out.setLength(0)
             try {
                 muxer.build(out)
-            } catch (error: IOException) {
-                // Very short clips (< 8 samples/track) can't be muxed; a
-                // single fragmented input is already playable verbatim.
+            } catch (error: InterruptedException) {
+                throw error
+            } catch (error: Exception) {
+                // Very short clips (< 8 samples/track) or odd writer
+                // failures (Mp4FromDashWriter throws RuntimeException for
+                // bad matrices/done-state): a single fragmented input is
+                // already playable verbatim.
                 if (sources.size != 1) {
                     throw error
                 }
@@ -190,9 +207,7 @@ internal class SabrJavaMuxer(
                 }
                 out = null
                 deleteQuietly(output)
-                inputs.first().inputStream().use { input ->
-                    output.outputStream().use { input.copyTo(it) }
-                }
+                copyVerbatim(inputs.first(), output)
             }
             completed = true
         } finally {
@@ -225,7 +240,7 @@ internal class SabrJavaMuxer(
         var out: FileStream? = null
         var completed = false
         try {
-            sources = inputs.map { FileStream(it) }
+            sources = openSources(inputs)
             ensureRunning()
             muxer = WebMWriter(*sources.toTypedArray())
             muxer.parseSources()
@@ -261,6 +276,42 @@ internal class SabrJavaMuxer(
             }
             if (!completed) {
                 deleteQuietly(output)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun openSources(inputs: List<File>): List<FileStream> {
+        val opened = mutableListOf<FileStream>()
+        try {
+            inputs.forEach { input ->
+                opened.add(FileStream(input))
+            }
+        } catch (error: Exception) {
+            opened.forEach {
+                try {
+                    it.close()
+                } catch (ignored: Exception) {
+                }
+            }
+            throw error
+        }
+        return opened
+    }
+
+    @Throws(IOException::class, InterruptedException::class)
+    private fun copyVerbatim(input: File, output: File) {
+        val buffer = ByteArray(DownloadMission.BUFFER_SIZE)
+        input.inputStream().use { source ->
+            output.outputStream().use { dest ->
+                while (true) {
+                    ensureRunning()
+                    val read = source.read(buffer)
+                    if (read == -1) {
+                        return
+                    }
+                    dest.write(buffer, 0, read)
+                }
             }
         }
     }

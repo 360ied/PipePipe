@@ -1,6 +1,7 @@
 package us.shandian.giga.get
 
 import org.schabi.newpipe.extractor.services.youtube.sabr.exception.SabrProtocolException
+import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrFormatTimeline
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrInfo
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrRequest
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrSession
@@ -112,7 +113,13 @@ internal class SabrDownloader(
     @Throws(IOException::class)
     private fun validateRecoveryInfo(): Array<MissionRecoveryInfo> {
         val recoveries = mission.recoveryInfo ?: throw IOException("Missing SABR recovery info")
-        if (recoveries.size != mission.urls.size || recoveries.any { !it.isSabr }) {
+        if (recoveries.size != mission.urls.size) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.FORMAT,
+                "SABR download failed: recovery count ${recoveries.size} != url count ${mission.urls.size}",
+            )
+        }
+        if (recoveries.any { !it.isSabr }) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.FORMAT,
                 "SABR download failed: mixed SABR/non-SABR resources are not supported",
@@ -371,16 +378,30 @@ internal class SabrDownloader(
 
     private fun downloadPlayerTimeMs(targets: List<SabrDownloadTarget>): Long {
         return targets.minOf { target ->
-            if (target.nextWriteSequence <= 1) 0L
-            else target.timeline?.getEndMs(target.nextWriteSequence - 1) ?: 0L
+            if (target.nextWriteSequence <= 1) {
+                0L
+            } else {
+                // Fail fast on corrupt state (missing/negative timeline end)
+                // instead of requesting playback at a negative time.
+                requireTimeline(target).getEndMs(target.nextWriteSequence - 1).coerceAtLeast(0L)
+            }
         }
     }
 
     private fun isDownloadComplete(targets: List<SabrDownloadTarget>): Boolean {
         return targets.all { target ->
-            val endSequence = target.timeline?.endSequence ?: Int.MAX_VALUE
+            // A missing timeline after initialization can never complete;
+            // fail fast instead of burning idle polls until STALLED.
+            val endSequence = requireTimeline(target).endSequence
             target.pending.isEmpty() && target.nextWriteSequence > endSequence
         }
+    }
+
+    private fun requireTimeline(target: SabrDownloadTarget): YoutubeSabrFormatTimeline {
+        return target.timeline ?: throw SabrDownloadException(
+            SabrDownloadException.Reason.FORMAT,
+            "SABR download failed: missing timeline for itag ${target.format.itag}",
+        )
     }
 
     private fun completeMission(finalBytes: Long) {
@@ -431,10 +452,12 @@ internal class SabrDownloader(
     }
 
     companion object {
+        // 250ms x 60 responses = 15s of no-advance before STALLED.
         private const val IDLE_POLL_MS = 250L
         private const val MAX_NO_PROGRESS_RESPONSES = 60
         private const val MAX_REQUEST_NETWORK_RETRIES = 2
         private const val REQUEST_NETWORK_RETRY_DELAY_MS = 1_000L
+        // YouTube SABR inits are KiBs; 16 MiB bounds corrupt/extreme inits.
         private const val MAX_INITIALIZATION_BYTES = 16 * 1024 * 1024
 
         @JvmStatic
@@ -451,7 +474,11 @@ internal class SabrDownloader(
             val missionId = if (mission.timestamp > 0) {
                 mission.timestamp.toString()
             } else {
-                (mission.storage.name?.hashCode() ?: 0).toString()
+                // Salt with the url list so same-named missions never share
+                // a work dir and clobber each other's input-*.media.
+                val nameHash = mission.storage.name?.hashCode() ?: 0
+                val urlsHash = mission.urls?.contentHashCode() ?: 0
+                "${nameHash}_${urlsHash}"
             }
             return File(base, "sabr-downloader/$missionId")
         }
