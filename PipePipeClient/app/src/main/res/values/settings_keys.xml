@@ -1622,7 +1622,6 @@
     <string name="enable_proxy_key">enable_proxy_key</string>
     <string name="check_token_validity_key">check_token_validity_key</string>
     <string name="donation_encouragement_key">donation_encouragement_key</string>
-    <string name="show_dislike_key">show_dislike_key</string>
     <string name="filter_shorts_key">filter_shorts_key</string>
     <string name="filter_paid_contents_key">filter_paid_contents_key</string>
     <string name="loading_timeout_key">loading_timeout_key</string>
@@ -1789,15 +1788,6 @@
         <item>@string/minimize_gesture_fullscreen_description</item>
     </string-array>
 
-    <!-- DeArrow -->
-    <string name="dearrow_home_page_key" translatable="false">dearrow_home_page</string>
-    <string name="dearrow_enable_key" translatable="false">dearrow_enable</string>
-    <string name="dearrow_replace_titles_key" translatable="false">dearrow_replace_titles</string>
-    <string name="dearrow_replace_thumbnails_key" translatable="false">dearrow_replace_thumbnails</string>
-    <string name="dearrow_random_frame_key" translatable="false">dearrow_random_frame</string>
-    <string name="dearrow_auto_format_key" translatable="false">dearrow_auto_format</string>
-    <string name="dearrow_clear_cache_key" translatable="false">dearrow_clear_cache</string>
-    <string name="dearrow_original_fallback_key" translatable="false">dearrow_original_fallback</string>
     <string name="comment_filter_by_keyword_key" translatable="false">comment_filter_by_keyword_key</string>
     <string name="comment_filter_by_username_key" translatable="false">comment_filter_by_username_key</string>
     <string name="comment_filter_min_likes_key" translatable="false">comment_filter_min_likes_key</string>

@@ -22,8 +22,6 @@ package org.schabi.newpipe.extractor.services.youtube.extractors;
 
 import com.grack.nanojson.*;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.schabi.newpipe.extractor.*;
 import org.schabi.newpipe.extractor.channel.StaffInfoItem;
 import org.schabi.newpipe.extractor.downloader.CancellableCall;
@@ -46,7 +44,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -65,7 +62,6 @@ import static org.schabi.newpipe.extractor.utils.Utils.EMPTY_STRING;
 import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
 
 public class YoutubeStreamExtractor extends StreamExtractor {
-    private JSONObject dislikeData;
     private JsonObject playerCaptionsTracklistRenderer;
     /*//////////////////////////////////////////////////////////////////////////
     // Exceptions
@@ -2060,15 +2056,6 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         }
     }
 
-    @Override
-    public long getDislikeCount() throws ParsingException {
-        try {
-            return dislikeData.getLong("dislikes");
-        } catch (Exception e) {
-            return -1;
-        }
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -2217,26 +2204,6 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         );
         logPerformance(videoId, "schedule.next", stageStartedAt);
 
-        CancellableCall dislikeCall = null;
-        if (ServiceList.YouTube.isFetchDislike()) {
-            stageStartedAt = System.nanoTime();
-            dislikeCall = downloader.getAsync(
-                    "https://returnyoutubedislikeapi.com/votes?videoId=" + videoId,
-                    new Downloader.AsyncCallback() {
-                        @Override
-                        public void onSuccess(final Response response)
-                                throws ExtractionException {
-                            try {
-                                dislikeData = new JSONObject(getValidJsonResponseBody(response));
-                            } catch (final JSONException | MalformedURLException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-            );
-            logPerformance(videoId, "schedule.dislike", stageStartedAt);
-        }
-
         final CancellableCall jsonPlayerCall;
         stageStartedAt = System.nanoTime();
         switch (NewPipe.getYoutubePlayerClient()) {
@@ -2283,9 +2250,6 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         logCallPerformance(videoId, "request.next", nextDataCall);
         if (androidReelCall != null) {
             logCallPerformance(videoId, "request.androidReel", androidReelCall);
-        }
-        if (dislikeCall != null) {
-            logCallPerformance(videoId, "request.dislike", dislikeCall);
         }
 
         throwIfErrors();

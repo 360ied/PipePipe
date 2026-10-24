@@ -11,7 +11,6 @@ NewPipe, reimagined: faster, more stable, and packed with more features.</h4>
 
 #### YouTube Enhancements
 * Integrate SponsorBlock for skipping sponsored segments (YouTube)
-* Restore YouTube dislikes with ReturnYouTubeDislike 
 * Show original titles on YouTube (non-localized) 
 * Log in to access restricted or premium content 
 

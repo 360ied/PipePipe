@@ -67,8 +67,6 @@ reader and currently routes nothing.
 | Destination | Default | What is sent when enabled |
 |---|---|---|
 | `sponsor.ajay.app/api/skipSegments/<sha256(videoId)[0:4]>` (`extractor/.../sponsorblock/SponsorBlockExtractorHelper.java`) | Master switch ON, but all 9 categories resolve to **off** in `ServiceHelper.buildSponsorBlockApiSettings()`, and `getSegments()` returns before any request when no category is selected → no traffic out of the box | 4-hex-char hash prefix of the video ID (≈1/65k bucket; server never sees the full ID). The per-install random `userId` is sent only on segment *submit/vote*, never on fetch |
-| `returnyoutubedislikeapi.com/votes?videoId=<id>` (`extractor/.../youtube/extractors/YoutubeStreamExtractor.java`) | OFF (`show_dislike_key` defaults `false`) | The exact video ID |
-| `sponsor.ajay.app/api/branding/<4-char-prefix>` + `dearrow-thumb.ajay.app/api/v1/getThumbnail?videoID=<id>` (`app/.../util/dearrow/DeArrowApi.kt`) | OFF (`dearrow_enable_key` defaults `false`; `DeArrowSettings` returns `DISABLED`, `DeArrowRepository` is never queried) | Branding bucket uses a hash prefix like SponsorBlock, but the *thumbnail* URL carries the full `videoID` |
 
 ## Manual-only disclosures (explicit user action each time)
 

@@ -3,7 +3,6 @@
 <b>Больше, чем NewPipe</b>
 
 * SponsorBlock (YouTube и BiliBili)
-* ReturnYouTubeDislike
 * Комментарии и живые чаты
 * Поисковые фильтры
 * Поиск и сортировка в локальных плейлистах

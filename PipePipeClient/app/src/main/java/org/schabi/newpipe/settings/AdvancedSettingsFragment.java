@@ -104,8 +104,6 @@ public class AdvancedSettingsFragment extends BasePreferenceFragment implements 
             DeviceUtils.updateAndroidAutoComponentState(requireContext());
         } else if (key.equals(getString(R.string.fetch_full_playlist_key))) {
             ServiceHelper.initServices(this.getContext());
-        } else if (key.equals(getString(R.string.show_dislike_key))) {
-            ServiceHelper.initServices(this.getContext());
         } else if (key.equals(getString(R.string.youtube_cookies_key))
                 || key.equals(getString(R.string.show_auto_translated_subtitles_key))) {
             updateAutoTranslatedSubtitlesPreferences();

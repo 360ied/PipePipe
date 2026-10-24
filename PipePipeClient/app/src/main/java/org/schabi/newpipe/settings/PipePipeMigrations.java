@@ -66,6 +66,24 @@ public final class PipePipeMigrations {
         }
     };
 
+    public static final Migration MIGRATION_6_7 = new Migration(6, 7) {
+        @Override
+        protected void migrate(final Context context, final SharedPreferences preferences) {
+            // ReturnYouTubeDislike and DeArrow were removed; drop their leftover keys.
+            preferences.edit()
+                    .remove("show_dislike_key")
+                    .remove("dearrow_home_page")
+                    .remove("dearrow_enable")
+                    .remove("dearrow_replace_titles")
+                    .remove("dearrow_replace_thumbnails")
+                    .remove("dearrow_random_frame")
+                    .remove("dearrow_auto_format")
+                    .remove("dearrow_clear_cache")
+                    .remove("dearrow_original_fallback")
+                    .apply();
+        }
+    };
+
     private static final Migration[] PIPEPIPE_MIGRATIONS = {
             MIGRATION_0_1,
             MIGRATION_1_2,
@@ -73,9 +91,10 @@ public final class PipePipeMigrations {
             MIGRATION_3_4,
             MIGRATION_4_5,
             MIGRATION_5_6,
+            MIGRATION_6_7,
     };
 
-    public static final int VERSION = 6;
+    public static final int VERSION = 7;
 
     public static void initMigrations(final Context context, final boolean isFirstRun) {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
