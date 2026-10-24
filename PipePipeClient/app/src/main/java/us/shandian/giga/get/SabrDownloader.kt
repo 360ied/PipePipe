@@ -286,6 +286,9 @@ internal class SabrDownloader(
             },
         )
         mission.sabrCheckpoint = current.copy(resources = resources.sortedBy { it.resourceIndex })
+        // HLS parity: persist immediately instead of relying on throttled
+        // progress writes; a stale checkpoint only costs re-downloaded tail.
+        mission.writeThisToFile()
     }
 
     private fun restoredProgress(): Long {
@@ -465,6 +468,7 @@ internal class SabrDownloader(
         mission.current = mission.urls.size
         mission.psState = 2
         mission.sabrCheckpoint = null
+        mission.sabrStarted = false
         cleanup(mission)
         mission.unknownLength = false
         mission.notifyFinished()

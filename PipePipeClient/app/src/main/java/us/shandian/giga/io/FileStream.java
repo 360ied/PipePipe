@@ -27,8 +27,7 @@ public class FileStream extends SharpStream {
     }
 
     public FileStream(@NonNull String path) throws FileNotFoundException {
-        this.source = new RandomAccessFile(path, "rw");
-        this.readOnly = false;
+        this(new File(path), false);
     }
 
     @Override
@@ -48,7 +47,18 @@ public class FileStream extends SharpStream {
 
     @Override
     public long skip(long pos) throws IOException {
-        return source.skipBytes((int) pos);
+        // skipBytes takes an int; loop so skips over ~2 GiB don't truncate.
+        long remaining = pos;
+        long skipped = 0;
+        while (remaining > 0) {
+            int count = source.skipBytes((int) Math.min(remaining, Integer.MAX_VALUE));
+            if (count <= 0) {
+                break;
+            }
+            skipped += count;
+            remaining -= count;
+        }
+        return skipped;
     }
 
     @Override
@@ -97,12 +107,12 @@ public class FileStream extends SharpStream {
     }
 
     @Override
-    public boolean canSeek() {
-        return true;
+    public boolean canSetLength() {
+        return !readOnly;
     }
 
     @Override
-    public boolean canSetLength() {
+    public boolean canSeek() {
         return true;
     }
 

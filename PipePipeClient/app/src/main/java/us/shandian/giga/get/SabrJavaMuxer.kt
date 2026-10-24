@@ -54,6 +54,7 @@ internal class SabrJavaMuxer(
             return copyOutputToStorage(output)
         } catch (error: InterruptedException) {
             mission.psState = 0
+            mission.writeThisToFile()
             throw error
         } catch (error: IOException) {
             mission.psState = 0
@@ -163,9 +164,10 @@ internal class SabrJavaMuxer(
 
         // The output filename selects the container; never write bytes the
         // suffix mislabels. WEBM family deliberately covers user-renamed
-        // audio suffixes (opus/weba) and Matroska names (mkv/mka): WebM bytes
-        // remain playable under them, while failing the download over a
-        // rename would be worse. Anything else fails closed.
+        // audio suffixes (weba) and Matroska names (mkv/mka): WebM bytes
+        // remain playable under them (.opus is excluded — conventionally
+        // Ogg-Opus), while failing the download over a rename would be
+        // worse. Anything else fails closed.
         val extension = storageExtension().lowercase()
         val unanimous = containers.first()
         val agrees = when (unanimous) {
@@ -209,8 +211,10 @@ internal class SabrJavaMuxer(
             }
             muxer.selectTracks(*indexes)
             ensureRunning()
-            if (mission.kind == 'a') {
-                // Audio-only MP4 must carry the M4A brand (M4aNoDash precedent).
+            if (targets.all { it.format.isAudio }) {
+                // Audio-only MP4 must carry the M4A brand (M4aNoDash
+                // precedent). Keyed on target composition, not mission kind,
+                // so a video byte can never land in an M4A-branded file.
                 muxer.setMainBrand(M4A_BRAND)
             }
             // Fresh output: FileStream opens "rw" without truncating an
@@ -480,6 +484,14 @@ internal class SabrJavaMuxer(
         } catch (error: InterruptedIOException) {
             // Cancellation via interruptible I/O is a pause, not an error.
             throw InterruptedException(error.message)
+        } catch (error: IllegalStateException) {
+            // StoredFileHelper.getStream() validates the helper; an
+            // invalidated helper is STORAGE, not an unknown error.
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.STORAGE,
+                "SABR download failed: invalid storage (${error.message.orEmpty()})",
+                error,
+            )
         } catch (error: IOException) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.STORAGE,
