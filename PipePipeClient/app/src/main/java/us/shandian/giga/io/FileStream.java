@@ -15,13 +15,20 @@ import java.io.RandomAccessFile;
 public class FileStream extends SharpStream {
 
     public RandomAccessFile source;
+    private final boolean readOnly;
 
     public FileStream(@NonNull File target) throws FileNotFoundException {
-        this.source = new RandomAccessFile(target, "rw");
+        this(target, false);
+    }
+
+    public FileStream(@NonNull File target, boolean readOnly) throws FileNotFoundException {
+        this.source = new RandomAccessFile(target, readOnly ? "r" : "rw");
+        this.readOnly = readOnly;
     }
 
     public FileStream(@NonNull String path) throws FileNotFoundException {
         this.source = new RandomAccessFile(path, "rw");
+        this.readOnly = false;
     }
 
     @Override
@@ -86,7 +93,7 @@ public class FileStream extends SharpStream {
 
     @Override
     public boolean canWrite() {
-        return true;
+        return !readOnly;
     }
 
     @Override

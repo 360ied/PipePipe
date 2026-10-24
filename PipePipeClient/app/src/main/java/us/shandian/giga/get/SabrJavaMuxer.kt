@@ -31,20 +31,7 @@ internal class SabrJavaMuxer(
 ) {
     @Throws(IOException::class, InterruptedException::class)
     fun remuxAndCopy(inputs: List<File>, targets: List<SabrDownloadTarget>, workDir: File): Long {
-        if (inputs.isEmpty() || targets.isEmpty() || inputs.size != targets.size) {
-            throw SabrDownloadException(
-                SabrDownloadException.Reason.MUXING,
-                "SABR download failed: java mux failed (inputs=${inputs.size} targets=${targets.size})",
-            )
-        }
-        inputs.forEach { input ->
-            if (!input.exists() || input.length() <= 0) {
-                throw SabrDownloadException(
-                    SabrDownloadException.Reason.MUXING,
-                    "SABR download failed: java mux failed (missing input ${input.absolutePath})",
-                )
-            }
-        }
+        requireValidInputs(inputs, targets)
         if (canCopySingleInputDirectly(inputs, targets)) {
             logDebug("copySingleInputDirectly input=${inputs.first().length()}")
             mission.psState = 1
@@ -61,7 +48,7 @@ internal class SabrJavaMuxer(
                 throw error
             }
         }
-        val output = File(workDir, "output.${downloadOutputExtension(mission.storage.name)}")
+        val output = File(workDir, "output.${storageExtension()}")
         remux(inputs, targets, output)
         try {
             return copyOutputToStorage(output)
@@ -85,12 +72,15 @@ internal class SabrJavaMuxer(
             dispatchRemux(inputs, targets, output)
         } catch (error: SabrDownloadException) {
             mission.psState = 0
+            mission.writeThisToFile()
             throw error
         } catch (error: InterruptedException) {
             mission.psState = 0
+            mission.writeThisToFile()
             throw error
         } catch (error: IOException) {
             mission.psState = 0
+            mission.writeThisToFile()
             throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
                 "SABR download failed: java mux failed (${error.message.orEmpty()})",
@@ -98,6 +88,7 @@ internal class SabrJavaMuxer(
             )
         } catch (error: Exception) {
             mission.psState = 0
+            mission.writeThisToFile()
             throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
                 "SABR download failed: java mux failed (${error::class.simpleName}: ${error.message.orEmpty()})",
@@ -107,15 +98,42 @@ internal class SabrJavaMuxer(
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    private fun dispatchRemux(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
+    private fun requireValidInputs(inputs: List<File>, targets: List<SabrDownloadTarget>) {
         if (inputs.isEmpty() || targets.isEmpty() || inputs.size != targets.size) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
                 "SABR download failed: java mux failed (inputs=${inputs.size} targets=${targets.size})",
             )
         }
-        // Pre-conditions validated in remuxAndCopy and re-checked here so a
-        // future direct caller of this private entry still fails closed.
+        inputs.forEach { input ->
+            if (!input.exists() || input.length() <= 0) {
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.MUXING,
+                    "SABR download failed: java mux failed (missing input ${input.absolutePath})",
+                )
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun storageExtension(): String {
+        // StoredFileHelper.getName() throws on invalid storage; map that to
+        // STORAGE rather than letting it escape as an unknown error.
+        val name = try {
+            mission.storage.name
+        } catch (error: IllegalStateException) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.STORAGE,
+                "SABR download failed: invalid storage (${error.message.orEmpty()})",
+                error,
+            )
+        }
+        return downloadOutputExtension(name)
+    }
+
+    @Throws(IOException::class, InterruptedException::class)
+    private fun dispatchRemux(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
+        requireValidInputs(inputs, targets)
         // Same case-sensitive contains rules as YoutubeSabrFormatTimeline.parse.
         val containers = targets.map { target ->
             val mime = target.format.mimeType.orEmpty()
@@ -148,7 +166,7 @@ internal class SabrJavaMuxer(
         // audio suffixes (opus/weba) and Matroska names (mkv/mka): WebM bytes
         // remain playable under them, while failing the download over a
         // rename would be worse. Anything else fails closed.
-        val extension = downloadOutputExtension(mission.storage.name).lowercase()
+        val extension = storageExtension().lowercase()
         val unanimous = containers.first()
         val agrees = when (unanimous) {
             Container.MP4 -> extension in MP4_FAMILY_EXTENSIONS
@@ -221,7 +239,18 @@ internal class SabrJavaMuxer(
                 }
                 out = null
                 deleteQuietly(output)
-                copyVerbatim(inputs.first(), output)
+                try {
+                    copyVerbatim(inputs.first(), output)
+                } catch (error: InterruptedException) {
+                    throw error
+                } catch (error: IOException) {
+                    // Temp work-dir I/O is STORAGE, not a mux failure.
+                    throw SabrDownloadException(
+                        SabrDownloadException.Reason.STORAGE,
+                        "SABR download failed: could not write temporary media (${error.message.orEmpty()})",
+                        error,
+                    )
+                }
             }
             completed = true
         } finally {
@@ -288,7 +317,18 @@ internal class SabrJavaMuxer(
                 }
                 out = null
                 deleteQuietly(output)
-                copyVerbatim(inputs.first(), output)
+                try {
+                    copyVerbatim(inputs.first(), output)
+                } catch (error: InterruptedException) {
+                    throw error
+                } catch (error: IOException) {
+                    // Temp work-dir I/O is STORAGE, not a mux failure.
+                    throw SabrDownloadException(
+                        SabrDownloadException.Reason.STORAGE,
+                        "SABR download failed: could not write temporary media (${error.message.orEmpty()})",
+                        error,
+                    )
+                }
             }
             completed = true
         } finally {
@@ -320,7 +360,9 @@ internal class SabrJavaMuxer(
         val opened = mutableListOf<FileStream>()
         try {
             inputs.forEach { input ->
-                opened.add(FileStream(input))
+                // Read-only: a file deleted between the existence precheck
+                // and now must fail instead of being recreated as 0 bytes.
+                opened.add(FileStream(input, true))
             }
         } catch (error: Exception) {
             opened.forEach { closeQuietly(it) }
@@ -463,7 +505,13 @@ internal class SabrJavaMuxer(
             return false
         }
         // Same case-sensitive rule as dispatch: only an exact webm pair copies.
-        val extension = downloadOutputExtension(mission.storage.name).lowercase()
+        // STORAGE-invalid names fail closed in storageExtension(); a fast path
+        // must never silently copy.
+        val extension = try {
+            storageExtension().lowercase()
+        } catch (error: SabrDownloadException) {
+            return false
+        }
         val mimeType = targets.first().format.mimeType ?: return false
         return extension == "webm" && mimeType.contains("webm")
     }
