@@ -12,7 +12,8 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.URI
 
-class HlsPlaylistParser {
+// Internal: the only consumer is the internal HlsManifestResolver.
+internal class HlsPlaylistParser {
     @Throws(IOException::class)
     fun parse(sourceUrl: String, body: String): HlsPlaylist {
         val input = ByteArrayInputStream(body.toByteArray(Charsets.UTF_8))
@@ -144,7 +145,14 @@ class HlsPlaylistParser {
     }
 
     private fun resolveUrl(sourceUrl: String, reference: String): String {
-        return URI(sourceUrl).resolve(reference).toString()
+        // URI throws unchecked IllegalArgumentException on malformed
+        // input; wrap as deterministic playlist failure so the IOException
+        // contract and retry exclusions hold.
+        return try {
+            URI(sourceUrl).resolve(reference).toString()
+        } catch (error: IllegalArgumentException) {
+            throw UnsupportedHlsPlaylistException("Invalid HLS playlist URL: ${error.message.orEmpty()}")
+        }
     }
 
     private companion object {

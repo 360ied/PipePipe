@@ -37,6 +37,18 @@ internal class HttpTransferConnectionFactory(
         var current = requestUrl
         var redirects = 0
         while (true) {
+            // Re-validate every hop: a Location: file:/// / ftp:// /
+            // jar:... would otherwise yield a non-HTTP connection whose
+            // `as HttpURLConnection` throws unchecked ClassCastException,
+            // bypassing the IOException contract and retry accounting.
+            val currentScheme = try {
+                URL(current).toURI().scheme?.lowercase(java.util.Locale.ROOT)
+            } catch (error: Exception) {
+                null
+            }
+            if (currentScheme != "http" && currentScheme != "https") {
+                throw IOException("Unsupported redirect URL scheme")
+            }
             val connection = URL(current).openConnection() as HttpURLConnection
             connection.instanceFollowRedirects = false
             connection.requestMethod = method

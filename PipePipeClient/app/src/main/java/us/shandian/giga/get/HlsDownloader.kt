@@ -164,7 +164,9 @@ internal class HlsDownloader(
         }
 
         val parent = targetFile.parentFile ?: throw IOException("HLS companion target has no parent")
-        if (!parent.exists() && !parent.mkdirs()) {
+        // Triple-check: mkdirs() false covers both real failure and a lost
+        // creation race.
+        if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
             throw IOException("Cannot create HLS companion parent: $parent")
         }
         if (targetFile.exists() && !targetFile.delete()) {

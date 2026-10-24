@@ -54,7 +54,9 @@ internal class HlsSegmentFileTransferEngine(
         val fingerprint = fingerprint(playlist)
         val target = targetFile.absoluteFile
         val parent = target.parentFile ?: throw IOException("HLS target has no parent: $target")
-        if (!parent.exists() && !parent.mkdirs()) {
+        // Triple-check: mkdirs() false covers both real failure and a lost
+        // creation race.
+        if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
             throw IOException("Cannot create HLS target parent: $parent")
         }
 
