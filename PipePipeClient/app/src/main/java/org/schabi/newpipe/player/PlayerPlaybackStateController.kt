@@ -16,8 +16,8 @@ import org.schabi.newpipe.player.helper.PlayerHelper
  * Owns the playback state machine of a [Player].
  *
  * The PipePipe-level state (see [PlayerPlaybackState]) and everything a transition triggers live
- * here: the reactions to ExoPlayer's four states, the per-state UI, the progress loop start/stop,
- * the SABR countdown and the bullet-comments transitions. [Player] only keeps delegate methods
+ * here: the reactions to ExoPlayer's four states, the per-state UI, the progress loop start/stop
+ * and the SABR countdown. [Player] only keeps delegate methods
  * with the same names, so [ExoPlayerEventAdapter], [PlaybackListenerAdapter],
  * [PlayerProgressController], [PlayerErrorHandler] and the video detail fragment are unaffected.
  */
@@ -155,8 +155,6 @@ class PlayerPlaybackStateController(private val player: Player) {
 
             PlayerPlaybackState.PLAYING -> {
                 onPlaying()
-                player.bulletCommentsController.init()
-                player.bulletCommentsController.start()
             }
 
             PlayerPlaybackState.BUFFERING -> onBuffering()
@@ -164,34 +162,23 @@ class PlayerPlaybackStateController(private val player: Player) {
             PlayerPlaybackState.PAUSED -> {
                 player.autoQueueController.cancelEnqueueTimer()
                 onPaused()
-                player.bulletCommentsController.pause()
                 // A live stream has no paused position worth keeping: release the source so the
-                // manifest refresh, the segment downloads and the live chat connections stop.
+                // manifest refresh and the segment downloads stop.
                 player.enterLiveIdle()
             }
 
             PlayerPlaybackState.PAUSED_SEEK -> {
                 player.autoQueueController.cancelEnqueueTimer()
                 onPausedSeek()
-                player.bulletCommentsController.pause()
             }
 
             PlayerPlaybackState.COMPLETED -> {
                 onCompleted()
-                player.bulletCommentsController.complete()
             }
 
             PlayerPlaybackState.PREFLIGHT -> Unit
         }
         player.notifyPlaybackUpdateToListeners()
-    }
-
-    fun startBCPlayer() {
-        player.bulletCommentsController.start()
-    }
-
-    fun pauseBCPlayer() {
-        player.bulletCommentsController.pause()
     }
 
     private fun onPrepared(playWhenReady: Boolean) {

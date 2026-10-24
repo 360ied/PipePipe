@@ -73,7 +73,6 @@ public abstract class InfoItem implements Serializable {
         PLAYLIST,
         CHANNEL,
         STAFF,
-        COMMENT,
-        BULLET_COMMENT
+        COMMENT
     }
 }

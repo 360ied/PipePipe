@@ -95,7 +95,6 @@ import org.schabi.newpipe.player.PlayerUiModeController;
 import org.schabi.newpipe.player.event.OnKeyDownListener;
 import org.schabi.newpipe.player.event.PlayerServiceExtendedEventListener;
 import org.schabi.newpipe.player.helper.PlayerHelper;
-import org.schabi.newpipe.player.chat.ChatStore;
 import org.schabi.newpipe.player.helper.PlayerHolder;
 import org.schabi.newpipe.player.mediasession.PlayerServiceInterface;
 import org.schabi.newpipe.player.mediaitem.PlayerMediaItem;
@@ -160,7 +159,6 @@ public final class VideoDetailFragment
     private static final String DESCRIPTION_TAB_TAG = "DESCRIPTION TAB";
     private static final String SPONSOR_BLOCK_TAB_TAG = "SPONSOR_BLOCK TAB";
     private static final String EMPTY_TAB_TAG = "EMPTY TAB";
-    private static final String CHAT_TAB_TAG = "CHAT TAB";
     private static final String VIDEO_TAB_COMMENTS = "comments";
     private static final String VIDEO_TAB_RELATED = "related";
     private static final String VIDEO_TAB_DESCRIPTION = "description";
@@ -748,7 +746,6 @@ public final class VideoDetailFragment
                 }
             }
         });
-        ChatStore.INSTANCE.getAvailable().observe(getViewLifecycleOwner(), v -> syncChatTab());
         updateStickyPlayerMode();
 
         binding.detailThumbnailRootLayout.requestFocus();
@@ -1101,6 +1098,12 @@ public final class VideoDetailFragment
     // Tabs
     //////////////////////////////////////////////////////////////////////////*/
 
+    /** Ignores page changes caused by tab rebuilds until the pager has laid out again. */
+    private void markTabChangeByCode() {
+        tabChangeByCode = true;
+        binding.viewPager.post(() -> tabChangeByCode = false);
+    }
+
     private void initTabs() {
         tabsBuiltForUrl = null;
         markTabChangeByCode();
@@ -1155,10 +1158,21 @@ public final class VideoDetailFragment
             pageAdapter.addFragment(EmptyFragment.newInstance(true), EMPTY_TAB_TAG);
         }
         pageAdapter.notifyDataSetUpdate();
-        syncChatTab();
 
         if (pageAdapter.getCount() >= 2) {
-            final int position = pageAdapter.getItemPositionByTitle(selectedTabTag);
+            int position = pageAdapter.getItemPositionByTitle(selectedTabTag);
+            if (position == -1) {
+                // The persisted tab no longer exists (e.g. a removed feature tab):
+                // fall back to the first real tab so the dead value is not re-saved.
+                for (int i = 0; i < pageAdapter.getCount(); i++) {
+                    final String title = pageAdapter.getItemTitle(i);
+                    if (title != null && !EMPTY_TAB_TAG.equals(title)) {
+                        selectedTabTag = title;
+                        position = i;
+                        break;
+                    }
+                }
+            }
             if (position != -1) {
                 binding.viewPager.setCurrentItem(position, false);
             }
@@ -1258,77 +1272,6 @@ public final class VideoDetailFragment
         updateTabLayoutVisibility();
         pageAdapter.notifyDataSetUpdate();
         updateTabIconsAndContentDescriptions();
-        syncChatTab();
-    }
-
-    private boolean shouldShowChat() {
-        if (currentInfo == null || !currentInfo.isSupportBulletComments()) {
-            return false;
-        }
-        try {
-            if (!NewPipe.getService(serviceId).getServiceInfo().getMediaCapabilities()
-                    .contains(StreamingService.ServiceInfo.MediaCapability.BULLET_COMMENTS)) {
-                return false;
-            }
-        } catch (final ExtractionException e) {
-            return false;
-        }
-        // loading the chat found nothing for this stream
-        if (Boolean.FALSE.equals(ChatStore.INSTANCE.getAvailable().getValue())) {
-            return false;
-        }
-        return PreferenceManager.getDefaultSharedPreferences(requireContext())
-                .getBoolean(getString(R.string.bullet_comments_chat_mode_key), true);
-    }
-
-    /** Ignores page changes caused by tab rebuilds until the pager has laid out again. */
-    private void markTabChangeByCode() {
-        tabChangeByCode = true;
-        binding.viewPager.post(() -> tabChangeByCode = false);
-    }
-
-    /** Makes the presence of the chat tab match whether the current stream has a chat. */
-    private void syncChatTab() {
-        if (binding == null || pageAdapter == null || !isAdded()) {
-            return;
-        }
-        final boolean want = shouldShowChat();
-        markTabChangeByCode();
-        final int index = pageAdapter.getItemPositionByTitle(CHAT_TAB_TAG);
-        final String currentTag = pageAdapter.getCount() == 0 ? null
-                : pageAdapter.getItemTitle(binding.viewPager.getCurrentItem());
-        if (want && index == -1) {
-            final int emptyIndex = pageAdapter.getItemPositionByTitle(EMPTY_TAB_TAG);
-            if (emptyIndex != -1) {
-                pageAdapter.removeItem(emptyIndex);
-            }
-            pageAdapter.addFragment(new ChatFragment(), CHAT_TAB_TAG, 0);
-            tabIcons.add(0, R.drawable.ic_bullet_comment_enabled);
-            tabContentDescriptions.add(0, R.string.chat_tab_description);
-        } else if (!want && index != -1) {
-            pageAdapter.removeItem(index);
-            if (index < tabIcons.size()) {
-                tabIcons.remove(index);
-                tabContentDescriptions.remove(index);
-            }
-            if (pageAdapter.getCount() == 0) {
-                pageAdapter.addFragment(EmptyFragment.newInstance(true), EMPTY_TAB_TAG);
-            }
-        } else {
-            return;
-        }
-        pageAdapter.notifyDataSetUpdate();
-        final int chatIndex = pageAdapter.getItemPositionByTitle(CHAT_TAB_TAG);
-        if (want && CHAT_TAB_TAG.equals(selectedTabTag) && chatIndex != -1) {
-            binding.viewPager.setCurrentItem(chatIndex, false);
-        } else if (currentTag != null) {
-            final int keep = pageAdapter.getItemPositionByTitle(currentTag);
-            if (keep != -1 && keep != binding.viewPager.getCurrentItem()) {
-                binding.viewPager.setCurrentItem(keep, false);
-            }
-        }
-        updateTabIconsAndContentDescriptions();
-        updateTabLayoutVisibility();
     }
 
     private boolean shouldShowComments() {
@@ -2670,11 +2613,6 @@ public final class VideoDetailFragment
                             // from the player
                             applyOverlayForState(newState);
                             hideSystemUiIfNeeded();
-                            if (isPlayerAvailable()
-                                    && player.isPlaying()
-                                    && player.videoPlayerSelected()) {
-                                player.startBCPlayer();
-                            }
                             break;
                         case BottomSheetBehavior.STATE_COLLAPSED:
                             moveFocusToMainFragment(true);
@@ -2691,7 +2629,6 @@ public final class VideoDetailFragment
                             }
                             if (isPlayerAvailable()) {
                                 player.closeItemsList();
-                                player.pauseBCPlayer();
                             }
                             break;
                         case BottomSheetBehavior.STATE_DRAGGING:

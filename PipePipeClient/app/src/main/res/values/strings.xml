@@ -759,13 +759,8 @@
 <string name="channel_tab_info">Info</string>
 <string name="show_channel_tabs">Channel tabs</string>
 <string name="show_channel_tabs_summary">What tabs are shown on the channel pages</string>
-<string name="regular_bullet_comments_duration_summary">Change the duration of regular/rolling danmaku. A shorter duration may cause stutter/choppy/lag.</string>
-<string name="regular_bullet_comments_duration_title">Regular danmaku duration</string>
-<string name="top_bottom_bullet_comments_duration_summary">Change the duration of top/bottom danmaku. </string>
-<string name="top_bottom_bullet_comments_duration_title">Top/bottom danmaku duration</string>
 <string name="append_playlist_not_supported">This is an infinite playlist, so you can not append it to other playlists.</string>
 <string name="add_failed">Add failed</string>
-<string name="bullet_comments_outline_radius_title">Outline radius of danmaku</string>
 <string name="recommended_videos">Recommended Videos</string>
 <string name="enable_eye_protection_summary">Disable dynamic theme changing and use a eye protection theme for all services</string>
 <string name="enable_eye_protection_title">Enable eye protection</string>
@@ -774,7 +769,6 @@
 <string name="login_warning">Tokens will only be used when necessary</string>
 <string name="login_title">Login</string>
 <string name="logout_title">Log out</string>
-<string name="bullet_comments_font_title">Font of danmaku</string>
 <string name="auto_background_play_title">Music Player Mode</string>
 <string name="auto_background_play_summary">Play in background automatically when clicking an item in a local playlist</string>
 <string name="download_all">Download all</string>
@@ -782,7 +776,6 @@
 <string name="import_urls_from_file">Import URLs from file</string>
 <string name="import_urls_error">Error importing URLs: %s</string>
 <string name="import_urls_no_valid_urls">No valid URLs found in the selected file</string>
-<string name="bullet_comments_opacity_title">Opacity of danmaku</string>
 <string name="lives">Lives</string>
 <string name="animes">Animes</string>
 <string name="movies_and_tv">Movies and TV</string>
@@ -795,7 +788,6 @@
 <string name="sort_bookmark">Bookmarks</string>
 <string name="sort_likes">Likes</string>
 <string name="sort_comments">Comments</string>
-<string name="sort_bullet_comments">Danmaku</string>
 <string name="sort_length">Length</string>
 <string name="sort_publish_time">Publish Time</string>
 <string name="sort_last_comment_time">Last Comment Time</string>
@@ -837,7 +829,6 @@
 <string name="decoder_init_failure">Decoder initialization failed</string>
 <string name="unable_to_decode_summary">Your device lacks the required hardware decoders, so you cannot play this video in PipePipe.\nPlease download and play it in VLC.</string>
 <string name="settings_category_gestures_summary">Gestures</string>
-<string name="settings_category_bullet_comments_summary">Danmaku Settings</string>
 <string name="settings_category_backup_title">Backup</string>
 <string name="settings_category_advanced_title">Advanced</string>
 <string name="anti_bot_youtube_hint">Your IP is blocked by YouTube. Try using a VPN or logging in through Settings to continue.</string>
@@ -886,11 +877,6 @@
 <string name="auto_ellipsize_title">Auto Ellipsize</string>
 <string name="remove_from_group">Remove from group</string>
 <string name="channel_removed_from_group">Removed from group</string>
-<string name="max_bullet_comments_rows_top_summary">Max rows for top danmaku</string>
-<string name="max_bullet_comments_rows_bottom_summary">Max rows for bottom danmaku</string>
-<string name="max_bullet_comments_rows_regular_summary">Max rows for regular danmaku</string>
-<string name="enable_max_rows_customization_title">Customize Max Rows</string>
-<string name="enable_max_rows_customization_summary">Enable to customize maximum rows for danmaku</string>
 <string name="press_back_again_to_exit">Press back again to exit</string>
 <string name="always_list_mode_for_bookmark_title">Always use list mode for Bookmarks</string>
 <string name="select_channel_group_prompt">Select a channel group</string>
@@ -1043,13 +1029,6 @@
 <string name="name_sort_locale_korean">Korean</string>
 <string name="pinch_to_zoom_gesture_control_title">Pinch to zoom</string>
 <string name="pinch_to_zoom_gesture_control_summary">Pinch to zoom the video in fullscreen. While zoomed, drag to pan and double-tap to reset</string>
-<string name="bullet_comments_chat_mode_title">Show live chat and danmaku as chat</string>
-<string name="bullet_comments_chat_mode_summary">On: shown in a chat panel (YouTube style). Off: all shown as scrolling danmaku over the video</string>
-<string name="chat_tab_description">Chat</string>
-<string name="chat_anonymous">Anonymous</string>
-<string name="chat_jump_to_latest">Jump to latest</string>
-<string name="chat_empty">No messages yet</string>
-<string name="danmaku_settings_summary">Appearance of scrolling danmaku over the video, independent of the chat display</string>
 <string name="search_in_page">Search in page</string>
 <string name="add_to_home_screen">Add to home screen</string>
 <string name="playlist_no_longer_exists">This playlist no longer exists</string>

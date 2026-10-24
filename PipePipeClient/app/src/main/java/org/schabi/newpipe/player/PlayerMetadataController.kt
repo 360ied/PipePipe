@@ -19,7 +19,7 @@ import java.util.Optional
  * [onEvents] is the ExoPlayer entry point and [updateMetadataWith] the one the playback listeners
  * use; [onMetadataChanged] is what fans a new [StreamInfo] out to the rest of the player: the
  * zoom and the display mode that belonged to the previous video, the thumbnail, the quality and
- * speed menus, the bullet comments, the notification, the media session, the listeners, the queue
+ * speed menus, the notification, the media session, the listeners, the queue
  * and the SponsorBlock segments. [Player] keeps a delegate for each of those names and still
  * exposes the two items, since most of the other controllers read them.
  */
@@ -116,9 +116,6 @@ class PlayerMetadataController(private val player: Player) {
         player.historyController.registerStreamViewed()
         player.layoutController.updateStreamRelatedViews()
         player.layoutController.showHideKodiButton()
-        // TODO: bullet comments may be reset unexpectedly for round play streams
-        player.bulletCommentsController.init()
-        player.bulletCommentsController.start()
 
         player.layoutController.updateMetadataViews(info)
 

@@ -79,29 +79,6 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <FrameLayout
-        android:id="@+id/chatPanel"
-        android:layout_width="300dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentEnd="true"
-        android:background="#B3000000"
-        android:visibility="gone">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/chatPanelList"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingVertical="4dp" />
-
-        <include
-            android:id="@+id/chatPanelPinned"
-            layout="@layout/view_chat_pinned"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top" />
-    </FrameLayout>
-
     <!-- transparent background is needed for selectableItemBackgroundBorderless to work -->
     <RelativeLayout
         android:id="@+id/playbackControlRoot"
@@ -355,21 +332,6 @@
                             tools:text="English" />
 
                     </FrameLayout>
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/switchCommentsVisibility"
-                        android:layout_width="wrap_content"
-                        android:layout_height="35dp"
-                        android:layout_marginEnd="8dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:contentDescription="Switch comment visibility"
-                        android:focusable="true"
-                        android:padding="@dimen/player_main_buttons_padding"
-                        android:scaleType="fitXY"
-                        app:srcCompat="@drawable/ic_bullet_comment_enabled"
-                        app:tint="@color/white"
-                        tools:ignore="RtlHardcoded" />
 
                     <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/playWithKodi"
@@ -987,11 +949,6 @@
         android:visibility="gone"
         tools:ignore="RtlHardcoded"
         tools:text="1.0x" />
-
-    <org.schabi.newpipe.views.BulletCommentsView
-        android:id="@+id/bulletCommentsView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/lockButton"

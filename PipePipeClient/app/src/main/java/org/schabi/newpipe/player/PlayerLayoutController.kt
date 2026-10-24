@@ -131,7 +131,6 @@ class PlayerLayoutController(private val player: Player) {
             binding.secondaryControls.visibility = View.VISIBLE
             binding.secondaryControls.translationY = 0f
             binding.share.visibility = View.GONE
-            binding.switchCommentsVisibility.visibility = View.GONE
             binding.playWithKodi.visibility = View.GONE
             binding.openInBrowser.visibility = View.GONE
             binding.sleepTimer.visibility = View.GONE
@@ -155,12 +154,6 @@ class PlayerLayoutController(private val player: Player) {
                 AppCompatResources.getDrawable(player.context, R.drawable.ic_expand_more)
             )
             binding.share.visibility = View.VISIBLE
-            binding.switchCommentsVisibility.visibility =
-                if (player.bulletCommentsController.isChatMode) {
-                    player.bulletCommentsController.chatPanel.buttonVisibility()
-                } else {
-                    View.VISIBLE
-                }
             binding.openInBrowser.visibility = View.VISIBLE
             binding.sleepTimer.visibility = View.VISIBLE
             binding.switchMute.visibility = View.VISIBLE

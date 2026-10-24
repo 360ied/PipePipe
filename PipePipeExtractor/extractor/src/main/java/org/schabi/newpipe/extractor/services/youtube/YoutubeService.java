@@ -1,10 +1,7 @@
 package org.schabi.newpipe.extractor.services.youtube;
 
 import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.bulletComments.BulletCommentsExtractor;
 import org.schabi.newpipe.extractor.search.filter.FilterItem;
-import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeBulletCommentsExtractor;
-import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeBulletCommentsLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.search.filter.YoutubeFilters;
 
 import static java.util.Arrays.asList;
@@ -73,10 +70,8 @@ import java.util.List;
  */
 
 public class YoutubeService extends StreamingService {
-    public WatchDataCache watchDataCache = new WatchDataCache();
-
     public YoutubeService(final int id) {
-        super(id, "YouTube", asList(AUDIO, VIDEO, LIVE, COMMENTS, BULLET_COMMENTS, SPONSORBLOCK));
+        super(id, "YouTube", asList(AUDIO, VIDEO, LIVE, COMMENTS, SPONSORBLOCK));
     }
 
     @Override
@@ -111,7 +106,7 @@ public class YoutubeService extends StreamingService {
 
     @Override
     public StreamExtractor getStreamExtractor(final LinkHandler linkHandler) {
-        return new YoutubeStreamExtractor(this, linkHandler, watchDataCache);
+        return new YoutubeStreamExtractor(this, linkHandler);
     }
 
     @Override
@@ -217,15 +212,5 @@ public class YoutubeService extends StreamingService {
     @Override
     public List<ContentCountry> getSupportedCountries() {
         return SUPPORTED_COUNTRIES;
-    }
-
-    @Override
-    public BulletCommentsExtractor getBulletCommentsExtractor(ListLinkHandler linkHandler) throws ExtractionException {
-        return new YoutubeBulletCommentsExtractor(this, linkHandler, watchDataCache);
-    }
-
-    @Override
-    public ListLinkHandlerFactory getBulletCommentsLHFactory() {
-        return new YoutubeBulletCommentsLinkHandlerFactory();
     }
 }

@@ -1875,8 +1875,6 @@ YoutubeParsingHelper {
                             // so we need to store it instead of getting it directly from the playerResponse
                             streamExtractor.playerMicroFormatRenderer = webPlayerResponse.getObject("microformat")
                                     .getObject("playerMicroformatRenderer");
-
-                           streamExtractor.watchDataCache.startAt = streamExtractor.getStartAt();
                         } catch (Exception e) {
                             e.printStackTrace();
                             streamExtractor.addError(e);

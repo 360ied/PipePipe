@@ -94,8 +94,6 @@ public final class ServiceHelper {
                 return c.getString(R.string.sort_likes);
             case "sort_comments":
                 return c.getString(R.string.sort_comments);
-            case "sort_bullet_comments":
-                return c.getString(R.string.sort_bullet_comments);
             case "sort_length":
                 return c.getString(R.string.sort_length);
             case "sort_publish_time":
