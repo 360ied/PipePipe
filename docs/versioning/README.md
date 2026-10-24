@@ -64,7 +64,7 @@ fallback to `0.0.0-unknown` — see the build file for the final form.
 
 Everything downstream keeps working unchanged: `versionName
 appVersionName`, the APK filename
-(`PipePipe_${appVersionName}-${variant.name}.apk`), and all
+(`NanoPipe_${appVersionName}-${variant.name}.apk`), and all
 `BuildConfig.VERSION_NAME` readers (About screen, crash reports,
 subscription-export JSON).
 

@@ -282,8 +282,8 @@ public class MainActivity extends AppCompatActivity {
         drawerHeaderBinding.drawerArrow.setVisibility(View.GONE);
         drawerHeaderBinding.drawerHeaderActionButton.setVisibility(View.GONE);
 
-        // If the current app name is bigger than the default "NewPipe" (7 chars),
-        // let the text view grow a little more as well.
+        // If the current app name is bigger than the upstream default "NewPipe"
+        // (7 chars) — e.g. "NanoPipe" (8 chars) — let the text view grow a little more as well.
         if (getString(R.string.app_name).length() > "NewPipe".length()) {
             final ViewGroup.LayoutParams layoutParams =
                     drawerHeaderBinding.drawerHeaderNewpipeTitle.getLayoutParams();

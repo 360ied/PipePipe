@@ -15,7 +15,7 @@ import org.schabi.newpipe.player.helper.PlayerHelper
 /**
  * Owns the playback state machine of a [Player].
  *
- * The PipePipe-level state (see [PlayerPlaybackState]) and everything a transition triggers live
+ * The NanoPipe-level state (see [PlayerPlaybackState]) and everything a transition triggers live
  * here: the reactions to ExoPlayer's four states, the per-state UI, the progress loop start/stop
  * and the SABR countdown. [Player] only keeps delegate methods
  * with the same names, so [ExoPlayerEventAdapter], [PlaybackListenerAdapter],

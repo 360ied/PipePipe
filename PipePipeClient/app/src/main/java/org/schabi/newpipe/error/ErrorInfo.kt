@@ -103,7 +103,7 @@ class ErrorInfo(
 
         private fun getServiceNameFromId(serviceId: Int) = NewPipe.getNameOfService(serviceId) +
                 if (serviceId != -1) {
-                    // PipePipe is anonymous-only, so tokens are never populated.
+                    // NanoPipe is anonymous-only, so tokens are never populated.
                     " (Anonymous)"
                 } else {
                     ""

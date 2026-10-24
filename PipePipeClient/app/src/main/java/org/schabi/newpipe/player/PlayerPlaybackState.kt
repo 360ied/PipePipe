@@ -3,9 +3,9 @@ package org.schabi.newpipe.player
 /**
  * The playback state of a [Player].
  *
- * This is a PipePipe-level state machine which sits on top of ExoPlayer's four states
+ * This is a NanoPipe-level state machine which sits on top of ExoPlayer's four states
  * (`STATE_IDLE`, `STATE_BUFFERING`, `STATE_READY`, `STATE_ENDED`): it adds the
- * PipePipe-specific states [BLOCKED] and [PAUSED_SEEK] as well as a well-defined initial
+ * NanoPipe-specific states [BLOCKED] and [PAUSED_SEEK] as well as a well-defined initial
  * value ([PREFLIGHT]), so that the UI, the notification and the various listeners only
  * have to reason about a single value.
  *
@@ -31,7 +31,7 @@ enum class PlayerPlaybackState(val code: Int) {
     /** ExoPlayer is ready, but playback is paused. */
     PAUSED(126),
 
-    /** PipePipe-specific: the user is currently dragging the seek bar. */
+    /** NanoPipe-specific: the user is currently dragging the seek bar. */
     PAUSED_SEEK(127),
 
     /** Playback reached the end of the current stream. */

@@ -206,7 +206,7 @@ public abstract class Tab {
 
         @Override
         public String getTabName(final Context context) {
-            return "PipePipe";
+            return "NanoPipe";
         }
 
         @DrawableRes

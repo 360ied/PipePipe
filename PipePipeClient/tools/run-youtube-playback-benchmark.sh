@@ -67,7 +67,7 @@ esac
 
 ./gradlew assembleDebug assembleDebugAndroidTest
 
-mapfile -t app_apk_matches < <(find app/build/outputs/apk/debug -type f -name "PipePipe_*-debug.apk")
+mapfile -t app_apk_matches < <(find app/build/outputs/apk/debug -type f -name "NanoPipe_*-debug.apk")
 if [ "${#app_apk_matches[@]}" -ne 1 ]; then
   echo "Expected exactly one app APK in app/build/outputs/apk/debug, found ${#app_apk_matches[@]}" >&2
   exit 2

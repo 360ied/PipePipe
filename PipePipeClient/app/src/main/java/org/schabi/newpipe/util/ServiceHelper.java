@@ -228,7 +228,7 @@ public final class ServiceHelper {
                     R.string.auto_translated_subtitles_language_key), "en");
             final boolean showAutoTranslatedSubtitles = sharedPreferences.getBoolean(context.getString(
                     R.string.show_auto_translated_subtitles_key), true);
-            // PipePipe is anonymous-only: never attach account cookies or login PO tokens.
+            // NanoPipe is anonymous-only: never attach account cookies or login PO tokens.
             ServiceList.YouTube.setTokens(null);
             ServiceList.YouTube.setAudioLanguage(audioLanguage);
             ServiceList.YouTube.setShowAutoTranslatedSubtitles(showAutoTranslatedSubtitles);
