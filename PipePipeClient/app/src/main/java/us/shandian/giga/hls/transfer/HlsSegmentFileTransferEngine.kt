@@ -853,13 +853,16 @@ internal class HlsSegmentFileTransferEngine(
 
     private fun byteRangeStarts(segments: List<HlsSegment>): LongArray {
         val starts = LongArray(segments.size)
-        val nextOffsets = mutableMapOf<String, Long>()
+        // RFC 8216 section 4.3.2.2: an omitted OFFSET chains from the
+        // previous segment, regardless of URI — not per-URL. A per-URL map
+        // restarts at 0 on URI change and silently concats wrong bytes.
+        var nextStart = 0L
         for ((index, segment) in segments.withIndex()) {
             val byteRange = segment.byteRange
             if (byteRange != null) {
-                val start = byteRange.offset ?: nextOffsets[segment.url] ?: 0L
+                val start = byteRange.offset ?: nextStart
                 starts[index] = start
-                nextOffsets[segment.url] = start + byteRange.length
+                nextStart = start + byteRange.length
             }
         }
         return starts
@@ -923,7 +926,9 @@ internal class HlsSegmentFileTransferEngine(
         // same playlist and must not force a needless full restart.
         return rawQuery.split('&')
             .mapNotNull { part ->
-                val normalized = part.lowercase()
+                // ROOT locale: default-lowercase turns `ITAG` into `ıtag`
+                // under Turkish locale, silently dropping the query part.
+                val normalized = part.lowercase(java.util.Locale.ROOT)
                 normalized.takeIf { normalized.substringBefore('=') in STABLE_URL_QUERY_KEYS }
             }
             .takeIf { it.isNotEmpty() }

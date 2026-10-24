@@ -116,7 +116,9 @@ internal class HlsPlaylistParser {
     }
 
     private fun keyMethod(tag: String): String? {
-        return Regex("(?:^|,)METHOD=([^,]+)")
+        // Hoisted: key-rotated playlists would otherwise recompile the
+        // pattern per EXT-X-KEY tag.
+        return KEY_METHOD_PATTERN
             .find(tag.substringAfter(':', ""))
             ?.groupValues
             ?.getOrNull(1)
@@ -145,5 +147,6 @@ internal class HlsPlaylistParser {
 
     private companion object {
         const val EXT_X_KEY = "#EXT-X-KEY:"
+        val KEY_METHOD_PATTERN = Regex("(?:^|,)METHOD=([^,]+)")
     }
 }

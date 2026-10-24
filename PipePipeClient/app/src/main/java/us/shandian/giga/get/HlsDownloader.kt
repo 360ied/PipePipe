@@ -400,6 +400,10 @@ internal class HlsDownloader(
 
     private fun completeMission(finalBytes: Long) {
         if (finalBytes <= 0) {
+            // Reset like every other failure path: copyWithPsStateReset
+            // succeeded, so psState is still 1-persisted here.
+            mission.psState = 0
+            mission.writeThisToFile()
             throw IOException("HLS framework remux failed: empty output")
         }
         mission.done = finalBytes

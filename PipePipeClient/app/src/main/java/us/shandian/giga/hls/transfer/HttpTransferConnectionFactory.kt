@@ -24,12 +24,12 @@ internal class HttpTransferConnectionFactory(
         val origin = try {
             URL(requestUrl).toURI()
         } catch (error: Exception) {
-            throw IOException("Invalid URL", error)
+            throw NonRetryableTransferException("Invalid URL", error)
         }
         if (origin.scheme?.lowercase(java.util.Locale.ROOT) != "http" &&
             origin.scheme?.lowercase(java.util.Locale.ROOT) != "https"
         ) {
-            throw IOException("Unsupported URL scheme")
+            throw NonRetryableTransferException("Unsupported URL scheme")
         }
         // Follow redirects manually so the Cookie header (session-scoped)
         // is only re-applied same-host+port; HttpURLConnection would retain
@@ -47,7 +47,7 @@ internal class HttpTransferConnectionFactory(
                 null
             }
             if (currentScheme != "http" && currentScheme != "https") {
-                throw IOException("Unsupported redirect URL scheme")
+                throw NonRetryableTransferException("Unsupported redirect URL scheme")
             }
             val connection = URL(current).openConnection() as HttpURLConnection
             connection.instanceFollowRedirects = false
@@ -71,17 +71,17 @@ internal class HttpTransferConnectionFactory(
             }
             if (redirects >= MAX_REDIRECTS) {
                 connection.disconnect()
-                throw IOException("Too many redirects")
+                throw NonRetryableTransferException("Too many redirects")
             }
             val location = connection.getHeaderField("Location")
             connection.disconnect()
             if (location.isNullOrBlank()) {
-                throw IOException("Redirect without Location")
+                throw NonRetryableTransferException("Redirect without Location")
             }
             current = try {
                 URL(URL(current), location).toString()
             } catch (error: Exception) {
-                throw IOException("Invalid redirect location", error)
+                throw NonRetryableTransferException("Invalid redirect location", error)
             }
             redirects++
         }
@@ -123,12 +123,12 @@ internal class HttpTransferConnectionFactory(
         val cookie = try {
             URLDecoder.decode(encoded, Charsets.UTF_8.name())
         } catch (error: IllegalArgumentException) {
-            throw IOException("Invalid cookie encoding in URL", error)
+            throw NonRetryableTransferException("Invalid cookie encoding in URL", error)
         }
         // HttpURLConnection rejects embedded CR/LF with unchecked
         // IllegalArgumentException; reject first with a clean IOException.
         if (cookie.contains('\r') || cookie.contains('\n')) {
-            throw IOException("Invalid cookie value in URL")
+            throw NonRetryableTransferException("Invalid cookie value in URL")
         }
         return cookie
     }

@@ -46,7 +46,9 @@ internal class HlsManifestResolver(
                     output.write(buffer, 0, read)
                 }
 
-                output.toString(Charsets.UTF_8)
+                // ByteArrayOutputStream.toString(Charset) is API 33+;
+                // the String-name overload works back to minSdk 30.
+                output.toString(Charsets.UTF_8.name())
             }
 
             return parser.parse(finalUrl, body)
