@@ -169,9 +169,12 @@ the vocabulary in section 3:
    filtering (`VideoDetailFragment.java:1956-1963`), while the
    resolver uses `preferVideoOnlyStreams=true` + blacklist +
    inline audio-track filtering (`VideoPlaybackResolver.java:101-127`).
-   Specify the dialog's dedup input (fragment `sortedVideoStreams`)
-   and map its pre-selection by bucket, not by raw index, across the
-   two lists.
+   The dialog therefore filters by preferred audio language first
+   (`StreamFilters.filterVideoStreamsByPreferredLanguage`, as in
+   downloads), drops video-only streams shadowed by a muxed stream at
+   the same height (`dropVideoOnlyWhenMuxedExists` — external players
+   need audio), then dedups; map its pre-selection by bucket, not by
+   raw index, across the two lists.
 4. Explicitly unchanged: `getSortedStreamVideosList()` ordering and
    filtering, `DownloadDialog`/`StreamItemAdapter` rows,
    `VideoPlaybackResolver` protocol, live/HLS adaptive menu
@@ -214,7 +217,10 @@ the vocabulary in section 3:
   Dedup must run *after* that inline filter, on the `videos` list the
   menu actually receives. Key buckets as `height + audioTrackId`
   (null-safe) so dubbed-audio variants can't collapse across tracks
-  when the filter leaves more than one track in play.
+  when the filter leaves more than one track in play. The external
+  dialog has no resolver filter, so it filters by preferred language
+  first and additionally drops video-only streams shadowed by a muxed
+  stream at the same height (identical labels, and silent video, otherwise).
 - **Live streams unaffected.** `buildLiveQualityMenu()` (manifest
   variants + Adaptive row) is a separate path and keeps its rows.
 - **Empty/unknown resolutions.** `RESOLUTION_UNKNOWN ("")` must still

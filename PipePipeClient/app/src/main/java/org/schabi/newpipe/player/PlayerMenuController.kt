@@ -457,7 +457,7 @@ class PlayerMenuController(
                 return true
             }
 
-            player.saveStreamProgressState() //TODO added, check if good
+            player.saveStreamProgressState()
             player.setRecovery()
             player.setSelectedStream(distinctStreams[menuItemIndex])
             player.reloadPlayQueueManager()

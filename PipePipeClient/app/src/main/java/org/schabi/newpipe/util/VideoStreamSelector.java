@@ -294,8 +294,8 @@ public final class VideoStreamSelector {
      * the frame rate suffix. Empty if neither matches.
      */
     private static List<VideoStream> findMatchingStreams(final List<VideoStream> streams,
-                                                         final String variantKey,
-                                                         final String resolutionKey) {
+                                                         @NonNull final String variantKey,
+                                                         @NonNull final String resolutionKey) {
         final List<VideoStream> result = new ArrayList<>();
         for (final VideoStream stream : streams) {
             if (variantKey.equals(normalizeResolutionVariantKey(
@@ -318,8 +318,7 @@ public final class VideoStreamSelector {
      * Join the two lists of video streams (video_only and normal videos),
      * and sort them according with default format chosen by the user.
      *
-     * @param defaultFormat          format to give preference
-     * @param showHigherResolutions  show >1080p resolutions
+     * @param advancedFormats        enabled advanced formats (VP9/AV01 toggles)
      * @param videoStreams           normal videos list
      * @param videoOnlyStreams       video only stream list
      * @param ascendingOrder         true -> smallest to greatest | false -> greatest to smallest
@@ -354,7 +353,8 @@ public final class VideoStreamSelector {
                         final String codec = Objects.toString(stream.getCodec(), "");
                         if (stream.getFormat() == MediaFormat.WEBM) {
                             return useWebM;
-                        } else if (codec.startsWith("av01")) {
+                        } else if (codec.toLowerCase(Locale.ROOT)
+                                .startsWith("av01")) {
                             return useAV1;
                         } else {
                             return true;
@@ -433,11 +433,11 @@ public final class VideoStreamSelector {
     /**
      * Collapse an already-sorted stream list to one representative per resolution bucket
      * (see {@link #bucketKeyOf}). Insertion order follows the input list, so descending
-     * menu order is preserved. Never returns an empty list for a non-empty input.
+     * menu order is preserved. Empty only if the input is empty or holds no non-null
+     * streams.
      *
      * @param streams sorted stream list (e.g. from {@link #getSortedStreamVideosList})
-     * @return one best stream per bucket, in input order; empty only if the input
-     *         holds no non-null streams
+     * @return one best stream per bucket, in input order
      */
     @NonNull
     public static List<VideoStream> getDistinctResolutionStreams(
@@ -455,6 +455,38 @@ public final class VideoStreamSelector {
             }
         }
         return new ArrayList<>(buckets.values());
+    }
+
+    /**
+     * For external playback (which needs audio in the stream itself), drop video-only
+     * streams at heights that also offer a muxed (non-video-only) stream — otherwise the
+     * dialog would show a silent-video row under an identical height label. Heights with
+     * only video-only streams are kept untouched.
+     *
+     * @param streams language-filtered stream list
+     * @return the input minus shadowed video-only streams, in input order
+     */
+    @NonNull
+    public static List<VideoStream> dropVideoOnlyWhenMuxedExists(
+            @NonNull final List<VideoStream> streams) {
+        final Set<String> muxedHeights = new HashSet<>();
+        for (final VideoStream stream : streams) {
+            if (stream != null && !stream.isVideoOnly()) {
+                muxedHeights.add(heightLabelOf(stream.getResolution()));
+            }
+        }
+        if (muxedHeights.isEmpty()) {
+            return new ArrayList<>(streams);
+        }
+        final List<VideoStream> result = new ArrayList<>(streams.size());
+        for (final VideoStream stream : streams) {
+            if (stream != null && stream.isVideoOnly()
+                    && muxedHeights.contains(heightLabelOf(stream.getResolution()))) {
+                continue;
+            }
+            result.add(stream);
+        }
+        return result;
     }
 
     /**
@@ -524,6 +556,8 @@ public final class VideoStreamSelector {
     }
 
     // Compares the quality of two video streams.
+    // VOD-side ranking only; the live manifest path ranks separately
+    // (see LiveQualityController.codecPriority).
     private static int compareVideoStreamResolution(final VideoStream streamA,
                                                     final VideoStream streamB) {
         if (streamA == null) {

@@ -258,6 +258,11 @@ class PlayerLayoutController(private val player: Player) {
         binding.playbackEndTime.visibility = View.GONE
         binding.playbackLiveSync.visibility = View.GONE
 
+        // Defaults every branch can rely on and override: without these, branches that
+        // bail out early (e.g. VOD with no quality) leak the previous item's views.
+        binding.surfaceView.visibility = View.VISIBLE
+        binding.endScreen.visibility = View.GONE
+
         when (info.streamType) {
             StreamType.AUDIO_STREAM -> {
                 binding.surfaceView.visibility = View.GONE

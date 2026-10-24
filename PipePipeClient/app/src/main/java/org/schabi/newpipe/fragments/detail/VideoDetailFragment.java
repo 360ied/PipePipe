@@ -2445,12 +2445,15 @@ public final class VideoDetailFragment
         // One row per resolution bucket, after preferred-language filtering (mirrors the
         // download path): this list is built with preferVideoOnlyStreams=false and no
         // audio-track filtering (unlike the player's), so dubbed-track variants would
-        // otherwise render as identical height-only rows.
+        // otherwise render as identical height-only rows. Video-only streams shadowed by
+        // a muxed stream at the same height are dropped (external players need audio).
         final List<VideoStream> languageFiltered =
                 StreamFilters.filterVideoStreamsByPreferredLanguage(
                         activity, sortedVideoStreams, currentInfo.getAudioStreams());
         final List<VideoStream> distinctStreams =
-                VideoStreamSelector.getDistinctResolutionStreams(languageFiltered);
+                VideoStreamSelector.getDistinctResolutionStreams(
+                        VideoStreamSelector.dropVideoOnlyWhenMuxedExists(
+                                languageFiltered));
         final CharSequence[] resolutions = new CharSequence[distinctStreams.size()];
         for (int i = 0; i < distinctStreams.size(); i++) {
             resolutions[i] =

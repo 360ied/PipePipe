@@ -17,23 +17,29 @@ import org.schabi.newpipe.extractor.stream.VideoStream;
 public class VideoStreamSelectorTest {
 
     private static VideoStream stream(final String resolution, final String codec,
+                                      final int bitrate) {
+        return stream(resolution, codec, bitrate, MediaFormat.MPEG_4, true);
+    }
+
+    private static VideoStream stream(final String resolution, final String codec,
                                       final int bitrate, final MediaFormat format) {
+        return stream(resolution, codec, bitrate, format, true);
+    }
+
+    private static VideoStream stream(final String resolution, final String codec,
+                                      final int bitrate, final MediaFormat format,
+                                      final boolean isVideoOnly) {
         return new VideoStream.Builder()
-                .setId(resolution + "|" + codec + "|" + bitrate)
-                .setContent("https://example.invalid/" + resolution + codec + bitrate,
-                        true)
+                .setId(resolution + "|" + codec + "|" + bitrate + "|" + isVideoOnly)
+                .setContent("https://example.invalid/" + resolution + codec + bitrate
+                        + isVideoOnly, true)
                 .setDeliveryMethod(DeliveryMethod.PROGRESSIVE_HTTP)
-                .setIsVideoOnly(true)
+                .setIsVideoOnly(isVideoOnly)
                 .setMediaFormat(format)
                 .setResolution(resolution)
                 .setCodec(codec)
                 .setBitrate(bitrate)
                 .build();
-    }
-
-    private static VideoStream stream(final String resolution, final String codec,
-                                      final int bitrate) {
-        return stream(resolution, codec, bitrate, MediaFormat.MPEG_4);
     }
 
     @Test
@@ -108,6 +114,22 @@ public class VideoStreamSelectorTest {
                         stream("480p", "avc1.64001f", 2000000)));
         assertEquals(1, distinct.size());
         assertEquals(2000000, distinct.get(0).getBitrate());
+    }
+
+    @Test
+    public void dropsVideoOnlyShadowedByMuxedAtSameHeight() {
+        final List<VideoStream> result =
+                VideoStreamSelector.dropVideoOnlyWhenMuxedExists(Arrays.asList(
+                        stream("720p", "avc1.64001f", 4000000, MediaFormat.MPEG_4, true),
+                        stream("720p", "avc1.64001f", 3000000, MediaFormat.MPEG_4,
+                                false),
+                        stream("2160p", "avc1.640028", 15000000, MediaFormat.MPEG_4,
+                                true)));
+        // Shadowed 720p video-only is dropped; lone 2160p video-only survives.
+        assertEquals(2, result.size());
+        assertEquals(false, result.get(0).isVideoOnly());
+        assertEquals("720p", result.get(0).getResolution());
+        assertEquals("2160p", result.get(1).getResolution());
     }
 
     @Test
