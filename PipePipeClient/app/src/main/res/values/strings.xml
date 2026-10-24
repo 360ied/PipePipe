@@ -876,7 +876,7 @@
 <string name="always_list_mode_for_bookmark_title">Always use list mode for Bookmarks</string>
 <string name="select_channel_group_prompt">Select a channel group</string>
 <string name="channel_group_tab_summary">Channel Group</string>
-<string name="need_login_hint"> This content requires a YouTube account to view, which is not supported.</string>
+<string name="need_login_hint">This content requires a YouTube account to view, which is not supported.</string>
 <string name="exit_app_confirmation_message">Show a "press back again to quit" toast to avoid accidental quiting</string>
 <string name="exit_app_confirmation_title">Exit app confirmation</string>
 <string name="try_again">Please try again</string>

@@ -1207,7 +1207,6 @@
     <string name="image_quality_none_key">image_quality_none</string>
     <string name="image_quality_low_key">image_quality_low</string>
     <string name="image_quality_high_key">image_quality_high</string>
-    <!-- Accounts Cookies -->
     <string name="playlist_sort_mode_key">playlist_sort_mode_key</string>
     <string name="sleep_timer_length_key">sleep_timer_length_key</string>
     <string-array name="sleep_timer_length_key">

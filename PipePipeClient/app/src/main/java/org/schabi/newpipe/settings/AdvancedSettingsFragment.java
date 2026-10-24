@@ -105,7 +105,6 @@ public class AdvancedSettingsFragment extends BasePreferenceFragment implements 
             ServiceHelper.initServices(this.getContext());
         } else if (key.equals(getString(R.string.show_auto_translated_subtitles_key))) {
             updateAutoTranslatedSubtitlesPreferences();
-            updateYoutubePlayerClientPreference();
             ServiceHelper.initServices(this.getContext());
         } else if (key.equals(getString(R.string.auto_translated_subtitles_language_key))) {
             ServiceHelper.initServices(this.getContext());
@@ -125,7 +124,6 @@ public class AdvancedSettingsFragment extends BasePreferenceFragment implements 
         final boolean autoTranslatedSubtitlesEnabled = defaultPreferences.getBoolean(
                 getString(R.string.show_auto_translated_subtitles_key), true);
 
-        autoTranslatedSubtitlesPreference.setEnabled(true);
         autoTranslatedSubtitlesPreference.setSummary(
                 getString(R.string.show_auto_translated_subtitles_summary));
         autoTranslatedSubtitlesLanguagePreference.setEnabled(autoTranslatedSubtitlesEnabled);

@@ -29,11 +29,7 @@ public final class PipePipeMigrations {
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         protected void migrate(final Context context, final SharedPreferences preferences) {
-            // Resource keys removed with sign-in support; use literals.
-            preferences.edit()
-                    .remove("youtube_cookies_key")
-                    .remove("youtube_po_token_key")
-                    .apply();
+            removeYoutubeAuthKeys(preferences);
         }
     };
 
@@ -89,12 +85,18 @@ public final class PipePipeMigrations {
         @Override
         protected void migrate(final Context context, final SharedPreferences preferences) {
             // Sign-in support removed; wipe any stored account cookies/PO tokens.
-            preferences.edit()
-                    .remove("youtube_cookies_key")
-                    .remove("youtube_po_token_key")
-                    .apply();
+            removeYoutubeAuthKeys(preferences);
         }
     };
+
+    // Sign-in support was removed along with its string resources, so the
+    // deleted keys are referenced by literal value here.
+    private static void removeYoutubeAuthKeys(final SharedPreferences preferences) {
+        preferences.edit()
+                .remove("youtube_cookies_key")
+                .remove("youtube_po_token_key")
+                .apply();
+    }
 
     private static final Migration[] PIPEPIPE_MIGRATIONS = {
             MIGRATION_0_1,
