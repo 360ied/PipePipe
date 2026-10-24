@@ -47,6 +47,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -157,8 +158,9 @@ private fun resolveComposeColorScheme(context: Context): ColorScheme {
 private fun rememberPicassoBitmap(
     key: Any?,
     request: () -> RequestCreator
-): Bitmap? {
+): Pair<Bitmap?, Boolean> {
     var bitmap by remember(key) { mutableStateOf<Bitmap?>(null) }
+    var loadFailed by remember(key) { mutableStateOf(false) }
 
     // Picasso holds Target with a weak reference, so the Target must be strongly
     // held for the request lifetime or onBitmapLoaded may never fire (gray box).
@@ -166,10 +168,12 @@ private fun rememberPicassoBitmap(
         object : Target {
             override fun onBitmapLoaded(loadedBitmap: Bitmap, from: Picasso.LoadedFrom) {
                 bitmap = loadedBitmap
+                loadFailed = false
             }
 
             override fun onBitmapFailed(e: Exception?, errorDrawable: android.graphics.drawable.Drawable?) {
                 bitmap = null
+                loadFailed = true
             }
 
             override fun onPrepareLoad(placeHolderDrawable: android.graphics.drawable.Drawable?) {
@@ -180,22 +184,31 @@ private fun rememberPicassoBitmap(
     DisposableEffect(key, target) {
         request().into(target)
         onDispose {
-            Picasso.get().cancelRequest(target)
+            // All requests are built by PicassoHelper's own instance, never the singleton.
+            PicassoHelper.cancelRequest(target)
         }
     }
 
-    return bitmap
+    return bitmap to loadFailed
 }
 
 @Composable
 private fun RemoteImage(
     modifier: Modifier,
     contentScale: ContentScale,
-    bitmap: Bitmap?
+    bitmap: Bitmap?,
+    loadFailed: Boolean
 ) {
     if (bitmap != null) {
         Image(
             bitmap = bitmap.asImageBitmap(),
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = contentScale
+        )
+    } else if (loadFailed) {
+        Image(
+            painter = painterResource(R.drawable.dummy_thumbnail),
             contentDescription = null,
             modifier = modifier,
             contentScale = contentScale
@@ -467,7 +480,7 @@ private fun ChannelListItem(
     onLongClick: (() -> Unit)?
 ) {
     val context = LocalContext.current
-    val bitmap = rememberPicassoBitmap(state.imageUrl) {
+    val (bitmap, loadFailed) = rememberPicassoBitmap(state.imageUrl) {
         PicassoHelper.loadScaledDownThumbnail(context, state.imageUrl)
     }
 
@@ -483,7 +496,8 @@ private fun ChannelListItem(
                 .size(60.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop,
-            bitmap = bitmap
+            bitmap = bitmap,
+            loadFailed = loadFailed
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -536,7 +550,7 @@ private fun ChannelGridItem(
     onLongClick: (() -> Unit)?
 ) {
     val context = LocalContext.current
-    val bitmap = rememberPicassoBitmap(state.imageUrl) {
+    val (bitmap, loadFailed) = rememberPicassoBitmap(state.imageUrl) {
         PicassoHelper.loadScaledDownThumbnail(context, state.imageUrl)
     }
 
@@ -552,7 +566,8 @@ private fun ChannelGridItem(
                 .size(60.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop,
-            bitmap = bitmap
+            bitmap = bitmap,
+            loadFailed = loadFailed
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -607,7 +622,7 @@ private fun ThumbnailBox(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val bitmap = rememberPicassoBitmap(state.imageUrl) {
+    val (bitmap, loadFailed) = rememberPicassoBitmap(state.imageUrl) {
         if (state.playlistCount != null) {
             PicassoHelper.loadPlaylistThumbnail(state.imageUrl)
         } else {
@@ -625,7 +640,8 @@ private fun ThumbnailBox(
         RemoteImage(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            bitmap = bitmap
+            bitmap = bitmap,
+            loadFailed = loadFailed
         )
 
         if (state.showLiveBadge) {
