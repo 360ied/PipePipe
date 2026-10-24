@@ -504,7 +504,9 @@ internal class SabrJavaMuxer(
         if (inputs.size != 1 || targets.size != 1) {
             return false
         }
-        // Same case-sensitive rule as dispatch: only an exact webm pair copies.
+        // Same case-sensitive rule as dispatch: a single WebM input whose
+        // storage suffix is in the WebM family copies verbatim (WebM bytes
+        // stay playable under weba/mkv/mka; .opus is excluded on purpose).
         // STORAGE-invalid names fail closed in storageExtension(); a fast path
         // must never silently copy.
         val extension = try {
@@ -513,7 +515,7 @@ internal class SabrJavaMuxer(
             return false
         }
         val mimeType = targets.first().format.mimeType ?: return false
-        return extension == "webm" && mimeType.contains("webm")
+        return extension in WEBM_FAMILY_EXTENSIONS && mimeType.contains("webm")
     }
 
     private fun logDebug(message: String) {

@@ -78,6 +78,16 @@ internal class SabrDownloader(
                 "SABR download failed: duplicate formats $duplicates",
             )
         }
+        // YoutubeSabrRequest accepts at most one audio and one video track;
+        // same-kind extras would throw IllegalArgumentException downstream
+        // instead of a clean FORMAT error.
+        if (targets.count { it.format.isAudio } > 1 || targets.count { it.format.isVideo } > 1) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.FORMAT,
+                "SABR download failed: duplicate audio/video targets " +
+                    "(mimes=${targets.map { it.format.mimeType }})",
+            )
+        }
         restoreTargets(targets)
         val outputs = mutableMapOf<Int, FileOutputStream>()
         try {
