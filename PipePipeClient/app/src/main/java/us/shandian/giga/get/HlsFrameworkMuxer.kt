@@ -17,13 +17,21 @@ import java.nio.ByteBuffer
  * AES-128 already decrypted, byte-ranges resolved). This is demux-then-mux
  * sample copying via [MediaExtractor] -> [MediaMuxer], zero new dependencies.
  *
- * Mapping mirrors today's `-map` semantics:
- * - audio-only single-input (`kind == 'a'`) -> audio tracks only
- * - otherwise -> first video + first audio per input (`-map i:v? -map i:a?`)
+ * Mapping covers all streams per input (ffmpeg `-map i:v? -map i:a?` kept
+ * every video and audio stream; we keep every `video/` and `audio/` track
+ * rather than only the first of each):
+ * - audio-only single-input (`kind == 'a'`) -> all audio tracks
+ * - otherwise -> all video + all audio tracks per input
+ * - subtitle missions (`kind == 's'`) are explicitly unsupported here.
+ *
+ * Known [MediaMuxer] parity gaps vs the old `-movflags +faststart` command:
+ * [MediaMuxer] writes `moov` at the end (no front-loading) and offers no
+ * output-brand API, so MP4 time-to-play/seek and `.m4a` branding may regress.
+ * Accepted until a reserve-and-backpatch pass proves necessary.
  *
  * [MediaMuxer] requires non-decreasing PTS per track while ffmpeg tolerated
- * overlaps, so per-track timestamps are rewritten monotonically (shifted,
- * never aborted for merely sloppy sources).
+ * overlaps, so per-track timestamps are shifted by an offset that preserves
+ * deltas (never collapsed, never aborted for merely sloppy sources).
  */
 internal object HlsFrameworkMuxer {
     private const val TAG = "HlsFrameworkMuxer"
@@ -38,25 +46,39 @@ internal object HlsFrameworkMuxer {
                 throw IOException("HLS framework remux failed: missing input ${input.name}")
             }
         }
+        if (kind == 's') {
+            throw IOException("HLS framework remux failed: subtitles unsupported")
+        }
 
         val ext = outputExtension.lowercase().takeIf { it.isNotBlank() } ?: "mp4"
         val isAudioOnly = kind == 'a' && inputs.size == 1
 
-        // Phase 1: inspect every input, decide selected tracks.
-        val inspected = inputs.mapIndexed { inputIndex, input ->
-            inspectInput(input, inputIndex, isAudioOnly)
+        // Phase 1: inspect every input, decide selected tracks. Release
+        // already-opened extractors if a later input fails to parse.
+        val inspected = mutableListOf<InspectedInput>()
+        try {
+            inputs.forEachIndexed { inputIndex, input ->
+                inspected.add(inspectInput(input, inputIndex, isAudioOnly))
+            }
+        } catch (error: IOException) {
+            inspected.forEach { it.releaseQuietly() }
+            throw error
+        } catch (error: Exception) {
+            inspected.forEach { it.releaseQuietly() }
+            throw IOException("HLS framework remux failed: cannot parse inputs", toIo(error))
         }
-        val selectedFormats = inspected.flatMap { it.selectedFormats }
-        if (selectedFormats.isEmpty()) {
+        val selectedCount = inspected.sumOf { it.selected.size }
+        if (selectedCount == 0) {
             inspected.forEach { it.releaseQuietly() }
             throw IOException("HLS framework remux failed: no audio/video tracks found")
         }
 
         // MP3 fast path: remuxing MP3->MP4 via MediaMuxer is unsupported and
-        // pointless when container already matches (mirrors single-WebM copy).
+        // pointless when container already matches (same idea as
+        // SabrJavaMuxer.canCopySingleInputDirectly for single WebM).
         if (ext == "mp3") {
             try {
-                if (selectedFormats.all { it.mime == "audio/mpeg" }) {
+                if (inspected.flatMap { it.selected }.all { it.mime == "audio/mpeg" }) {
                     logDebug("mp3 concat inputs=${inputs.size}")
                     concatInputs(inputs, output)
                     return
@@ -87,20 +109,22 @@ internal object HlsFrameworkMuxer {
             // ffmpeg's per-input -map which yields separate output streams).
             val muxerTrackFor = mutableListOf<MutableMap<Int, Int>>()
             val lastPts = mutableListOf<Long>()
+            val ptsOffset = mutableListOf<Long>()
             inspected.forEach { info ->
                 val mapping = mutableMapOf<Int, Int>()
                 info.selected.forEach { selection ->
                     try {
                         val muxerIndex = muxer.addTrack(selection.format)
                         mapping[selection.extractorIndex] = muxerIndex
-                        // Grow lastPts so muxerIndex is addressable.
+                        // Grow PTS state so muxerIndex is addressable.
                         while (lastPts.size <= muxerIndex) {
                             lastPts.add(Long.MIN_VALUE)
+                            ptsOffset.add(0L)
                         }
                     } catch (error: Exception) {
                         throw IOException(
                             "HLS framework remux failed: addTrack ${selection.mime} unsupported (${error.message.orEmpty()})",
-                            error as? IOException ?: IOException(error.message, error),
+                            toIo(error),
                         )
                     }
                 }
@@ -121,6 +145,9 @@ internal object HlsFrameworkMuxer {
                 var buffer = ByteBuffer.allocate(INITIAL_BUFFER_SIZE)
                 val bufferInfo = MediaCodec.BufferInfo()
                 while (true) {
+                    if (Thread.currentThread().isInterrupted) {
+                        throw IOException("HLS framework remux failed: interrupted")
+                    }
                     val extractorTrack = try {
                         info.extractor.sampleTrackIndex
                     } catch (error: Exception) {
@@ -131,14 +158,18 @@ internal object HlsFrameworkMuxer {
                     }
                     val muxerTrack = mapping[extractorTrack]
                         ?: throw IOException("HLS framework remux failed: unexpected track $extractorTrack")
-                    // Grow buffer if the current sample demands it.
+                    // Fail closed instead of truncating: an undersized buffer
+                    // would write a corrupt sample as if valid.
                     val sampleSize: Long = try {
                         info.extractor.sampleSize
                     } catch (error: Exception) {
                         -1L
                     }
+                    if (sampleSize > MAX_BUFFER_SIZE.toLong()) {
+                        throw IOException("HLS framework remux failed: sample too large ($sampleSize)")
+                    }
                     if (sampleSize > buffer.capacity().toLong()) {
-                        buffer = ByteBuffer.allocate(sampleSize.coerceAtMost(MAX_BUFFER_SIZE.toLong()).toInt())
+                        buffer = ByteBuffer.allocate(sampleSize.toInt())
                     }
                     bufferInfo.offset = 0
                     bufferInfo.size = try {
@@ -154,7 +185,7 @@ internal object HlsFrameworkMuxer {
                     } catch (error: Exception) {
                         throw IOException("HLS framework remux failed: sampleTime", toIo(error))
                     }
-                    bufferInfo.presentationTimeUs = rewritePts(lastPts, muxerTrack, rawPts).also {
+                    bufferInfo.presentationTimeUs = rewritePts(lastPts, ptsOffset, muxerTrack, rawPts).also {
                         if (it != rawPts) {
                             corrections++
                         }
@@ -182,6 +213,9 @@ internal object HlsFrameworkMuxer {
                         throw IOException("HLS framework remux failed: advance", toIo(error))
                     }
                 }
+            }
+            if (samples == 0) {
+                throw IOException("HLS framework remux failed: no samples written")
             }
             logDebug("muxed samples=$samples corrections=$corrections format=$ext")
             completed = true
@@ -217,11 +251,9 @@ internal object HlsFrameworkMuxer {
         val extractor: MediaExtractor,
         val selected: List<TrackSelection>,
     ) {
-        val selectedFormats: List<TrackSelection> get() = selected
-
         fun selectAll() {
-            selected.forEach { (index, _) ->
-                extractor.selectTrack(index)
+            selected.forEach {
+                extractor.selectTrack(it.extractorIndex)
             }
         }
 
@@ -263,14 +295,7 @@ internal object HlsFrameworkMuxer {
         val selected = if (isAudioOnly) {
             allTracks.filter { it.mime.startsWith("audio/") }
         } else {
-            val video = allTracks.firstOrNull { it.mime.startsWith("video/") }
-            val audio = allTracks.firstOrNull { it.mime.startsWith("audio/") }
-            listOfNotNull(video, audio)
-        }
-        if (selected.isEmpty()) {
-            // Keep extractor open for caller cleanup symmetry? No — release now
-            // and return empty selection; caller reports "no tracks found".
-            // To keep lifecycle simple, return with extractor (caller releases).
+            allTracks.filter { it.mime.startsWith("video/") || it.mime.startsWith("audio/") }
         }
         return InspectedInput(extractor, selected)
     }
@@ -278,22 +303,34 @@ internal object HlsFrameworkMuxer {
     @Throws(IOException::class)
     private fun muxerOutputFormat(ext: String): Int {
         // minSdk is 30, so WebM muxer output (API 26+) is always available.
+        // Only containers MediaMuxer understands are accepted; anything else
+        // fails closed instead of writing mislabeled MP4 bytes.
         return when (ext) {
             "mp4", "m4a", "mov", "m4v" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
             "webm" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
-            else -> MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+            else -> throw IOException("HLS framework remux failed: unsupported output .$ext")
         }
     }
 
-    private fun rewritePts(lastPts: MutableList<Long>, muxerTrack: Int, rawPts: Long): Long {
+    private fun rewritePts(
+        lastPts: MutableList<Long>,
+        ptsOffset: MutableList<Long>,
+        muxerTrack: Int,
+        rawPts: Long,
+    ): Long {
         val last = lastPts[muxerTrack]
-        if (last == Long.MIN_VALUE || rawPts > last) {
-            lastPts[muxerTrack] = rawPts
-            return rawPts
+        var offset = ptsOffset[muxerTrack]
+        var corrected = rawPts + offset
+        if (last == Long.MIN_VALUE || corrected > last) {
+            lastPts[muxerTrack] = corrected
+            return corrected
         }
-        // Non-monotonic source PTS (TS overlaps/discontinuities ffmpeg
-        // tolerated): shift forward minimally, count for debug logs.
-        val corrected = last + 1
+        // Non-monotonic source PTS (TS overlaps, discontinuities, wraps — all
+        // cases ffmpeg tolerated): shift the track offset forward so deltas
+        // survive instead of collapsing every sample to last+1.
+        offset += last - corrected + 1
+        ptsOffset[muxerTrack] = offset
+        corrected = rawPts + offset
         lastPts[muxerTrack] = corrected
         return corrected
     }

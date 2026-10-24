@@ -214,10 +214,15 @@ internal class HlsDownloader(
         Log.d(TAG, "remuxWithFramework inputs=${inputs.size}")
         try {
             HlsFrameworkMuxer.remux(inputs, output, mission.kind, outputExtension())
-        } catch (error: IOException) {
+        } catch (error: Exception) {
             mission.psState = 0
-            // Keep the old message shape (detail appended) so error buckets don't churn.
-            throw IOException("HLS framework remux failed: ${error.message.orEmpty()}", error)
+            // MediaMuxer throws unchecked (IllegalStateException, etc.); reset
+            // psState for any failure so the mission never sticks at 1.
+            // Keep the old message shape (detail appended) so error buckets
+            // don't churn, without double-prefixing framework detail.
+            val detail = if (error is IOException) error.message.orEmpty() else "${error::class.simpleName}: ${error.message.orEmpty()}"
+            val message = if (detail.startsWith("HLS framework remux failed")) detail else "HLS framework remux failed: $detail"
+            throw IOException(message, if (error is IOException) error else IOException(detail, error))
         }
     }
 
@@ -250,7 +255,7 @@ internal class HlsDownloader(
             return null
         }
         val output = checkpoint.remuxOutputPath?.let { File(it) }?.absoluteFile ?: return null
-        if (!output.absolutePath.startsWith(workDir.absolutePath) || !output.exists() || output.length() <= 0) {
+        if (!output.absolutePath.startsWith(workDir.absolutePath + File.separator) || !output.exists() || output.length() <= 0) {
             return null
         }
         return output
