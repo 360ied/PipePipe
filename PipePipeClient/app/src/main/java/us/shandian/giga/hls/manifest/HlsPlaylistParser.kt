@@ -12,14 +12,17 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.URI
 
-class HlsPlaylistParser {
+// Internal: the only consumer is the internal HlsManifestResolver.
+internal class HlsPlaylistParser {
     @Throws(IOException::class)
     fun parse(sourceUrl: String, body: String): HlsPlaylist {
         val input = ByteArrayInputStream(body.toByteArray(Charsets.UTF_8))
         return when (val playlist = ExoHlsPlaylistParser().parse(Uri.parse(sourceUrl), input)) {
             is ExoHlsMediaPlaylist -> playlist.toInternalMediaPlaylist(sourceUrl)
             is ExoHlsMultivariantPlaylist -> playlist.toInternalMasterPlaylist(sourceUrl)
-            else -> throw IOException("Unsupported HLS playlist type: ${playlist.javaClass.name}")
+            // Deterministic: retrying an unparseable playlist is pointless
+            // (TransferRetryPolicy excludes this type).
+            else -> throw UnsupportedHlsPlaylistException("Unsupported HLS playlist type: ${playlist.javaClass.name}")
         }
     }
 
@@ -32,30 +35,37 @@ class HlsPlaylistParser {
                     url = resolveUrl(sourceUrl, variant.url.toString()),
                     bandwidth = positiveLong(format.peakBitrate) ?: positiveLong(format.bitrate),
                     averageBandwidth = positiveLong(format.averageBitrate),
-                    codecs = format.codecs,
-                    resolution = resolutionOf(format),
-                    frameRate = format.frameRate.takeIf { it > 0 }?.toDouble(),
-                    audioGroupId = variant.audioGroupId,
                 )
             },
         )
     }
 
     private fun ExoHlsMediaPlaylist.toInternalMediaPlaylist(sourceUrl: String): HlsMediaPlaylist {
+        // The engine prepends a single init: a playlist rotating EXT-X-MAP
+        // mid-list would join later segments to the wrong init (remux
+        // failure or corrupt output), so reject instead of collapsing.
+        // Checked here rather than validatePlaylist, which only sees the
+        // collapsed model. Keyed on (url, byteRange): same-URL range
+        // rotation is a different init too.
+        val distinctInits = segments.mapNotNull { segment ->
+            segment.initializationSegment?.let { init ->
+                Triple(init.url, init.byteRangeLength, init.byteRangeOffset)
+            }
+        }.toSet()
+        if (distinctInits.size > 1) {
+            throw UnsupportedHlsPlaylistException("Multiple HLS init segments are not supported")
+        }
         val initSegment = segments
             .firstOrNull { it.initializationSegment != null }
             ?.initializationSegment
             ?.toInternalInitSegment(sourceUrl)
         return HlsMediaPlaylist(
             sourceUrl = sourceUrl,
-            targetDurationSeconds = secondsOf(targetDurationUs),
             mediaSequence = mediaSequence,
             segments = segments.map { it.toInternalSegment(sourceUrl) },
             isEndList = hasEndTag,
             initSegment = initSegment,
-            hasEncryption = hasAes128Encryption(),
             hasUnsupportedEncryption = hasUnsupportedEncryption(),
-            hasDiscontinuity = hasDiscontinuity(),
         )
     }
 
@@ -63,9 +73,7 @@ class HlsPlaylistParser {
         return HlsSegment(
             url = resolveUrl(sourceUrl, url),
             durationSeconds = secondsOf(durationUs),
-            title = title.ifBlank { null },
             byteRange = byteRange(),
-            discontinuity = relativeDiscontinuitySequence > 0,
             encryptionKey = encryptionKey(sourceUrl),
         )
     }
@@ -76,11 +84,6 @@ class HlsPlaylistParser {
             byteRange = byteRange(),
             encryptionKey = encryptionKey(sourceUrl),
         )
-    }
-
-    private fun ExoHlsMediaPlaylist.hasAes128Encryption(): Boolean {
-        return segments.any { it.fullSegmentEncryptionKeyUri != null }
-            || segments.any { it.initializationSegment?.fullSegmentEncryptionKeyUri != null }
     }
 
     private fun ExoHlsMediaPlaylist.hasUnsupportedEncryption(): Boolean {
@@ -94,11 +97,6 @@ class HlsPlaylistParser {
                     && !method.equals("AES-128", ignoreCase = true)
             }
         }
-    }
-
-    private fun ExoHlsMediaPlaylist.hasDiscontinuity(): Boolean {
-        return tags.any { it == EXT_X_DISCONTINUITY }
-            || segments.any { it.relativeDiscontinuitySequence > 0 }
     }
 
     private fun ExoHlsSegmentBase.byteRange(): HlsByteRange? {
@@ -118,19 +116,13 @@ class HlsPlaylistParser {
     }
 
     private fun keyMethod(tag: String): String? {
-        return Regex("(?:^|,)METHOD=([^,]+)")
+        // Hoisted: key-rotated playlists would otherwise recompile the
+        // pattern per EXT-X-KEY tag.
+        return KEY_METHOD_PATTERN
             .find(tag.substringAfter(':', ""))
             ?.groupValues
             ?.getOrNull(1)
             ?.trim('"')
-    }
-
-    private fun resolutionOf(format: Format): String? {
-        return if (format.width > 0 && format.height > 0) {
-            "${format.width}x${format.height}"
-        } else {
-            null
-        }
     }
 
     private fun positiveLong(value: Int): Long? {
@@ -142,11 +134,19 @@ class HlsPlaylistParser {
     }
 
     private fun resolveUrl(sourceUrl: String, reference: String): String {
-        return URI(sourceUrl).resolve(reference).toString()
+        // URI throws unchecked IllegalArgumentException AND checked
+        // URISyntaxException on malformed input; wrap both as deterministic
+        // playlist failure so the IOException contract and retry
+        // exclusions hold.
+        return try {
+            URI(sourceUrl).resolve(reference).toString()
+        } catch (error: Exception) {
+            throw UnsupportedHlsPlaylistException("Invalid HLS playlist URL: ${error.message.orEmpty()}")
+        }
     }
 
     private companion object {
         const val EXT_X_KEY = "#EXT-X-KEY:"
-        const val EXT_X_DISCONTINUITY = "#EXT-X-DISCONTINUITY"
+        val KEY_METHOD_PATTERN = Regex("(?:^|,)METHOD=([^,]+)")
     }
 }

@@ -8,7 +8,7 @@ APIs (HLS).
   `.github/workflows/`).
 - Audited: 2026-10-24, `main` at `15ed881`, app version `5.5.0-beta3`.
 - All paths below are relative to the repository root.
-- Status: **plan only — nothing is implemented yet.**
+- Status: **implemented and verified in the `ffmpeg-removal-spike` worktree — pending merge.** 18 pedantic review rounds closed with full `./scripts/check.sh` green (final round: SABR/docs clean, single HLS finding rebutted as a false positive against the SDK stub); no merge, push, or worktree cleanup without explicit request.
 
 ## 1. Summary and recommendation
 
@@ -26,18 +26,20 @@ Both jobs can be done without native code:
 - **SABR → reuse the in-repo pure-Java muxers** (`Mp4FromDashWriter`,
   `WebMWriter`) that already handle all classic DASH downloads.
 - **HLS → framework `MediaExtractor` + `MediaMuxer`** (zero new
-  dependencies; handles TS/fMP4/WebM/MP3 input, writes MP4/WebM).
+  dependencies; handles TS/fMP4/WebM input and writes MP4/WebM —
+  MP3 via a concat fast path, since remuxing MP3→MP4 is unsupported,
+  see 5.2).
 
 Removal deletes ~48 MB of binaries from git, ~15–19 MB of native libraries
 per ABI from the APK (11–14% of APK content), and the last hand-maintained
-native blob in the app. Upstream `arthenica/ffmpeg-kit` was retired and
-archived in January 2025, so every month we keep it is unpatched FFmpeg 5.x
-shipped to users. **Recommendation: remove it**, staged as
+native blob in the app. Upstream `arthenica/ffmpeg-kit` was retired January 2025 (repo archived
+June 2025), so every month we keep it is unpatched FFmpeg 5.x shipped
+to users. **Recommendation: remove it**, staged as
 spike → SABR → HLS → delete (section 9).
 
 ## 2. Background
 
-### 2.1 What we ship today
+### 2.1 What we shipped pre-removal (`main@15ed881` snapshot)
 
 | Artifact | Fact |
 |---|---|
@@ -46,7 +48,7 @@ spike → SABR → HLS → delete (section 9).
 | `PipePipeClient/ffmpeg/build.gradle.kts` | `artifacts.add("default", file("ffmpeg-kit.aar"))` |
 | `PipePipeClient/settings.gradle:37` | `include ':ffmpeg'` |
 | `PipePipeClient/app/build.gradle:299-301` | commented-out Maven coordinate, `implementation project(':ffmpeg')`, `implementation 'com.arthenica:smart-exception-java:0.2.1'` (ffmpeg-kit transitive dep — goes away too) |
-| `.github/workflows/build-ffmpeg.yml` | manual (`workflow_dispatch`) rebuild job from the `InfinityLoop1308/ffmpeg-kit` fork, NDK 28.2, `--lts --enable-gmp --enable-openssl --enable-android-media-codec --enable-android-zlib --disable-arm-v7a` |
+| `.github/workflows/build-ffmpeg.yml` | manual (`workflow_dispatch`) rebuild job from the `InfinityLoop1308/ffmpeg-kit` fork, NDK 28.2, `--lts --enable-gmp --enable-openssl --enable-android-media-codec --enable-android-zlib --disable-arm-v7a` (+ optional `extra_options` input, default empty) |
 
 Per-ABI native cost measured from the current debug APKs (uncompressed):
 
@@ -114,8 +116,8 @@ FFmpeg is replaceable.
 
 ### 2.3 Why remove it
 
-1. **Upstream is retired.** arthenica retired ffmpeg-kit on 2026-01-06
-   (announced "Saying Goodbye to FFmpegKit"), archived the repository, and
+1. **Upstream is retired.** arthenica retired ffmpeg-kit on 2025-01-06
+   (announced "Saying Goodbye to FFmpegKit"; repo archived June 2025), and
    stated already-published binaries will be removed. No new releases, no
    CVE fixes, no FFmpeg 6/7 upgrade. We ship FFmpeg 5.x-era natives with no
    patch path except rebuilding a dead fork ourselves.
@@ -137,12 +139,7 @@ FFmpeg is replaceable.
   consistent with an NDK r27+ rebuild (the workflow pins NDK 28.2). So
   "the app will crash on 16 KB devices" is **not** a live argument — the
   urgency is maintenance/security debt, not an active crash.
-- **The rebuild workflow cannot reproduce the committed AAR as committed.**
-  `.github/workflows/build-ffmpeg.yml` passes `--disable-arm-v7a`, yet the
-  committed `.aar` contains `armeabi-v7a` and `x86` outputs. Either the AAR
-  was built with different options or by a different run; neither is
-  recorded. Treat the current AAR as provenance-unknown even though a build
-  script exists.
+- **The rebuild workflow could not reproduce the committed AAR as committed (with default options):** `.github/workflows/build-ffmpeg.yml` passed `--disable-arm-v7a`, yet the committed `.aar` contained `armeabi-v7a` and `x86` outputs, and the manual `extra_options` input (appended to `BUILD_OPTIONS`) could explain outputs the fixed flags would exclude — but no recorded run documents which options produced the committed AAR, leaving it provenance-unknown (the AARs, module, and workflow are all deleted by this branch).
 - **ffmpeg is more forgiving than its replacements.** `-c copy` tolerates
   timestamp gaps/overlaps and odd brand combos that `MediaMuxer` (strictly
   increasing PTS per track) and `Mp4FromDashWriter` (requires ≥ 8 samples
@@ -171,7 +168,7 @@ and the `smart-exception-java` dependency.
   not supported yet") and no inline-manifest support (already rejected) —
   keep rejecting them.
 
-## 4. Current-state inventory (for the implementer)
+## 4. Pre-removal inventory (`main@15ed881` snapshot, for reference)
 
 | Path | Role |
 |---|---|
@@ -203,7 +200,7 @@ muxers. New `SabrJavaMuxer` (same call shape as `SabrFfmpegMuxer`:
 | mp4 | mp4 | `Mp4FromDashWriter` over both inputs, `selectTracks(0, 0)` (== today's `-map i:v? -map i:a?` for the well-formed case). Model on `Mp4FromDashMuxer`. |
 | webm | webm | `WebMWriter` over both inputs. Model on `WebMMuxer`, but select the **video** track from the video source (WebMMuxer picks audio-per-source for its DASH case) and keep its fake-video-cover-track handling in mind; verify with `getTracksFromSource`. |
 | single input, any | — | keep today's fast paths: direct copy when the single track can be copied verbatim (extend `canCopySingleInputDirectly` reasoning to mp4: concatenated init+fragments are already playable fragmented MP4 — but confirm players/seek behavior, else run the single-track muxer), and `M4aNoDash`-style (`setMainBrand("M4A ")`) single-track mux for audio-only missions (`kind == 'a'`). |
-| **mixed** (mp4↔webm) | — | decide in the spike (section 7.1): option A — constrain pairing where the format is chosen (prefer same-container audio for the picked video; needs a `SabrDownloadFormatResolver`/UI-adjacent change); option B — `MediaExtractor`→`MediaMuxer` MP4 fallback for mixed pairs only. Do not silently produce unplayable files: mixed input that cannot be muxed must raise `Reason.MUXING`, never a corrupt output. |
+| **mixed** (mp4↔webm) | — | decide in the spike (section 9.1): option A — constrain pairing where the format is chosen (prefer same-container audio for the picked video; needs a `SabrDownloadFormatResolver`/UI-adjacent change); option B — `MediaExtractor`→`MediaMuxer` MP4 fallback for mixed pairs only. Do not silently produce unplayable files: mixed input that cannot be muxed must raise `Reason.MUXING`, never a corrupt output. |
 
 Preserve today's observable behavior: `mission.psState = 1` + `writeThisToFile()`
 before muxing; `psState = 0` + `SabrDownloadException(Reason.MUXING, …)` on
@@ -215,15 +212,17 @@ extension; delete the temp `output.*` after copy as today.
 
 ### 5.2 HLS: framework `MediaExtractor` → `MediaMuxer`
 
-`minSdk` is 23; `MediaMuxer` exists since API 18 (`MUXER_OUTPUT_MPEG_4`) with
-WebM output since API 26 — no new dependency, no native code. Per temp input
-file:
+`minSdk` is 30 (raised from 23 after implementation; WebM output since
+API 26 is therefore always available); `MediaMuxer` needs no new
+dependency, no native code. Per temp input file:
 
 1. `MediaExtractor.setDataSource(path)`; iterate tracks, read
    `MediaFormat` (`MIME`, `DURATION`, codec-specific-data).
 2. Mirror today's `-map` semantics: for `kind == 'a'` single-input missions
-   take audio tracks only (`-map 0:a? -vn`); otherwise take the first video
-   and first audio track per input (today's `-map i:v? -map i:a?`).
+   take audio tracks only (`-map 0:a? -vn`); otherwise keep every audio
+   track plus the first video track across inputs (a superset of
+   `-map i:v? -map i:a?` that preserves alternate dubs while never playing
+   two videos at once).
 3. `MediaMuxer.addTrack()` per selected track, `start()`, then per input,
    per track: `seekTo`/`selectTrack`, loop `readSampleData` → `writeSampleData`
    with `BufferInfo` (offset/size/`presentationTimeUs`/flags). **Rewrite PTS
@@ -239,10 +238,13 @@ file:
 Container decisions:
 
 - Output container follows today's `outputExtension()` (storage filename).
-  `mp4/m4a/mov/m4v` → `MUXER_OUTPUT_MPEG_4`; `webm` → `MUXER_OUTPUT_WEBM`
-  (API 26+; below that, fail closed with a clear error — HLS outputs are
-  MP4-family in practice via the manifest/audio fallbacks, so this is a
-  backstop). Unknown extensions keep today's `mp4` default.
+  `mp4` → `MUXER_OUTPUT_MPEG_4`; `m4a` (audio-only) → `MUXER_OUTPUT_MPEG_4`;
+  `webm` → `MUXER_OUTPUT_WEBM` (always available at `minSdk` 30 — HLS outputs
+  are MP4-family in practice via the manifest/audio fallbacks, so this is a
+  backstop). `mov`/`m4v`/anything else fails closed with `IOException`
+  (MediaMuxer always writes MP4 brands, so those suffixes would mislabel).
+  The `mp4` default applies only to blank/non-alphanumeric names via
+  `downloadOutputExtension`.
 - **MP3 fast path:** if all selected tracks are MP3 and the output extension
   is `mp3` (SoundCloud-style audio HLS), skip the muxer entirely and
   concatenate inputs — remuxing MP3→MP4 via `MediaMuxer` is unsupported and
@@ -263,28 +265,30 @@ Container decisions:
   `2` = done, `0` = failed) and the `DownloadMission.ERROR_*` buckets;
   map every new failure mode onto the existing `SabrDownloadException.Reason`
   / `IOException` shapes rather than inventing codes.
-- Keep the user-visible strings stable ("…ffmpeg remux failed" wording
-  should change to name the new muxer, but keep the `session.returnCode`-style
-  detail — append the underlying exception message instead).
+- Rename the user-visible prefix from "…ffmpeg remux failed" to
+  "…framework remux failed" (SABR: "…java mux failed") and append the
+  underlying exception message. There is no return code anymore — the old
+  ffmpeg-kit `session.returnCode` no longer exists; the `IOException` +
+  message is the whole diagnostic.
 
 ### 5.4 Deletion checklist (execute last, section 9.4)
 
-- [ ] Delete `PipePipeClient/ffmpeg/` (AAR, `.bk`, `build.gradle.kts`,
-      empty `build/`).
-- [ ] `PipePipeClient/settings.gradle`: remove `include ':ffmpeg'`.
-- [ ] `PipePipeClient/app/build.gradle`: remove commented Maven line +
+- [x] Delete `PipePipeClient/ffmpeg/` (AAR, `.bk`, `build.gradle.kts`;
+      untracked `build/` output needs no commit).
+- [x] `PipePipeClient/settings.gradle`: remove `include ':ffmpeg'`.
+- [x] `PipePipeClient/app/build.gradle`: remove commented Maven line +
       `project(':ffmpeg')` + `smart-exception-java`.
-- [ ] Delete or repurpose `.github/workflows/build-ffmpeg.yml` (it builds
-      something nothing consumes afterward).
-- [ ] Remove the two `com.arthenica.ffmpegkit` imports and both
-      `remuxWithFfmpeg` methods; no other source references exist
-      (only `SabrDownloader.kt:104` calls into the SABR muxer wrapper).
-- [ ] Verify `proguard-rules.pro` needs no change (no arthenica keep rules
-      exist today) and the manifest needs none (the AAR's manifest merged
-      automatically; nothing in `app/src/main/AndroidManifest.xml` names it).
-- [ ] Verify APKs: no `libav*`/`libsw*`/`libffmpegkit*` under `lib/` per ABI;
-      only `libandroidx.graphics.path.so` should remain.
-- [ ] Re-run `./scripts/check.sh` (Fast Gate) from a clean worktree.
+- [x] Delete `.github/workflows/build-ffmpeg.yml` (it built something
+      nothing consumes afterward; repurposing was rejected).
+- [x] Remove the `com.arthenica.ffmpegkit` imports (`FFmpegKit` +
+      `ReturnCode` in each of the two files) and both `remuxWithFfmpeg`
+      methods (replaced by `SabrJavaMuxer` + `HlsFrameworkMuxer`;
+      verified no source references remain).
+- [x] Verify `proguard-rules.pro` needs no change (no arthenica keep rules)
+      and the manifest needs none.
+- [x] Verify APKs: no `libav*`/`libsw*`/`libffmpegkit*` under `lib/` per ABI;
+      only `libandroidx.graphics.path.so` remains (arm64 debug ~51 MB).
+- [x] Re-run `./scripts/check.sh` (Fast Gate) from a clean worktree.
 
 ## 6. Edge cases and risks
 
@@ -292,14 +296,14 @@ Container decisions:
 |---|---|---|
 | 6.1 | Very short clips: `Mp4FromDashWriter` warns it needs ≥ 8 samples per track | Spike must include a < 8-sample fixture; if it fails, fall back to direct/fragmented copy for that case and document the threshold |
 | 6.2 | Mixed-container SABR pairs (resolver picks by itag, no container check) | Section 5.1 mixed row: constrain pairing or MediaMuxer fallback; never emit corrupt output; `Reason.MUXING` otherwise |
-| 6.3 | VP9/Opus-in-MP4 through framework `MediaMuxer` | Device-dependent — verify on API 23/26/29/34 emulators in the spike; if unsupported, route those pairs to the Java muxers (preferred) |
+| 6.3 | VP9/Opus-in-MP4 through framework `MediaMuxer` | Device-dependent — verify on API 30/33/34+ emulators in the spike; if unsupported, route those pairs to the Java muxers (preferred) |
 | 6.4 | Non-monotonic PTS in TS sources | Rewrite/shift per 5.2(3); log corrections in debug builds; failure only if samples are unorderable |
 | 6.5 | Multi-GB outputs (`co64`) | `Mp4FromDashWriter` already handles `THRESHOLD_FOR_CO64`; `MediaMuxer` handles large files natively — include a large-output case in QA, don't assume |
 | 6.6 | 60fps / B-frames | `MediaMuxer` supports B-frames since N MR1; Java writer uses 6-samples-per-chunk packing — verify A/V sync on a 60fps fixture |
 | 6.7 | Pause/resume across the mux step | Checkpoint classes unchanged; remux-output reuse validation unchanged; test pause-during-remux explicitly (pause during postprocessing is a no-op by design — keep that) |
 | 6.8 | WebM "fake video cover track" | `WebMMuxer` precedent: enumerate via `getTracksFromSource`, pick by `TrackKind`, don't assume index 0 |
 | 6.9 | Single-track outputs' brands | audio-only MP4 must keep the `M4A ` main brand (`M4aNoDash` precedent), else players mislabel |
-| 6.10 | Unknown/future output extensions | keep today's `mp4` default; never crash on an unrecognized suffix |
+| 6.10 | Unknown/future output extensions | fail closed with `IOException` (`mp4` default applies only to blank/non-alphanumeric names); never crash, never mislabel |
 | 6.11 | `M4aNoDash.test()`-style skip | if a single input is already a plain (non-fragmented) file of the right brand, skip muxing as `M4aNoDash.test()` does for `dash`/`iso5` brands |
 
 ## 7. Fixtures to capture BEFORE deleting anything
@@ -332,7 +336,7 @@ For each fixture in section 7, verify replacement output vs ffmpeg output:
 | Byte-size within ±5% of ffmpeg output (stream-copy should be near-identical modulo headers) | `ls -l` |
 | Pause → resume → complete across the mux step | manual, both downloaders |
 | In-flight upgrade: old-version mission files resume under new build | install old, start SABR + HLS downloads, upgrade, resume |
-| API-level sweep: 23 (minSdk), 26 (WebM-output gate), 29, 34+ | emulators; 6.3 lives or dies here |
+| API-level sweep: 30 (minSdk), 31/33, 34+ | emulators; 6.3 lives or dies here |
 | Error paths: corrupt truncated input → clean failure, no partial file kept, correct error bucket | unit/instrumented test with truncated fixture |
 
 ## 9. Work breakdown (rough estimates)
@@ -346,7 +350,7 @@ Per `AGENTS.md`: each code step in its own worktree off `main`
 - Feed captured SABR mp4/webm temp files through `Mp4DashReader.parse()` /
   `WebMReader` (`parseSources` + `getTracksFromSource`) in a scratch
   instrumented test. Success = tracks enumerated with sane sample tables.
-- Feed HLS TS + fMP4 fixtures through `MediaExtractor` on API 23/26/34
+- Feed HLS TS + fMP4 fixtures through `MediaExtractor` on API 30/33/34+
   emulators; record which track MIME types appear and whether VP9/Opus
   survive `MediaMuxer.addTrack` per API level (decides 6.3 and the 5.1 mixed
   row).
@@ -369,7 +373,7 @@ Per `AGENTS.md`: each code step in its own worktree off `main`
   pipeline + MP3 concat fast path. Keep method signature, checkpoint calls
   (`markRemuxOutput`), progress/`psState` behavior, `outputExtension()`.
 - Tests with fixtures: TS single, fMP4+init, encrypted, dual-resource,
-  audio-only, discontinuity playlist, unknown-extension default.
+  audio-only, discontinuity playlist, unknown-extension rejection.
 - Commit atomically; `./scripts/check.sh` green.
 
 ### 9.4 Delete ffmpeg (0.5 day)
@@ -408,18 +412,23 @@ HLS (`HlsDownloader.kt`, shell string via `FFmpegKit.execute`):
 
 ```text
 -y -i "<abs input-0>" [-i "<abs input-N>"]
-  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...])
+  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...]) | (no -map args)
   -c copy -movflags +faststart "<abs output>"
 ```
+
+Single non-audio input takes the no-`-map` alternative (old code adds
+`-map` only for single-audio or multi-input).
 
 SABR (`SabrFfmpegMuxer.kt`, argv via `executeWithArguments`):
 
 ```text
 -hide_banner -nostats -loglevel fatal -y
   -i <abs input-0> [-i <abs input-1>]
-  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...])
+  (-map 0:a? -vn) | (-map 0:v? -map 0:a? [-map 1:v? -map 1:a? ...]) | (no -map args)
   -c copy [-movflags +faststart] <abs output>
 ```
+
+Same no-`-map` rule as HLS: single non-audio input gets no `-map` args.
 
 ### B. Size and ELF evidence (measured 2026-10-24)
 
@@ -436,9 +445,8 @@ SABR (`SabrFfmpegMuxer.kt`, argv via `executeWithArguments`):
 
 ### C. Provenance note
 
-Rebuild path exists (`.github/workflows/build-ffmpeg.yml` → fork
-`InfinityLoop1308/ffmpeg-kit`, NDK 28.2) but **as committed it cannot
-reproduce the committed AAR**: the workflow passes `--disable-arm-v7a`
-while the AAR ships `armeabi-v7a` + `x86`. If removal is deferred, the
-minimum viable stopgap is recording the exact options/commit that produced
-the next AAR alongside it.
+A rebuild path existed (`.github/workflows/build-ffmpeg.yml` → fork
+`InfinityLoop1308/ffmpeg-kit`, NDK 28.2) but **as committed it could not
+reproduce the committed AAR**: the workflow passed `--disable-arm-v7a`
+while the AAR shipped `armeabi-v7a` + `x86` (the AARs, module, and
+workflow are all deleted by this branch).

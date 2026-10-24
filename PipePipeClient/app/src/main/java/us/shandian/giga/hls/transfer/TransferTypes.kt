@@ -28,3 +28,11 @@ class TransferInterruptedException : IOException("Transfer interrupted")
 class TransferHttpException(
     val statusCode: Int,
 ) : IOException("HTTP $statusCode")
+
+// Deterministic validation failure (size caps, Range-ignored servers,
+// decrypt/key/IV errors): re-issuing the identical request cannot heal
+// it, so TransferRetryPolicy never retries this type.
+class NonRetryableTransferException(
+    message: String,
+    cause: Throwable? = null,
+) : IOException(message, cause)

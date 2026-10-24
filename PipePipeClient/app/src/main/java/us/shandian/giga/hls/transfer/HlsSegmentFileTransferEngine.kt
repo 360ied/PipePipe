@@ -1,6 +1,7 @@
 package us.shandian.giga.hls.transfer
 
 import android.util.Log
+import org.schabi.newpipe.BuildConfig
 import us.shandian.giga.hls.manifest.HlsManifestResolver
 import us.shandian.giga.hls.manifest.HlsMasterPlaylist
 import us.shandian.giga.hls.manifest.HlsMediaPlaylist
@@ -22,11 +23,12 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-class HlsSegmentFileTransferEngine(
+internal class HlsSegmentFileTransferEngine(
     private val config: HttpTransferConfig = HttpTransferConfig(),
     private val controller: TransferController = AlwaysRunningTransferController,
 ) {
@@ -52,28 +54,33 @@ class HlsSegmentFileTransferEngine(
         val fingerprint = fingerprint(playlist)
         val target = targetFile.absoluteFile
         val parent = target.parentFile ?: throw IOException("HLS target has no parent: $target")
-        if (!parent.exists() && !parent.mkdirs()) {
+        // Triple-check: mkdirs() false covers both real failure and a lost
+        // creation race.
+        if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
             throw IOException("Cannot create HLS target parent: $parent")
         }
 
+        // SabrDownloader parity: a truncated temp file must restart, never
+        // zero-pad up to a stale byte count.
         val canResume = checkpoint != null &&
             checkpoint.playlistFingerprint == fingerprint &&
             checkpoint.tempFilePath == target.absolutePath &&
-            target.exists()
+            target.exists() &&
+            target.length() >= checkpoint.bytesWritten
 
         val startedAt = System.currentTimeMillis()
-        var outputPosition = if (canResume) checkpoint!!.bytesWritten else 0L
-        var startSegmentIndex = if (canResume) {
-            checkpoint!!.nextSegmentIndex.coerceIn(0, playlist.segments.size)
-        } else {
-            0
+        // canResume implies a non-null checkpoint; bind once instead of !!.
+        val resumeCheckpoint = if (canResume) requireNotNull(checkpoint) else null
+        var outputPosition = resumeCheckpoint?.bytesWritten ?: 0L
+        var startSegmentIndex = resumeCheckpoint?.nextSegmentIndex?.coerceIn(0, playlist.segments.size) ?: 0
+        if (BuildConfig.DEBUG) {
+            Log.d(
+                TAG,
+                "resourceIndex=$resourceIndex segments=${playlist.segments.size} " +
+                    "init=${playlist.initSegment != null} byteranges=${playlist.segments.count { it.byteRange != null }} " +
+                    "resume=$canResume startSegment=$startSegmentIndex parallelism=${config.parallelism}"
+            )
         }
-        Log.d(
-            TAG,
-            "resourceIndex=$resourceIndex segments=${playlist.segments.size} " +
-                "init=${playlist.initSegment != null} byteranges=${playlist.segments.count { it.byteRange != null }} " +
-                "resume=$canResume startSegment=$startSegmentIndex parallelism=${config.parallelism}"
-        )
         if (!canResume && checkpoint != null) {
             onRestart()
             onCheckpoint(
@@ -95,9 +102,15 @@ class HlsSegmentFileTransferEngine(
         RandomAccessFile(target, "rw").use { output ->
             output.setLength(outputPosition)
 
-            if (!canResume && playlist.initSegment != null) {
-                val result = retryPolicy.withRetries {
-                    if (playlist.initSegment.encryptionKey == null) {
+            // Gate on bytes actually on disk, not the resume flag: if a prior
+            // attempt published a reset checkpoint and then failed the init
+            // download, `canResume` is true with 0 bytes and the init must
+            // still be written, or every later resume skips it forever.
+            if (outputPosition == 0L && playlist.initSegment != null) {
+                // Only the download itself is retried: decrypt/append
+                // failures are deterministic and must not re-download.
+                val result = if (playlist.initSegment.encryptionKey == null) {
+                    retryPolicy.withRetries {
                         downloadPart(
                             url = withManifestCookie(playlist.initSegment.url, resolved.rawMediaPlaylistUrl),
                             byteRange = playlist.initSegment.byteRange,
@@ -105,30 +118,39 @@ class HlsSegmentFileTransferEngine(
                             output = output,
                             outputPosition = outputPosition,
                             listener = listener,
+                            // Inits are moov boxes (KBs); a playlist-controlled
+                            // init URL must not fill disk unboundedly.
+                            maxTotalBytes = MAX_INIT_SEGMENT_BYTES,
                         )
-                    } else {
-                        val memory = downloadPartToMemory(
+                    }
+                } else {
+                    val memory = retryPolicy.withRetries {
+                        downloadPartToMemory(
                             url = withManifestCookie(playlist.initSegment.url, resolved.rawMediaPlaylistUrl),
                             byteRange = playlist.initSegment.byteRange,
                             defaultByteRangeStart = 0L,
+                            // Same init cap as the unencrypted path: a
+                            // playlist-controlled init URL must not fill
+                            // memory unboundedly before decrypt/append.
+                            maxTotalBytes = MAX_INIT_SEGMENT_BYTES,
                         )
-                        val decrypted = decryptHlsBytes(
-                            encrypted = memory.bytes,
-                            encryptionKey = playlist.initSegment.encryptionKey,
-                            sequenceNumber = playlist.mediaSequence,
-                            rawMediaPlaylistUrl = resolved.rawMediaPlaylistUrl,
-                            keyCache = keyCache,
-                        )
-                        appendBytesToOutput(
-                            bytes = decrypted,
-                            output = output,
-                            outputPosition = outputPosition,
-                            expectedOutputBytes = outputPosition + decrypted.size,
-                            listener = listener,
-                            resourceUrl = memory.finalUrl,
-                        )
-                        TransferResult(decrypted.size.toLong(), decrypted.size.toLong(), memory.statusCode, memory.finalUrl)
                     }
+                    val decrypted = decryptHlsBytes(
+                        encrypted = memory.bytes,
+                        encryptionKey = playlist.initSegment.encryptionKey,
+                        sequenceNumber = playlist.mediaSequence,
+                        rawMediaPlaylistUrl = resolved.rawMediaPlaylistUrl,
+                        keyCache = keyCache,
+                    )
+                    appendBytesToOutput(
+                        bytes = decrypted,
+                        output = output,
+                        outputPosition = outputPosition,
+                        expectedOutputBytes = outputPosition + decrypted.size,
+                        listener = listener,
+                        resourceUrl = memory.finalUrl,
+                    )
+                    TransferResult(decrypted.size.toLong(), decrypted.size.toLong(), memory.statusCode, memory.finalUrl)
                 }
                 outputPosition += result.bytesWritten
                 lastStatusCode = result.statusCode
@@ -167,11 +189,13 @@ class HlsSegmentFileTransferEngine(
             output.fd.sync()
         }
 
-        Log.d(
-            TAG,
-            "resourceIndex=$resourceIndex bytes=$outputPosition segments=${playlist.segments.size} " +
-                "status=$lastStatusCode elapsedMs=${System.currentTimeMillis() - startedAt}"
-        )
+        if (BuildConfig.DEBUG) {
+            Log.d(
+                TAG,
+                "resourceIndex=$resourceIndex bytes=$outputPosition segments=${playlist.segments.size} " +
+                    "status=$lastStatusCode elapsedMs=${System.currentTimeMillis() - startedAt}"
+            )
+        }
         return TransferResult(
             bytesWritten = outputPosition,
             expectedBytes = -1,
@@ -205,10 +229,21 @@ class HlsSegmentFileTransferEngine(
         playlist.segments.forEachIndexed { index, segment ->
             expectedSegmentBytes[index] = segment.byteRange?.length ?: -1L
         }
+        // Bound concurrency by memory, not just slots: each worker can
+        // buffer a whole segment (up to MAX_SEGMENT_BYTES) before the
+        // in-flight ledger sees a byte, so uncapped parallelism makes the
+        // retained ceiling a fiction (~parallelism x 256 MiB off-ledger).
         val parallelism = config.parallelism.coerceIn(1, remainingSegments)
+            .coerceAtMost(maxOf(1, (MAX_RETAINED_BYTES / MAX_SEGMENT_BYTES).toInt()))
         val executor = Executors.newFixedThreadPool(parallelism)
         val completion = ExecutorCompletionService<DownloadedSegment>(executor)
         val downloadedSegments = mutableMapOf<Int, DownloadedSegment>()
+        // In-flight ledger: workers buffer whole segments before they land
+        // in downloadedSegments, so gate submission on retained + in-flight
+        // or worst case is ~parallelism x 256 MiB off-ledger. A worker
+        // failure aborts the whole transfer, so no decrement is needed on
+        // the error path — only success moves bytes to the retained ledger.
+        val inFlightBytes = AtomicLong(0)
         var nextToSubmit = startSegmentIndex
         var nextToAppend = startSegmentIndex
         var submitted = 0
@@ -222,6 +257,7 @@ class HlsSegmentFileTransferEngine(
             val segment = playlist.segments[segmentIndex]
             completion.submit(Callable {
                 downloadSegmentToMemory(
+                    onBuffered = { delta -> inFlightBytes.addAndGet(delta) },
                     segmentIndex = segmentIndex,
                     segment = segment,
                     rawMediaPlaylistUrl = rawMediaPlaylistUrl,
@@ -274,6 +310,9 @@ class HlsSegmentFileTransferEngine(
                 }
 
                 completed++
+                // Move from the in-flight ledger to the retained ledger
+                // (decrypt output size matches input modulo padding).
+                inFlightBytes.addAndGet(-downloaded.bytes.size.toLong())
                 expectedSegmentBytes[downloaded.segmentIndex] = downloaded.expectedBytes
                 downloadedSegments[downloaded.segmentIndex] = downloaded
 
@@ -304,12 +343,19 @@ class HlsSegmentFileTransferEngine(
                     )
                 }
 
-                while (nextToSubmit < playlist.segments.size && submitted - completed < parallelism) {
+                while (nextToSubmit < playlist.segments.size && submitted - completed < parallelism &&
+                    retainedBytes(downloadedSegments) + inFlightBytes.get() < MAX_RETAINED_BYTES
+                ) {
                     submitNextSegment()
                 }
             }
         } finally {
             executor.shutdownNow()
+            try {
+                executor.awaitTermination(1, TimeUnit.SECONDS)
+            } catch (error: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
         }
 
         return TransferResult(
@@ -328,14 +374,35 @@ class HlsSegmentFileTransferEngine(
         mediaSequence: Long,
         keyCache: MutableMap<String, ByteArray>,
         defaultByteRangeStart: Long,
+        onBuffered: (Long) -> Unit = {},
     ): DownloadedSegment {
         ensureRunning()
+        // Roll back each failed attempt's bytes: without this the shared
+        // in-flight ledger keeps phantom bytes from attempts that threw,
+        // the submit gate sees a permanently full budget, and the drain
+        // loop spins forever with zero pending futures. Each operation
+        // invocation is one attempt, so track-and-rollback lives here
+        // without touching the shared retry policy.
+        var attemptBuffered = 0L
         val result = retryPolicy.withRetries {
-            downloadPartToMemory(
-                url = withManifestCookie(segment.url, rawMediaPlaylistUrl),
-                byteRange = segment.byteRange,
-                defaultByteRangeStart = defaultByteRangeStart,
-            )
+            try {
+                downloadPartToMemory(
+                    url = withManifestCookie(segment.url, rawMediaPlaylistUrl),
+                    byteRange = segment.byteRange,
+                    defaultByteRangeStart = defaultByteRangeStart,
+                    onBuffered = { delta ->
+                        attemptBuffered += delta
+                        onBuffered(delta)
+                    },
+                )
+            } catch (error: IOException) {
+                onBuffered(-attemptBuffered)
+                attemptBuffered = 0L
+                throw error
+            }
+        }
+        if (result.bytes.size.toLong() > MAX_SEGMENT_BYTES) {
+            throw NonRetryableTransferException("HLS segment too large: ${result.bytes.size}")
         }
         val bytes = decryptHlsBytes(
             encrypted = result.bytes,
@@ -383,24 +450,40 @@ class HlsSegmentFileTransferEngine(
         if (!playlist.isEndList) {
             throw UnsupportedHlsPlaylistException("Live HLS playlists are not supported yet")
         }
+        // Fail here with an accurate bucket, not later in remux with
+        // "missing input": a 0-segment VOD playlist has nothing to mux.
+        if (playlist.segments.isEmpty()) {
+            throw UnsupportedHlsPlaylistException("Empty HLS playlist")
+        }
         if (playlist.hasUnsupportedEncryption) {
             throw UnsupportedHlsPlaylistException("Only AES-128 HLS encryption is supported")
         }
-        if (initEncryptionKey?.url == null && initEncryptionKey != null) {
+        if (initEncryptionKey != null && initEncryptionKey.url == null) {
             throw UnsupportedHlsPlaylistException("HLS init encryption key URI is missing")
         }
-        if (initEncryptionKey != null && initEncryptionKey.iv == null) {
-            throw UnsupportedHlsPlaylistException("Encrypted HLS init segments require an explicit IV")
-        }
+        // No explicit-IV requirement for init: decryptHlsBytes falls back
+        // to the sequence-derived IV (mediaSequence for the init) exactly
+        // like media segments, per the EXT-X-KEY default-IV rule.
         if (initEncryptionKey != null && initSegment.byteRange != null) {
             throw UnsupportedHlsPlaylistException("Encrypted HLS init byte ranges are not supported yet")
         }
-        if (playlist.segments.any { it.encryptionKey?.url == null && it.encryptionKey != null }) {
+        if (playlist.segments.any { it.encryptionKey != null && it.encryptionKey.url == null }) {
             throw UnsupportedHlsPlaylistException("HLS encryption key URI is missing")
         }
         if (playlist.segments.any { it.encryptionKey != null && it.byteRange != null }) {
             throw UnsupportedHlsPlaylistException("Encrypted HLS byte ranges are not supported yet")
         }
+    }
+
+    private fun rangeWindow(
+        byteRange: HlsByteRange?,
+        defaultByteRangeStart: Long,
+    ): Pair<Long?, Long?> {
+        val rangeStart = byteRange?.offset ?: byteRange?.let { defaultByteRangeStart }
+        val rangeEnd = byteRange?.let { range ->
+            (range.offset ?: defaultByteRangeStart) + range.length - 1
+        }
+        return rangeStart to rangeEnd
     }
 
     @Throws(IOException::class)
@@ -411,9 +494,9 @@ class HlsSegmentFileTransferEngine(
         output: RandomAccessFile,
         outputPosition: Long,
         listener: TransferProgressListener?,
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
     ): TransferResult {
-        val rangeStart = byteRange?.offset ?: if (byteRange == null) null else defaultByteRangeStart
-        val rangeEnd = byteRange?.let { rangeStart!! + it.length - 1 }
+        val (rangeStart, rangeEnd) = rangeWindow(byteRange, defaultByteRangeStart)
 
         connectionFactory.open(url, "GET", rangeStart, rangeEnd)
             .useTransferConnection { connection ->
@@ -422,7 +505,10 @@ class HlsSegmentFileTransferEngine(
                     throw TransferHttpException(statusCode)
                 }
                 if (byteRange != null && statusCode != java.net.HttpURLConnection.HTTP_PARTIAL) {
-                    throw TransferHttpException(statusCode)
+                    // A 200 here means the server ignored Range: surfacing
+                    // it as "HTTP 200" would look like success while the
+                    // byte accounting below is necessarily wrong.
+                    throw NonRetryableTransferException("HLS server ignored Range request for $url (got 200, expected 206)")
                 }
 
                 val expectedBytes = expectedBytes(byteRange, connection.contentLengthLong)
@@ -434,7 +520,11 @@ class HlsSegmentFileTransferEngine(
                         expectedOutputBytes = expectedBytes.takeIf { it > 0 }?.let { outputPosition + it } ?: -1,
                         listener = listener,
                         resourceUrl = url,
+                        maxTotalBytes = maxTotalBytes,
                     )
+                }
+                if (expectedBytes > 0 && bytesWritten != expectedBytes) {
+                    throw IOException("HLS segment truncated: got $bytesWritten, expected $expectedBytes")
                 }
 
                 return TransferResult(
@@ -451,9 +541,10 @@ class HlsSegmentFileTransferEngine(
         url: String,
         byteRange: HlsByteRange?,
         defaultByteRangeStart: Long,
+        onBuffered: (Long) -> Unit = {},
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
     ): MemoryTransferResult {
-        val rangeStart = byteRange?.offset ?: if (byteRange == null) null else defaultByteRangeStart
-        val rangeEnd = byteRange?.let { rangeStart!! + it.length - 1 }
+        val (rangeStart, rangeEnd) = rangeWindow(byteRange, defaultByteRangeStart)
         connectionFactory.open(url, "GET", rangeStart, rangeEnd)
             .useTransferConnection { connection ->
                 val statusCode = connection.responseCode
@@ -461,11 +552,22 @@ class HlsSegmentFileTransferEngine(
                     throw TransferHttpException(statusCode)
                 }
                 if (byteRange != null && statusCode != java.net.HttpURLConnection.HTTP_PARTIAL) {
-                    throw TransferHttpException(statusCode)
+                    // Same Range-ignored diagnosis as the disk path: a 200
+                    // with a byte range can never satisfy truncation checks.
+                    throw NonRetryableTransferException("HLS server ignored Range request for $url (got 200, expected 206)")
                 }
 
                 val bytes = connection.inputStream.use { input ->
-                    copyPartToMemory(input, initialMemoryBufferCapacity(connection.contentLengthLong))
+                    copyPartToMemory(
+                        input,
+                        initialMemoryBufferCapacity(connection.contentLengthLong),
+                        onBuffered,
+                        maxTotalBytes,
+                    )
+                }
+                val expected = expectedBytes(byteRange, connection.contentLengthLong)
+                if (expected > 0 && bytes.size.toLong() != expected) {
+                    throw IOException("HLS segment truncated: got ${bytes.size}, expected $expected")
                 }
 
                 return MemoryTransferResult(
@@ -485,9 +587,11 @@ class HlsSegmentFileTransferEngine(
         expectedOutputBytes: Long,
         listener: TransferProgressListener?,
         resourceUrl: String,
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
     ): Long {
         val buffer = ByteArray(config.bufferSize)
         var total = 0L
+        output.seek(outputPosition)
 
         while (true) {
             ensureRunning()
@@ -496,9 +600,12 @@ class HlsSegmentFileTransferEngine(
                 return total
             }
 
-            output.seek(outputPosition + total)
             output.write(buffer, 0, read)
             total += read
+            // A playlist-controlled URL must not fill disk beyond the cap.
+            if (total > maxTotalBytes) {
+                throw NonRetryableTransferException("HLS segment too large")
+            }
             listener?.onProgress(
                     TransferProgress(
                         bytesWritten = outputPosition + total,
@@ -510,9 +617,15 @@ class HlsSegmentFileTransferEngine(
     }
 
     @Throws(IOException::class)
-    private fun copyPartToMemory(input: InputStream, initialCapacity: Int = config.bufferSize): ByteArray {
+    private fun copyPartToMemory(
+        input: InputStream,
+        initialCapacity: Int = config.bufferSize,
+        onBuffered: (Long) -> Unit = {},
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
+    ): ByteArray {
         val buffer = ByteArray(config.bufferSize)
         val output = ByteArrayOutputStream(initialCapacity)
+        var total = 0L
 
         while (true) {
             ensureRunning()
@@ -522,6 +635,13 @@ class HlsSegmentFileTransferEngine(
             }
 
             output.write(buffer, 0, read)
+            total += read
+            onBuffered(read.toLong())
+            // In-loop ceiling: the post-hoc size check cannot save a process
+            // that already OOMed while buffering a lying stream.
+            if (total > maxTotalBytes) {
+                throw NonRetryableTransferException("HLS segment too large")
+            }
         }
     }
 
@@ -586,9 +706,25 @@ class HlsSegmentFileTransferEngine(
         }
         val keyUrl = encryptionKey.url
             ?: throw UnsupportedHlsPlaylistException("HLS encryption key URI is missing")
-        val key = synchronized(keyCache) {
-            keyCache[keyUrl] ?: downloadEncryptionKey(withManifestCookie(keyUrl, rawMediaPlaylistUrl))
-                .also { keyCache[keyUrl] = it }
+        // Double-checked lookup: never hold the cache monitor across
+        // network I/O with retry backoff, which would serialize all
+        // parallel segment workers on the first key download. Bind (never
+        // return) the cached bytes: this function returns decrypted media,
+        // not the key.
+        val cachedKey: ByteArray? = synchronized(keyCache) { keyCache[keyUrl] }
+        val key: ByteArray = if (cachedKey != null) {
+            cachedKey
+        } else {
+            val fresh = downloadEncryptionKey(withManifestCookie(keyUrl, rawMediaPlaylistUrl))
+            synchronized(keyCache) {
+                val raced = keyCache[keyUrl]
+                if (raced != null) {
+                    raced
+                } else {
+                    keyCache[keyUrl] = fresh
+                    fresh
+                }
+            }
         }
         val iv = encryptionKey.iv?.let { parseIv(it) } ?: ivFromSequence(sequenceNumber)
 
@@ -597,32 +733,49 @@ class HlsSegmentFileTransferEngine(
             cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"), IvParameterSpec(iv))
             cipher.doFinal(encrypted)
         } catch (error: Exception) {
-            throw IOException("HLS AES-128 decrypt failed", error)
+            throw NonRetryableTransferException("HLS AES-128 decrypt failed", error)
         }
     }
 
     @Throws(IOException::class)
     private fun downloadEncryptionKey(rawKeyUrl: String): ByteArray {
-        return retryPolicy.withRetries {
+        // Retry only the fetch; a wrong-size key is deterministic. Read with
+        // a hard 64-byte ceiling instead of the segment path: a compromised
+        // key URL serving megabytes must not reach the 256 MiB buffer.
+        val key = retryPolicy.withRetries {
             connectionFactory.open(rawKeyUrl, "GET", null, null).useTransferConnection { connection ->
                 val statusCode = connection.responseCode
                 if (statusCode < 200 || statusCode > 299) {
                     throw TransferHttpException(statusCode)
                 }
-                val key = connection.inputStream.use { input -> copyPartToMemory(input, AES_128_KEY_BYTES) }
-                if (key.size != AES_128_KEY_BYTES) {
-                    throw IOException("Invalid HLS AES-128 key size: ${key.size}")
+                connection.inputStream.use { input ->
+                    val buffer = ByteArray(MAX_KEY_BYTES + 1)
+                    var total = 0
+                    while (true) {
+                        val read = input.read(buffer, total, buffer.size - total)
+                        if (read == -1) {
+                            break
+                        }
+                        total += read
+                        if (total > MAX_KEY_BYTES) {
+                            throw NonRetryableTransferException("HLS AES-128 key too large")
+                        }
+                    }
+                    buffer.copyOf(total)
                 }
-                key
             }
         }
+        if (key.size != AES_128_KEY_BYTES) {
+            throw NonRetryableTransferException("Invalid HLS AES-128 key size: ${key.size}")
+        }
+        return key
     }
 
     @Throws(IOException::class)
     private fun parseIv(value: String): ByteArray {
         val hex = value.removePrefix("0x").removePrefix("0X")
         if (hex.length > AES_128_IV_BYTES * 2) {
-            throw IOException("HLS IV is too large")
+            throw NonRetryableTransferException("HLS IV is too large")
         }
         val padded = hex.padStart(AES_128_IV_BYTES * 2, '0')
         return try {
@@ -630,7 +783,7 @@ class HlsSegmentFileTransferEngine(
                 padded.substring(index * 2, index * 2 + 2).toInt(16).toByte()
             }
         } catch (error: NumberFormatException) {
-            throw IOException("Invalid HLS IV", error)
+            throw NonRetryableTransferException("Invalid HLS IV", error)
         }
     }
 
@@ -679,7 +832,15 @@ class HlsSegmentFileTransferEngine(
                 Thread.currentThread().interrupt()
                 TransferInterruptedException()
             }
-            else -> IOException(cause)
+            // Fatal Errors (e.g. OOM) must never masquerade as retryable I/O.
+            is Error -> throw cause
+            // Deterministic worker bugs (NPE, IAE) must fail fast, not
+            // burn retries: withRetries only catches IOException, so an
+            // unwrapped RuntimeException propagates straight to notifyError.
+            is RuntimeException -> throw cause
+            // Name the unexpected checked cause instead of a messageless
+            // wrapper.
+            else -> IOException("HLS segment failed: ${cause?.javaClass?.simpleName}", cause)
         }
     }
 
@@ -708,13 +869,16 @@ class HlsSegmentFileTransferEngine(
 
     private fun byteRangeStarts(segments: List<HlsSegment>): LongArray {
         val starts = LongArray(segments.size)
-        val nextOffsets = mutableMapOf<String, Long>()
+        // RFC 8216 section 4.3.2.2: an omitted OFFSET chains from the
+        // previous segment, regardless of URI — not per-URL. A per-URL map
+        // restarts at 0 on URI change and silently concats wrong bytes.
+        var nextStart = 0L
         for ((index, segment) in segments.withIndex()) {
             val byteRange = segment.byteRange
             if (byteRange != null) {
-                val start = byteRange.offset ?: nextOffsets[segment.url] ?: 0L
+                val start = byteRange.offset ?: nextStart
                 starts[index] = start
-                nextOffsets[segment.url] = start + byteRange.length
+                nextStart = start + byteRange.length
             }
         }
         return starts
@@ -752,11 +916,20 @@ class HlsSegmentFileTransferEngine(
         return try {
             val uri = URI(withoutCookie)
             buildString {
+                // Host + scheme are identity: the same path on another CDN
+                // is different bytes and must never resume as identical.
+                uri.scheme?.let { append(it).append("://") }
+                uri.host?.let { append(it) }
+                if (uri.port != -1) {
+                    append(':').append(uri.port)
+                }
                 append(uri.rawPath ?: "")
                 stableQuery(uri.rawQuery)?.let { append('?').append(it) }
             }
         } catch (error: Exception) {
-            withoutCookie.substringBefore('#').substringBefore('?')
+            // Fallback keeps the host (unlike the old path-only form) so a
+            // CDN switch still invalidates the fingerprint.
+            withoutCookie.substringBefore('#')
         }
     }
 
@@ -765,21 +938,33 @@ class HlsSegmentFileTransferEngine(
             return null
         }
 
+        // Normalize case and order: `?itag=1&sq=2` and `?sq=2&ITAG=1` are the
+        // same playlist and must not force a needless full restart.
         return rawQuery.split('&')
             .mapNotNull { part ->
-                val key = part.substringBefore('=').lowercase()
-                part.takeIf { key in STABLE_URL_QUERY_KEYS }
+                // ROOT locale: default-lowercase turns `ITAG` into `ıtag`
+                // under Turkish locale, silently dropping the query part.
+                val normalized = part.lowercase(java.util.Locale.ROOT)
+                normalized.takeIf { normalized.substringBefore('=') in STABLE_URL_QUERY_KEYS }
             }
             .takeIf { it.isNotEmpty() }
+            ?.sorted()
             ?.joinToString("&")
     }
 
     private fun withManifestCookie(url: String, manifestUrl: String): String {
-        if (url.contains("#cookie=") || url.contains('#')) {
+        if (url.contains("#cookie=")) {
             return url
         }
         val cookieIndex = manifestUrl.indexOf("#cookie=")
-        return if (cookieIndex < 0) url else url + manifestUrl.substring(cookieIndex)
+        if (cookieIndex < 0) {
+            return url
+        }
+        val cookie = manifestUrl.substring(cookieIndex)
+        // Fragments are never sent to servers; a non-cookie fragment would
+        // otherwise silently drop the manifest cookie, so attach the cookie
+        // in its place.
+        return if (url.contains('#')) url.substringBefore('#') + cookie else url + cookie
     }
 
     @Throws(TransferInterruptedException::class)
@@ -825,8 +1010,27 @@ class HlsSegmentFileTransferEngine(
         }
     }
 
+    private fun retainedBytes(buffered: Map<Int, DownloadedSegment>): Long {
+        return buffered.values.sumOf { it.bytes.size.toLong() }
+    }
+
     private companion object {
-        const val TAG = "HlsSegmentTransfer"
+        const val TAG = "HlsSegmentFileTransferEngine"
+        // Per-segment in-memory ceiling (parallel workers each buffer one
+        // whole segment): fail closed instead of risking OOM.
+        const val MAX_SEGMENT_BYTES = 256L * 1024L * 1024L
+        // Init segments are moov boxes, not media: cap them two orders of
+        // magnitude below segments (16 MiB still covers extreme cases).
+        const val MAX_INIT_SEGMENT_BYTES = 16L * 1024L * 1024L
+        // AES-128 keys are 16 bytes; anything beyond this from a key URL is
+        // not a key.
+        const val MAX_KEY_BYTES = 64
+        // Aggregate retained ceiling: out-of-order completions wait for the
+        // in-order prefix, so cap their sum and let submission stall until
+        // the prefix drains. Together with the memory-bounded parallelism
+        // above, worst-case residency is bounded (not just the retained
+        // map): ~parallelism x segment in-flight plus this retained cap.
+        const val MAX_RETAINED_BYTES = 512L * 1024L * 1024L
         const val MAX_INITIAL_MEMORY_BUFFER_BYTES = 16L * 1024L * 1024L
         const val AES_128_KEY_BYTES = 16
         const val AES_128_IV_BYTES = 16

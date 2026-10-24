@@ -339,10 +339,11 @@ public class DownloadMission extends Mission {
         }
 
         if (err instanceof IOException) {
-            if (err.getMessage().contains("Permission denied")) {
+            String message = err.getMessage();
+            if (message != null && message.contains("Permission denied")) {
                 code = ERROR_PERMISSION_DENIED;
                 err = null;
-            } else if (err.getMessage().contains("ENOSPC")) {
+            } else if (message != null && message.contains("ENOSPC")) {
                 code = ERROR_INSUFFICIENT_STORAGE;
                 err = null;
             } else if (!storage.canWrite()) {
@@ -578,6 +579,17 @@ public class DownloadMission extends Mission {
             hlsCheckpoint = null;
             sabrCheckpoint = null;
             sabrStarted = false;
+            psState = 0;
+            try {
+                HlsDownloader.cleanup(this);
+            } catch (Exception ignored) {
+                // Nothing to do.
+            }
+            try {
+                SabrDownloader.cleanup(this);
+            } catch (Exception ignored) {
+                // Nothing to do.
+            }
         }
 
         if (rollback) current = 0;

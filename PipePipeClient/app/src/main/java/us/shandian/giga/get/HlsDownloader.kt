@@ -1,8 +1,7 @@
 package us.shandian.giga.get
 
 import android.util.Log
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
+import org.schabi.newpipe.BuildConfig
 import us.shandian.giga.hls.state.HlsDownloadCheckpoint
 import us.shandian.giga.hls.state.HlsResourceCheckpoint
 import us.shandian.giga.hls.transfer.HlsSegmentFileTransferEngine
@@ -11,12 +10,16 @@ import us.shandian.giga.hls.transfer.HttpTransferConnectionFactory
 import us.shandian.giga.hls.transfer.TransferController
 import us.shandian.giga.hls.transfer.TransferHttpException
 import us.shandian.giga.hls.transfer.TransferInterruptedException
+import us.shandian.giga.hls.transfer.TransferRetryPolicy
 import us.shandian.giga.hls.transfer.TransferProgress
 import us.shandian.giga.hls.transfer.TransferProgressListener
 import us.shandian.giga.hls.transfer.useTransferConnection
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.io.InterruptedIOException
+import java.nio.channels.ClosedByInterruptException
+import java.util.Locale
 
 internal class HlsDownloader(
     private val mission: DownloadMission,
@@ -24,16 +27,25 @@ internal class HlsDownloader(
     private val controller = object : TransferController {
         override fun isRunning(): Boolean = mission.running
     }
+    // Coerced here so the HttpTransferConfig requires (added round-9) fire
+    // only on genuine programmer error, never on user pref values: this
+    // field initializer runs outside run()'s try/catch -> notifyError path.
     private val transferConfig = HttpTransferConfig(
-        maxRetries = mission.maxRetry,
+        maxRetries = mission.maxRetry.coerceAtLeast(0),
         parallelism = mission.threadCount.coerceIn(1, MAX_PARALLELISM),
     )
+    private val retryPolicy = TransferRetryPolicy(transferConfig.maxRetries)
     private val hlsTransfer = HlsSegmentFileTransferEngine(transferConfig, controller)
     private val connectionFactory = HttpTransferConnectionFactory(transferConfig)
 
     override fun run() {
         try {
             ensureRunning()
+            // Subtitles have no downloadable media: fail before any network
+            // I/O instead of after all resources transfer.
+            if (mission.kind == 's') {
+                throw IOException("Subtitle downloads are not supported via HLS")
+            }
             if (mission.hlsCheckpoint == null) {
                 mission.hlsCheckpoint = HlsDownloadCheckpoint()
             }
@@ -43,12 +55,14 @@ internal class HlsDownloader(
             mission.writeThisToFile()
 
             val workDir = workDirectory(mission)
-            if (!workDir.exists() && !workDir.mkdirs()) {
+            // mkdirs() returns false both when creation failed and when a
+            // concurrent creator won the race; re-check before failing.
+            if (!workDir.exists() && !workDir.mkdirs() && !workDir.exists()) {
                 throw IOException("Cannot create HLS work directory: $workDir")
             }
 
             remuxedOutputFromCheckpoint(workDir)?.let { output ->
-                val finalBytes = copyOutputToStorage(output)
+                val finalBytes = copyWithPsStateReset { copyOutputToStorage(output) }
                 completeMission(finalBytes)
                 return
             }
@@ -66,9 +80,9 @@ internal class HlsDownloader(
 
             ensureRunning()
             val output = File(workDir, "output.${outputExtension()}")
-            remuxWithFfmpeg(inputs, output)
+            remuxWithFramework(inputs, output)
             markRemuxOutput(output)
-            val finalBytes = copyOutputToStorage(output)
+            val finalBytes = copyWithPsStateReset { copyOutputToStorage(output) }
             completeMission(finalBytes)
         } catch (error: TransferInterruptedException) {
             // Pause/stop requested. The mission state has already been persisted by checkpoints.
@@ -76,7 +90,10 @@ internal class HlsDownloader(
             if (shouldRecover(error.statusCode)) {
                 mission.doRecover(error.statusCode)
             } else {
-                mission.notifyError(error)
+                // Surface the real HTTP status (404, 416, 5xx) instead of
+                // collapsing to ERROR_UNKNOWN_EXCEPTION: HttpError is the
+                // established status-carrying channel in notifyError.
+                mission.notifyError(DownloadMission.HttpError(error.statusCode))
             }
         } catch (error: Exception) {
             if (mission.running) {
@@ -88,8 +105,14 @@ internal class HlsDownloader(
     @Throws(IOException::class)
     private fun transferHlsResource(index: Int, targetFile: File) {
         val previous = mission.hlsCheckpoint?.resources?.firstOrNull { it.resourceIndex == index }
+        // Seed only what restoredProgress actually counted: a truncated temp
+        // file contributes 0, so seeding its stale count would double-
+        // subtract via onRestart and drive done negative.
         var lastProgress = previous
-            ?.takeIf { it.tempFilePath == targetFile.absolutePath && targetFile.exists() }
+            ?.takeIf {
+                it.tempFilePath == targetFile.absolutePath && targetFile.exists() &&
+                    targetFile.length() >= it.bytesWritten
+            }
             ?.bytesWritten
             ?: 0L
 
@@ -125,38 +148,66 @@ internal class HlsDownloader(
         val previous = mission.hlsCheckpoint?.resources?.firstOrNull { it.resourceIndex == index }
         val previousFile = previous?.tempFilePath?.let { File(it) }
         if (previous != null && previousFile?.exists() == true && previous.bytesWritten > 0) {
+            // Fingerprint-guard like the HLS path: a stale HLS-typed
+            // checkpoint for the same index must not validate a companion
+            // slot (delivery-method flips reuse the URL).
             if (previousFile.absolutePath == targetFile.absolutePath &&
                 previousFile.length() == previous.bytesWritten &&
-                previous.nextSegmentIndex == 1
+                previous.nextSegmentIndex == 1 &&
+                previous.manifestUrl == mission.urls[index] &&
+                previous.playlistFingerprint == "direct-companion"
             ) {
                 return
             }
-            mission.notifyProgress(-previous.bytesWritten)
+            // Subtract only what restoredProgress counted: a truncated file
+            // contributed 0, so subtracting the stale count would drive done
+            // negative.
+            if (previousFile.length() >= previous.bytesWritten) {
+                mission.notifyProgress(-previous.bytesWritten)
+            }
         }
 
         val parent = targetFile.parentFile ?: throw IOException("HLS companion target has no parent")
-        if (!parent.exists() && !parent.mkdirs()) {
+        // Triple-check: mkdirs() false covers both real failure and a lost
+        // creation race.
+        if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
             throw IOException("Cannot create HLS companion parent: $parent")
         }
         if (targetFile.exists() && !targetFile.delete()) {
             throw IOException("Cannot reset HLS companion target: $targetFile")
         }
 
+        // Each retry restarts from byte 0 into a fresh file: reusing the
+        // same stream would append a full re-download behind a partial prefix
+        // and double-count progress. Roll back notified progress first.
         var written = 0L
-        targetFile.outputStream().use { output ->
-            connectionFactory.open(mission.urls[index], "GET", null, null).useTransferConnection { connection ->
-                val statusCode = connection.responseCode
-                if (statusCode < 200 || statusCode > 299) {
-                    throw TransferHttpException(statusCode)
-                }
-                val contentLength = connection.contentLengthLong
-                if (contentLength > 0) {
-                    updateEstimatedLength(index, contentLength, 0)
-                }
-                connection.inputStream.use { input ->
-                    copyDirectCompanion(input, output) { delta ->
-                        written += delta
-                        mission.notifyProgress(delta)
+        var notified = 0L
+        retryPolicy.withRetries {
+            if (notified > 0) {
+                mission.notifyProgress(-notified)
+                notified = 0
+            }
+            written = 0
+            if (targetFile.exists() && !targetFile.delete()) {
+                throw IOException("Cannot reset HLS companion target: $targetFile")
+            }
+            targetFile.outputStream().use { output ->
+                // Same retry parity as every other network path in the engine.
+                connectionFactory.open(mission.urls[index], "GET", null, null).useTransferConnection { connection ->
+                    val statusCode = connection.responseCode
+                    if (statusCode < 200 || statusCode > 299) {
+                        throw TransferHttpException(statusCode)
+                    }
+                    val contentLength = connection.contentLengthLong
+                    if (contentLength > 0) {
+                        updateEstimatedLength(index, contentLength, 0)
+                    }
+                    connection.inputStream.use { input ->
+                        copyDirectCompanion(input, output) { delta ->
+                            written += delta
+                            notified += delta
+                            mission.notifyProgress(delta)
+                        }
                     }
                 }
             }
@@ -196,66 +247,106 @@ internal class HlsDownloader(
         output: java.io.OutputStream,
         onProgress: (Long) -> Unit,
     ) {
-        val buffer = ByteArray(transferConfig.bufferSize)
-        while (true) {
-            ensureRunning()
-            val read = input.read(buffer)
-            if (read == -1) {
-                return
+        // Same interrupt taxonomy as copyOutputToStorage: NIO interrupts
+        // and a set interrupt flag mean pause, not download error.
+        try {
+            val buffer = ByteArray(transferConfig.bufferSize)
+            while (true) {
+                ensureRunning()
+                val read = input.read(buffer)
+                if (read == -1) {
+                    return
+                }
+                output.write(buffer, 0, read)
+                onProgress(read.toLong())
             }
-            output.write(buffer, 0, read)
-            onProgress(read.toLong())
+        } catch (error: InterruptedIOException) {
+            throw TransferInterruptedException()
+        } catch (error: ClosedByInterruptException) {
+            throw TransferInterruptedException()
+        } catch (error: IOException) {
+            if (Thread.currentThread().isInterrupted) {
+                throw TransferInterruptedException()
+            }
+            throw error
         }
     }
 
     @Throws(IOException::class)
-    private fun remuxWithFfmpeg(inputs: List<File>, output: File) {
+    private fun copyWithPsStateReset(copy: () -> Long): Long {
+        // The copy phases run with psState == 1; any failure must reset and
+        // persist it or pause() stays disabled, mirroring SabrJavaMuxer.
+        try {
+            return copy()
+        } catch (error: TransferInterruptedException) {
+            mission.psState = 0
+            mission.writeThisToFile()
+            throw error
+        } catch (error: Exception) {
+            mission.psState = 0
+            mission.writeThisToFile()
+            throw error
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun remuxWithFramework(inputs: List<File>, output: File) {
         mission.psState = 1
         mission.writeThisToFile()
 
-        val command = buildString {
-            append("-y ")
-            inputs.forEach { input ->
-                append("-i ").append(quote(input.absolutePath)).append(' ')
-            }
-            if (mission.kind == 'a' && inputs.size == 1) {
-                append("-map 0:a? -vn ")
-            } else if (inputs.size > 1) {
-                inputs.indices.forEach { index ->
-                    append("-map ").append(index).append(":v? ")
-                    append("-map ").append(index).append(":a? ")
-                }
-            }
-            append("-c copy -movflags +faststart ").append(quote(output.absolutePath))
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "remuxWithFramework inputs=${inputs.size}")
         }
-
-        Log.d(TAG, "remuxWithFfmpeg inputs=${inputs.size}")
-        val session = FFmpegKit.execute(command)
-        if (!ReturnCode.isSuccess(session.returnCode)) {
+        try {
+            HlsFrameworkMuxer.remux(inputs, output, mission.kind, outputExtension())
+        } catch (error: TransferInterruptedException) {
             mission.psState = 0
-            throw IOException("HLS ffmpeg remux failed: ${session.returnCode}")
+            mission.writeThisToFile()
+            throw error
+        } catch (error: Exception) {
+            mission.psState = 0
+            // MediaMuxer throws unchecked (IllegalStateException, etc.); reset
+            // psState for any failure so the mission never sticks at 1.
+            // Keep the old message shape (detail appended) so error buckets
+            // don't churn, without double-prefixing framework detail.
+            val rawDetail = if (error is IOException) error.message.orEmpty() else "${error::class.simpleName}: ${error.message.orEmpty()}"
+            val detail = rawDetail.ifBlank { error::class.simpleName.orEmpty() }
+            val message = if (detail.startsWith("HLS framework remux failed")) detail else "HLS framework remux failed: $detail"
+            throw IOException(message, error)
         }
     }
 
     @Throws(IOException::class)
     private fun copyOutputToStorage(output: File): Long {
         var copied = 0L
-        output.inputStream().use { input ->
-            mission.storage.getStream().use { storage ->
-                storage.setLength(0)
-                storage.seek(0)
+        try {
+            output.inputStream().use { input ->
+                mission.storage.getStream().use { storage ->
+                    storage.setLength(0)
+                    storage.seek(0)
 
-                val buffer = ByteArray(transferConfig.bufferSize)
-                while (true) {
-                    ensureRunning()
-                    val read = input.read(buffer)
-                    if (read == -1) {
-                        break
+                    val buffer = ByteArray(transferConfig.bufferSize)
+                    while (true) {
+                        ensureRunning()
+                        val read = input.read(buffer)
+                        if (read == -1) {
+                            break
+                        }
+                        storage.write(buffer, 0, read)
+                        copied += read.toLong()
                     }
-                    storage.write(buffer, 0, read)
-                    copied += read.toLong()
                 }
             }
+        } catch (error: InterruptedIOException) {
+            // SABR parity: an interrupt surfacing as I/O is a pause.
+            throw TransferInterruptedException()
+        } catch (error: ClosedByInterruptException) {
+            throw TransferInterruptedException()
+        } catch (error: IOException) {
+            if (Thread.currentThread().isInterrupted) {
+                throw TransferInterruptedException()
+            }
+            throw error
         }
         return copied
     }
@@ -265,24 +356,61 @@ internal class HlsDownloader(
         if (!checkpoint.remuxStarted) {
             return null
         }
-        val output = checkpoint.remuxOutputPath?.let { File(it) }?.absoluteFile ?: return null
-        if (!output.absolutePath.startsWith(workDir.absolutePath) || !output.exists() || output.length() <= 0) {
+        val output = checkpoint.remuxOutputPath?.let { File(it) }?.canonicalFile ?: return null
+        // Canonicalize both sides: a `..`-containing path from a tampered
+        // checkpoint could otherwise prefix-match yet escape the work dir.
+        if (!output.path.startsWith(workDir.canonicalFile.path + File.separator) || !output.exists() || output.length() <= 0) {
+            return null
+        }
+        // A storage rename changes the container; never copy a stale remux
+        // whose suffix no longer matches the current target.
+        if (output.extension.lowercase(Locale.ROOT) != outputExtension().lowercase(Locale.ROOT)) {
+            return null
+        }
+        // A retarget between remux and copy must re-remux, not copy a stale
+        // container from different playlists.
+        if (checkpoint.remuxFingerprint != currentResourcesFingerprint()) {
             return null
         }
         return output
     }
 
+    private fun currentResourcesFingerprint(): String {
+        // Include the mission-level URLs: recovery can retarget them while
+        // keeping the checkpoint, and the old remux must not be reused.
+        // Strip cookie fragments so rotation alone does not force re-remux.
+        val urls = (mission.urls?.toList().orEmpty() + (mission.resourceManifestUrls?.toList().orEmpty()))
+            .joinToString(",") { it.substringBefore("#cookie=") }
+        val resources = mission.hlsCheckpoint?.resources
+            ?.sortedBy { it.resourceIndex }
+            ?.joinToString("|") { "${it.mediaPlaylistUrl}@${it.playlistFingerprint}" }
+            .orEmpty()
+        return "$urls|$resources"
+    }
+
     private fun markRemuxOutput(output: File) {
         val current = mission.hlsCheckpoint ?: HlsDownloadCheckpoint()
-        mission.hlsCheckpoint = current.copy(remuxStarted = true, remuxOutputPath = output.absolutePath)
+        mission.hlsCheckpoint = current.copy(
+            remuxStarted = true,
+            remuxOutputPath = output.absolutePath,
+            remuxFingerprint = currentResourcesFingerprint(),
+        )
         mission.writeThisToFile()
     }
 
     private fun completeMission(finalBytes: Long) {
-        if (finalBytes > 0) {
-            mission.done = finalBytes
-            mission.length = finalBytes
+        if (finalBytes <= 0) {
+            // Reset like every other failure path: copyWithPsStateReset
+            // succeeded, so psState is still 1-persisted here.
+            mission.psState = 0
+            mission.writeThisToFile()
+            throw IOException("HLS framework remux failed: empty output")
         }
+        mission.done = finalBytes
+        mission.length = finalBytes
+        // SABR parity: clear the estimate ceiling so a finished mission
+        // never reports length > done via getLength().
+        mission.nearLength = finalBytes
         mission.current = mission.urls.size
         mission.psState = 2
         mission.hlsCheckpoint = null
@@ -321,8 +449,10 @@ internal class HlsDownloader(
     }
 
     private fun restoredProgress(): Long {
+        // SabrDownloader parity: ignore truncated temp files whose length
+        // trails the checkpoint, instead of zero-padding them on resume.
         return mission.hlsCheckpoint?.resources
-            ?.filter { File(it.tempFilePath).exists() }
+            ?.filter { File(it.tempFilePath).let { file -> file.exists() && file.length() >= it.bytesWritten } }
             ?.sumOf { it.bytesWritten }
             ?: 0L
     }
@@ -334,15 +464,7 @@ internal class HlsDownloader(
         }
     }
 
-    private fun quote(value: String): String {
-        return '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"'
-    }
-
-    private fun outputExtension(): String {
-        val name = mission.storage.name ?: return "mp4"
-        val extension = name.substringAfterLast('.', missingDelimiterValue = "")
-        return extension.takeIf { it.isNotBlank() && it.all { char -> char.isLetterOrDigit() } } ?: "mp4"
-    }
+    private fun outputExtension(): String = downloadOutputExtension(mission.storage.name)
 
     private fun shouldRecover(statusCode: Int): Boolean {
         return statusCode == DownloadMission.ERROR_HTTP_AUTH ||
@@ -371,7 +493,11 @@ internal class HlsDownloader(
             val missionId = if (mission.timestamp > 0) {
                 mission.timestamp.toString()
             } else {
-                mission.storage.name.hashCode().toString()
+                // SABR parity: salt with the url list so same-named
+                // missions never share a work dir and clobber inputs.
+                val nameHash = mission.storage.name?.hashCode() ?: 0
+                val urlsHash = mission.urls?.contentHashCode() ?: 0
+                "${nameHash}_${urlsHash}"
             }
             return File(base, "hls-downloader/$missionId")
         }

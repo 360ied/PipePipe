@@ -1,5 +1,6 @@
 package us.shandian.giga.get
 
+import org.schabi.newpipe.extractor.services.youtube.sabr.exception.SabrProtocolException
 import org.schabi.newpipe.extractor.services.youtube.sabr.media.SabrMediaSegment
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrFormatTimeline
 import java.io.IOException
@@ -10,7 +11,7 @@ internal class SabrSegmentWriter(
     private val outputs: Map<Int, OutputStream>,
     private val onBytesWritten: (SabrDownloadTarget, Long) -> Unit,
 ) {
-    @Throws(IOException::class)
+    @Throws(IOException::class, SabrProtocolException::class)
     fun acceptSegment(segment: SabrMediaSegment) {
         val target = targets.firstOrNull {
             it.format.itag == segment.header.itag &&
@@ -35,6 +36,7 @@ internal class SabrSegmentWriter(
         }
     }
 
+    @Throws(SabrProtocolException::class)
     fun observeWrittenInitializations() {
         for (target in targets) {
             val data = target.initializationData ?: continue
@@ -44,27 +46,26 @@ internal class SabrSegmentWriter(
         }
     }
 
-    @Throws(IOException::class)
-    fun writeInitializationData(target: SabrDownloadTarget, data: ByteArray): Boolean {
-        return writeInitializationSegment(target, outputs.getValue(target.resourceIndex), data)
-    }
-
-    @Throws(IOException::class)
+    @Throws(IOException::class, SabrProtocolException::class)
     private fun writeInitializationSegment(
         target: SabrDownloadTarget,
         output: OutputStream,
         data: ByteArray,
-    ): Boolean {
+    ) {
+        // Unit: the sole caller ignores any result; idempotence is
+        // already guarded by initializationWritten.
         if (target.initializationWritten) {
-            return false
+            return
         }
+        // Validate before publishing: a corrupt init must not leave bad
+        // bytes in the temp file with accounting already recorded.
+        val timeline = YoutubeSabrFormatTimeline.parse(target.format, data)
         writeToStorage(output, data)
         target.initializationWritten = true
         target.initializationData = data
-        target.timeline = YoutubeSabrFormatTimeline.parse(target.format, data)
+        target.timeline = timeline
         onBytesWritten(target, data.size.toLong())
         flushPendingMedia(target, output)
-        return true
     }
 
     @Throws(IOException::class)
@@ -91,9 +92,13 @@ internal class SabrSegmentWriter(
 
     private fun flushPendingMedia(target: SabrDownloadTarget, output: OutputStream) {
         while (true) {
-            val pending = target.pending.remove(target.nextWriteSequence) ?: return
-            target.pendingBytes = (target.pendingBytes - pending.size).coerceAtLeast(0)
+            // Peek first: removing before a throwing write would drop the
+            // sequence while nextWriteSequence stays put, idling the
+            // download into a misleading STALLED instead of failing here.
+            val pending = target.pending[target.nextWriteSequence] ?: return
             writeMediaBytes(target, output, pending)
+            target.pending.remove(target.nextWriteSequence)
+            target.pendingBytes = (target.pendingBytes - pending.size).coerceAtLeast(0)
         }
     }
 
@@ -130,19 +135,22 @@ internal class SabrSegmentWriter(
         output: OutputStream,
         segment: SabrMediaSegment,
     ) {
-        try {
+        // Account actual copied bytes, not the declared length: short
+        // reads (spool truncation, early EOF) must not inflate done.
+        val copied = try {
             segment.openStream().use { input ->
                 input.copyTo(output)
             }
         } catch (error: IOException) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.STORAGE,
-                "SABR download failed: could not write temporary media",
+                "SABR download failed: could not write temporary media" +
+                    " for itag ${target.format.itag} (${error.message.orEmpty()})",
                 error,
             )
         }
         target.nextWriteSequence++
-        onBytesWritten(target, segment.length.toLong())
+        onBytesWritten(target, copied)
     }
 
     private fun writeToStorage(output: OutputStream, data: ByteArray) {

@@ -6,7 +6,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLDecoder
 
-class HttpTransferConnectionFactory(
+internal class HttpTransferConnectionFactory(
     private val config: HttpTransferConfig,
 ) {
     @Throws(IOException::class)
@@ -18,28 +18,92 @@ class HttpTransferConnectionFactory(
     ): HttpURLConnection {
         val requestUrl = stripCookieFragment(rawUrl)
         val cookie = extractCookie(rawUrl)
-        val connection = URL(requestUrl).openConnection() as HttpURLConnection
-
-        connection.instanceFollowRedirects = true
-        connection.requestMethod = method
-        connection.connectTimeout = config.connectTimeoutMillis
-        connection.readTimeout = config.readTimeoutMillis
-        connection.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT)
-        connection.setRequestProperty("Accept", "*/*")
-        connection.setRequestProperty("Accept-Encoding", if (rangeStart == null) "identity" else "*")
-        if (cookie != null) {
-            connection.setRequestProperty("Cookie", cookie)
+        // Fail closed on non-HTTP(S) schemes: `as HttpURLConnection` below
+        // would throw ClassCastException, bypassing the IOException contract
+        // and retry accounting.
+        val origin = try {
+            URL(requestUrl).toURI()
+        } catch (error: Exception) {
+            throw NonRetryableTransferException("Invalid URL", error)
         }
-        if (rangeStart != null) {
-            connection.setRequestProperty("Range", formatRange(rangeStart, rangeEnd))
+        if (origin.scheme?.lowercase(java.util.Locale.ROOT) != "http" &&
+            origin.scheme?.lowercase(java.util.Locale.ROOT) != "https"
+        ) {
+            throw NonRetryableTransferException("Unsupported URL scheme")
         }
-
-        return connection
+        // Follow redirects manually so the Cookie header (session-scoped)
+        // is only re-applied same-host+port; HttpURLConnection would retain
+        // it across hosts on auto-redirect and leak the session.
+        var current = requestUrl
+        var redirects = 0
+        while (true) {
+            // Re-validate every hop: a Location: file:/// / ftp:// /
+            // jar:... would otherwise yield a non-HTTP connection whose
+            // `as HttpURLConnection` throws unchecked ClassCastException,
+            // bypassing the IOException contract and retry accounting.
+            val currentScheme = try {
+                URL(current).toURI().scheme?.lowercase(java.util.Locale.ROOT)
+            } catch (error: Exception) {
+                null
+            }
+            if (currentScheme != "http" && currentScheme != "https") {
+                throw NonRetryableTransferException("Unsupported redirect URL scheme")
+            }
+            val connection = URL(current).openConnection() as HttpURLConnection
+            connection.instanceFollowRedirects = false
+            connection.requestMethod = method
+            connection.connectTimeout = config.connectTimeoutMillis
+            connection.readTimeout = config.readTimeoutMillis
+            connection.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT)
+            connection.setRequestProperty("Accept", "*/*")
+            // Identity always: a compressed partial response would pass the 206
+            // check yet fail byte-range accounting or corrupt the concat input.
+            connection.setRequestProperty("Accept-Encoding", "identity")
+            if (cookie != null && isSameHostPort(current, origin)) {
+                connection.setRequestProperty("Cookie", cookie)
+            }
+            if (rangeStart != null) {
+                connection.setRequestProperty("Range", formatRange(rangeStart, rangeEnd))
+            }
+            val status = connection.responseCode
+            if (status !in REDIRECT_CODES || method != "GET") {
+                return connection
+            }
+            if (redirects >= MAX_REDIRECTS) {
+                connection.disconnect()
+                throw NonRetryableTransferException("Too many redirects")
+            }
+            val location = connection.getHeaderField("Location")
+            connection.disconnect()
+            if (location.isNullOrBlank()) {
+                throw NonRetryableTransferException("Redirect without Location")
+            }
+            current = try {
+                URL(URL(current), location).toString()
+            } catch (error: Exception) {
+                throw NonRetryableTransferException("Invalid redirect location", error)
+            }
+            redirects++
+        }
     }
 
-    fun acceptsRanges(connection: HttpURLConnection): Boolean {
-        return connection.getHeaderField("Accept-Ranges").equals("bytes", ignoreCase = true) ||
-            connection.getHeaderField("Content-Range") != null
+    private fun isSameHostPort(candidate: String, origin: java.net.URI): Boolean {
+        return try {
+            val url = URL(candidate)
+            val originUrl = origin.toURL()
+            // Effective ports: an explicit `:443` equals an unspecified
+            // port on https (and likewise `:80`/http). Compare schemes
+            // too so an https->http downgrade never inherits the cookie.
+            url.protocol.equals(originUrl.protocol, ignoreCase = true) &&
+                url.host.equals(origin.host, ignoreCase = true) &&
+                effectivePort(url) == effectivePort(originUrl)
+        } catch (error: Exception) {
+            false
+        }
+    }
+
+    private fun effectivePort(url: URL): Int {
+        return url.port.takeIf { it != -1 } ?: url.defaultPort
     }
 
     private fun formatRange(rangeStart: Long, rangeEnd: Long?): String {
@@ -64,11 +128,28 @@ class HttpTransferConnectionFactory(
             return null
         }
         val encoded = rawUrl.substring(start + marker.length).substringBefore('&')
-        return URLDecoder.decode(encoded, Charsets.UTF_8.name())
+        // Malformed % escapes throw unchecked IllegalArgumentException:
+        // wrap so the IOException contract and retry accounting hold.
+        val cookie = try {
+            URLDecoder.decode(encoded, Charsets.UTF_8.name())
+        } catch (error: IllegalArgumentException) {
+            throw NonRetryableTransferException("Invalid cookie encoding in URL", error)
+        }
+        // HttpURLConnection rejects embedded CR/LF with unchecked
+        // IllegalArgumentException; reject first with a clean IOException.
+        if (cookie.contains('\r') || cookie.contains('\n')) {
+            throw NonRetryableTransferException("Invalid cookie value in URL")
+        }
+        return cookie
+    }
+
+    private companion object {
+        val REDIRECT_CODES = setOf(301, 302, 303, 307, 308)
+        const val MAX_REDIRECTS = 5
     }
 }
 
-inline fun <T> HttpURLConnection.useTransferConnection(
+internal inline fun <T> HttpURLConnection.useTransferConnection(
     block: (HttpURLConnection) -> T,
 ): T {
     try {

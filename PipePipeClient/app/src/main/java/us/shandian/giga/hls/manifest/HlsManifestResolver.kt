@@ -3,11 +3,12 @@ package us.shandian.giga.hls.manifest
 import us.shandian.giga.hls.transfer.HttpTransferConfig
 import us.shandian.giga.hls.transfer.HttpTransferConnectionFactory
 import us.shandian.giga.hls.transfer.TransferHttpException
+import us.shandian.giga.hls.transfer.TransferInterruptedException
 import us.shandian.giga.hls.transfer.useTransferConnection
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
-class HlsManifestResolver(
+internal class HlsManifestResolver(
     config: HttpTransferConfig = HttpTransferConfig(),
 ) {
     private val connectionFactory = HttpTransferConnectionFactory(config)
@@ -28,17 +29,25 @@ class HlsManifestResolver(
                 var total = 0
 
                 while (true) {
+                    // A blocked read is uninterruptible, but poll between
+                    // chunks so pause does not wait out the full body on a
+                    // slow playlist response.
+                    if (Thread.currentThread().isInterrupted) {
+                        throw TransferInterruptedException()
+                    }
                     val read = input.read(buffer)
                     if (read == -1) {
                         break
                     }
                     total += read
                     if (total > MAX_MANIFEST_BYTES) {
-                        throw IOException("HLS manifest is too large")
+                        throw HlsManifestTooLargeException("HLS manifest is too large")
                     }
                     output.write(buffer, 0, read)
                 }
 
+                // ByteArrayOutputStream.toString(Charset) is API 33+;
+                // the String-name overload works back to minSdk 30.
                 output.toString(Charsets.UTF_8.name())
             }
 
