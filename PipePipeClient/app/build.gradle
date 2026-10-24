@@ -296,10 +296,6 @@ dependencies {
     debugImplementation "com.facebook.stetho:stetho:${stethoVersion}"
     debugImplementation "com.facebook.stetho:stetho-okhttp3:${stethoVersion}"
 
-//    implementation 'com.arthenica:ffmpeg-kit-https:6.0-2.LTS'
-    implementation project(':ffmpeg')
-    implementation 'com.arthenica:smart-exception-java:0.2.1'
-
 /** Instrumented integration tests **/
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.7.0'
