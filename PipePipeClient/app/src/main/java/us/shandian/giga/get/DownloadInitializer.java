@@ -184,7 +184,7 @@ public class DownloadInitializer extends Thread {
                     return;
                 }
 
-                if (e instanceof IOException && e.getMessage().contains("Permission denied")) {
+                if (e instanceof IOException && e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                     mMission.notifyError(DownloadMission.ERROR_PERMISSION_DENIED, e);
                     return;
                 }

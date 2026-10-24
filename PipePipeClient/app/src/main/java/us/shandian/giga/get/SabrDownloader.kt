@@ -12,6 +12,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InterruptedIOException
+import java.nio.channels.ClosedByInterruptException
 import java.io.RandomAccessFile
 import java.net.ConnectException
 import java.net.SocketException
@@ -47,6 +48,9 @@ internal class SabrDownloader(
             // a timeout surfacing here is a genuine failure, not a pause.
             notifyErrorAndCleanup(error)
         } catch (error: InterruptedIOException) {
+            Thread.currentThread().interrupt()
+        } catch (error: ClosedByInterruptException) {
+            // NIO interrupt: same pause semantics as InterruptedIOException.
             Thread.currentThread().interrupt()
         } catch (error: SabrProtocolException) {
             notifyErrorAndCleanup(classifyProtocolException(error))
@@ -190,7 +194,9 @@ internal class SabrDownloader(
     @Throws(IOException::class)
     private fun prepareWorkDirectory(): File {
         val workDir = workDirectory(mission)
-        if (!workDir.exists() && !workDir.mkdirs()) {
+        // mkdirs() returns false both when creation failed and when a
+        // concurrent creator won the race; re-check before failing.
+        if (!workDir.exists() && !workDir.mkdirs() && !workDir.exists()) {
             throw storageException("could not create temporary directory", null)
         }
         return workDir
@@ -458,6 +464,8 @@ internal class SabrDownloader(
 
     private fun completeMission(finalBytes: Long) {
         if (finalBytes <= 0) {
+            mission.psState = 0
+            mission.writeThisToFile()
             throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
                 "SABR download failed: empty final file",

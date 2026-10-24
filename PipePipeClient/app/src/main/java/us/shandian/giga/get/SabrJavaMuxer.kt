@@ -10,6 +10,7 @@ import us.shandian.giga.io.FileStream
 import java.io.File
 import java.io.IOException
 import java.io.InterruptedIOException
+import java.nio.channels.ClosedByInterruptException
 
 /**
  * Pure-Java SABR remuxer (replaces the retired ffmpeg-kit wrapper).
@@ -32,7 +33,10 @@ internal class SabrJavaMuxer(
     @Throws(IOException::class, InterruptedException::class)
     fun remuxAndCopy(inputs: List<File>, targets: List<SabrDownloadTarget>, workDir: File): Long {
         requireValidInputs(inputs, targets)
-        if (canCopySingleInputDirectly(inputs, targets)) {
+        // One evaluation shared by the fast-path gate, the output name,
+        // and the dispatch agreement check below.
+        val extension = storageExtension().lowercase()
+        if (canCopySingleInputDirectly(inputs, targets, extension)) {
             logDebug("copySingleInputDirectly input=${inputs.first().length()}")
             mission.psState = 1
             mission.writeThisToFile()
@@ -48,8 +52,8 @@ internal class SabrJavaMuxer(
                 throw error
             }
         }
-        val output = File(workDir, "output.${storageExtension()}")
-        remux(inputs, targets, output)
+        val output = File(workDir, "output.$extension")
+        remux(inputs, targets, output, extension)
         try {
             return copyOutputToStorage(output)
         } catch (error: InterruptedException) {
@@ -66,11 +70,11 @@ internal class SabrJavaMuxer(
     }
 
     @Throws(IOException::class)
-    private fun remux(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
+    private fun remux(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File, extension: String) {
         mission.psState = 1
         mission.writeThisToFile()
         try {
-            dispatchRemux(inputs, targets, output)
+            dispatchRemux(inputs, targets, output, extension)
         } catch (error: SabrDownloadException) {
             mission.psState = 0
             mission.writeThisToFile()
@@ -79,6 +83,16 @@ internal class SabrJavaMuxer(
             mission.psState = 0
             mission.writeThisToFile()
             throw error
+        } catch (error: InterruptedIOException) {
+            // Interrupt surfacing as I/O is a pause, not a mux failure.
+            mission.psState = 0
+            mission.writeThisToFile()
+            throw InterruptedException(error.message)
+        } catch (error: ClosedByInterruptException) {
+            mission.psState = 0
+            mission.writeThisToFile()
+            Thread.currentThread().interrupt()
+            throw InterruptedException(error.message)
         } catch (error: IOException) {
             mission.psState = 0
             mission.writeThisToFile()
@@ -133,8 +147,14 @@ internal class SabrJavaMuxer(
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    private fun dispatchRemux(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
-        requireValidInputs(inputs, targets)
+    private fun dispatchRemux(
+        inputs: List<File>,
+        targets: List<SabrDownloadTarget>,
+        output: File,
+        extension: String,
+    ) {
+        // Pre-conditions already validated once in remuxAndCopy (only caller
+        // path); no need to stat every input twice.
         // Same case-sensitive contains rules as YoutubeSabrFormatTimeline.parse.
         val containers = targets.map { target ->
             val mime = target.format.mimeType.orEmpty()
@@ -219,15 +239,33 @@ internal class SabrJavaMuxer(
             }
             // Fresh output: FileStream opens "rw" without truncating an
             // existing file, so delete first and truncate as belt-and-braces.
-            if (output.exists() && !output.delete()) {
-                throw IOException("Could not reset java mux output ${output.absolutePath}")
+            // Work-dir I/O failures are STORAGE (quota/permission/full disk),
+            // not mux failures.
+            try {
+                if (output.exists() && !output.delete()) {
+                    throw IOException("Could not reset java mux output ${output.absolutePath}")
+                }
+                out = FileStream(output)
+                out.setLength(0)
+            } catch (error: InterruptedException) {
+                throw error
+            } catch (error: Exception) {
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.STORAGE,
+                    "SABR download failed: could not write temporary media (${error.message.orEmpty()})",
+                    error,
+                )
             }
-            out = FileStream(output)
-            out.setLength(0)
             try {
                 muxer.build(out)
             } catch (error: InterruptedException) {
                 throw error
+            } catch (error: InterruptedIOException) {
+                // Interrupt surfacing as I/O is a pause, not a fallback case.
+                throw InterruptedException(error.message)
+            } catch (error: ClosedByInterruptException) {
+                Thread.currentThread().interrupt()
+                throw InterruptedException(error.message)
             } catch (error: Exception) {
                 // Very short clips (< 8 samples/track) or odd writer
                 // failures (Mp4FromDashWriter throws RuntimeException for
@@ -298,16 +336,32 @@ internal class SabrJavaMuxer(
             }
             muxer.selectTracks(*indexes)
             ensureRunning()
-            // Fresh output: see remuxMp4 comment.
-            if (output.exists() && !output.delete()) {
-                throw IOException("Could not reset java mux output ${output.absolutePath}")
+            // Fresh output: see remuxMp4 comment (same STORAGE taxonomy).
+            try {
+                if (output.exists() && !output.delete()) {
+                    throw IOException("Could not reset java mux output ${output.absolutePath}")
+                }
+                out = FileStream(output)
+                out.setLength(0)
+            } catch (error: InterruptedException) {
+                throw error
+            } catch (error: Exception) {
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.STORAGE,
+                    "SABR download failed: could not write temporary media (${error.message.orEmpty()})",
+                    error,
+                )
             }
-            out = FileStream(output)
-            out.setLength(0)
             try {
                 muxer.build(out)
             } catch (error: InterruptedException) {
                 throw error
+            } catch (error: InterruptedIOException) {
+                // Interrupt surfacing as I/O is a pause, not a fallback case.
+                throw InterruptedException(error.message)
+            } catch (error: ClosedByInterruptException) {
+                Thread.currentThread().interrupt()
+                throw InterruptedException(error.message)
             } catch (error: Exception) {
                 // Same single-input verbatim argument as the MP4 path:
                 // concatenated WebM clusters are already playable.
@@ -384,18 +438,27 @@ internal class SabrJavaMuxer(
 
     @Throws(IOException::class, InterruptedException::class)
     private fun copyVerbatim(input: File, output: File) {
-        val buffer = ByteArray(DownloadMission.BUFFER_SIZE)
-        input.inputStream().use { source ->
-            output.outputStream().use { dest ->
-                while (true) {
-                    ensureRunning()
-                    val read = source.read(buffer)
-                    if (read == -1) {
-                        return
+        try {
+            val buffer = ByteArray(DownloadMission.BUFFER_SIZE)
+            input.inputStream().use { source ->
+                output.outputStream().use { dest ->
+                    while (true) {
+                        ensureRunning()
+                        val read = source.read(buffer)
+                        if (read == -1) {
+                            return
+                        }
+                        dest.write(buffer, 0, read)
                     }
-                    dest.write(buffer, 0, read)
                 }
             }
+        } catch (error: InterruptedException) {
+            throw error
+        } catch (error: InterruptedIOException) {
+            throw InterruptedException(error.message)
+        } catch (error: ClosedByInterruptException) {
+            Thread.currentThread().interrupt()
+            throw InterruptedException(error.message)
         }
     }
 
@@ -484,6 +547,9 @@ internal class SabrJavaMuxer(
         } catch (error: InterruptedIOException) {
             // Cancellation via interruptible I/O is a pause, not an error.
             throw InterruptedException(error.message)
+        } catch (error: ClosedByInterruptException) {
+            Thread.currentThread().interrupt()
+            throw InterruptedException(error.message)
         } catch (error: IllegalStateException) {
             // StoredFileHelper.getStream() validates the helper; an
             // invalidated helper is STORAGE, not an unknown error.
@@ -512,6 +578,7 @@ internal class SabrJavaMuxer(
     private fun canCopySingleInputDirectly(
         inputs: List<File>,
         targets: List<SabrDownloadTarget>,
+        extension: String,
     ): Boolean {
         if (inputs.size != 1 || targets.size != 1) {
             return false
@@ -519,13 +586,8 @@ internal class SabrJavaMuxer(
         // Same case-sensitive rule as dispatch: a single WebM input whose
         // storage suffix is in the WebM family copies verbatim (WebM bytes
         // stay playable under weba/mkv/mka; .opus is excluded on purpose).
-        // STORAGE-invalid names fail closed in storageExtension(); a fast path
-        // must never silently copy.
-        val extension = try {
-            storageExtension().lowercase()
-        } catch (error: SabrDownloadException) {
-            return false
-        }
+        // STORAGE failures surface in remuxAndCopy before this runs, so a
+        // fast path here never silently copies.
         val mimeType = targets.first().format.mimeType ?: return false
         return extension in WEBM_FAMILY_EXTENSIONS && mimeType.contains("webm")
     }
