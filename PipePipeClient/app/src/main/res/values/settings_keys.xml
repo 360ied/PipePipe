@@ -16,16 +16,12 @@
     <string name="download_path_video_key">download_path</string>
     <string name="download_path_audio_key">download_path_audio</string>
 
-    <string name="use_external_video_player_key">use_external_video_player</string>
-    <string name="use_external_audio_player_key">use_external_audio_player</string>
-
     <string name="volume_gesture_control_key">volume_gesture_control</string>
     <string name="brightness_gesture_control_key">brightness_gesture_control</string>
     <string name="fullscreen_gesture_control_key">fullscreen_gesture_control</string>
     <string name="swipe_seek_gesture_control_key">swipe_seek_gesture_control</string>
     <string name="playback_speed_gesture_control_key">playback_speed_gesture_control</string>
     <string name="resume_on_audio_focus_gain_key">resume_on_audio_focus_gain</string>
-    <string name="popup_remember_size_pos_key">popup_remember_size_pos_key</string>
     <string name="use_inexact_seek_key">use_inexact_seek_key</string>
     <string name="auto_queue_key">auto_queue_key</string>
     <string name="screen_brightness_key">screen_brightness_key</string>
@@ -119,23 +115,10 @@
     </string-array>
 
     <string name="seekbar_preview_thumbnail_key">seekbar_preview_thumbnail_key</string>
-    <string name="seekbar_preview_thumbnail_high_quality">seekbar_preview_thumbnail_high_quality</string>
     <string name="seekbar_preview_thumbnail_low_quality">seekbar_preview_thumbnail_low_quality</string>
     <string name="seekbar_preview_thumbnail_none">seekbar_preview_thumbnail_none</string>
-    <string-array name="seekbar_preview_thumbnail_type_key">
-        <item>@string/seekbar_preview_thumbnail_high_quality</item>
-        <item>@string/seekbar_preview_thumbnail_low_quality</item>
-        <item>@string/seekbar_preview_thumbnail_none</item>
-    </string-array>
-    <string-array name="seekbar_preview_thumbnail_type_description">
-        <item>@string/high_quality_larger</item>
-        <item>@string/low_quality_smaller</item>
-        <item>@string/dont_show</item>
-    </string-array>
-
     <string name="default_resolution_key">default_resolution</string>
     <string name="default_resolution_value">720p</string>
-    <string name="show_higher_resolutions_key">show_higher_resolutions</string>
     <string name="default_popup_resolution_key">default_popup_resolution</string>
     <string name="default_popup_resolution_value">480p</string>
     <string name="best_resolution_key">best_resolution</string>
@@ -176,35 +159,6 @@
     <string name="notification_slot_compact_2_key">notification_slot_compact_2_key</string>
 
     <string name="notification_colorize_key">notification_colorize_key</string>
-
-    <string name="video_mp4_key">video_mp4</string>
-    <string name="video_webm_key">video_webm</string>
-    <string name="video_3gp_key">video_3gp</string>
-    <string name="default_video_format_key">default_video_format</string>
-    <string name="default_video_format_value">@string/video_mp4_key</string>
-    <string-array name="video_format_description_list">
-        <item>MPEG-4</item>
-        <item>WebM</item>
-        <item>3GP</item>
-    </string-array>
-    <string-array name="video_format_values_list">
-        <item>@string/video_mp4_key</item>
-        <item>@string/video_webm_key</item>
-        <item>@string/video_3gp_key</item>
-    </string-array>
-
-    <string name="default_audio_format_key">default_audio_format</string>
-    <string name="default_audio_format_value">@string/audio_m4a_key</string>
-    <string name="audio_m4a_key">audio_m4a</string>
-    <string name="audio_webm_key">audio_webm</string>
-    <string-array name="audio_format_description_list">
-        <item>M4A</item>
-        <item>WebM</item>
-    </string-array>
-    <string-array name="audio_format_values_list">
-        <item>@string/audio_m4a_key</item>
-        <item>@string/audio_webm_key</item>
-    </string-array>
 
     <string name="last_resize_mode">last_resize_mode</string>
 
@@ -295,23 +249,17 @@
         <item>@string/remote_search_suggestions</item>
     </string-array>
     <string name="playback_adjust_by_semitones_key">playback_adjust_by_semitones_key</string>
-    <string name="show_play_with_kodi_key">show_play_with_kodi</string>
     <string name="show_comments_key">show_comments</string>
     <string name="show_next_video_key">show_next_video</string>
     <string name="show_description_key">show_description</string>
     <string name="show_meta_info_key">show_meta_info</string>
     <string name="stream_info_selected_tab_key">stream_info_selected_tab</string>
-    <string name="show_hold_to_append_key">show_hold_to_append</string>
-    <string name="content_language_key">content_language</string>
     <string name="content_country_key">content_country</string>
     <string name="show_auto_translated_subtitles_key">show_auto_translated_subtitles</string>
-    <string name="show_age_restricted_content">show_age_restricted_content</string>
-    <string name="youtube_restricted_mode_enabled">youtube_restricted_mode_enabled</string>
     <string name="enable_search_history_key">enable_search_history</string>
     <string name="enable_watch_history_key">enable_watch_history</string>
     <string name="main_page_content_key">main_page_content</string>
     <string name="enable_playback_resume_key">enable_playback_resume</string>
-    <string name="enable_playback_state_lists_key">enable_playback_state_lists</string>
     <string name="adjustment_step_key">adjustment_step_key</string>
     <string name="playback_unhook_key">playback_unhook_key</string>
     <string name="playback_speed_key">playback_speed_key</string>
@@ -389,10 +337,6 @@
 
     <!-- FileName Downloads  -->
     <string name="settings_file_charset_key">file_rename_charset</string>
-    <string name="settings_file_replacement_character_key">file_replacement_character</string>
-    <string name="settings_file_replacement_character_default_value">_</string>
-
-
     <string name="charset_letters_and_digits_value">CHARSET_LETTERS_AND_DIGITS</string>
     <string name="charset_most_special_value">CHARSET_MOST_SPECIAL</string>
 
@@ -423,8 +367,6 @@
     </string-array>
 
     <string name="downloads_cross_network">cross_network_downloads</string>
-    <string name="downloads_queue_limit">downloads_queue_limit</string>
-
     <string name="default_download_threads">default_download_threads</string>
 
     <!-- Preferred action on open (open from external app) -->
@@ -495,9 +437,7 @@
     <string name="sponsor_block_category_filler_key" translatable="false">sponsor_block_category_filler</string>
     <string name="sponsor_block_category_filler_mode_key" translatable="false">sponsor_block_category_filler_mode</string>
     <string name="sponsor_block_category_filler_color_key" translatable="false">sponsor_block_category_filler_color</string>
-    <string name="sponsor_block_category_pending_key" translatable="false">sponsor_block_category_pending_key</string>
     <string name="sponsor_block_category_pending_color_key" translatable="false">sponsor_block_category_pending_color_key</string>
-    <string name="sponsor_block_clear_whitelist_key" translatable="false">sponsor_block_clear_whitelist</string>
     <string name="sponsor_block_graced_rewind_key" translatable="false">sponsor_block_graced_rewind</string>
     <string name="sponsor_block_show_manual_skip_key" translatable="false">sponsor_block_show_manual_skip</string>
     <string name="sponsor_block_user_id_key" translatable="false">sponsor_block_user_id</string>
@@ -511,166 +451,6 @@
     <!-- Localizations   -->
     <string name="default_localization_key">system</string>
     <!-- alternatively, load these from some local android data store -->
-    <string-array name="language_codes">
-        <item>@string/default_localization_key</item>
-        <item>af</item>
-        <item>az</item>
-        <item>id</item>
-        <item>ms</item>
-        <item>ca</item>
-        <item>cs</item>
-        <item>da</item>
-        <item>de</item>
-        <item>et</item>
-        <item>en-GB</item>
-        <item>en</item>
-        <item>es</item>
-        <item>es-419</item>
-        <item>eu</item>
-        <item>fil</item>
-        <item>fr</item>
-        <item>fr-CA</item>
-        <item>gl</item>
-        <item>hr</item>
-        <item>zu</item>
-        <item>is</item>
-        <item>it</item>
-        <item>sw</item>
-        <item>lt</item>
-        <item>hu</item>
-        <item>nl</item>
-        <item>no</item>
-        <item>uz</item>
-        <item>pl</item>
-        <item>pt-PT</item>
-        <item>pt</item>
-        <item>ro</item>
-        <item>sq</item>
-        <item>sk</item>
-        <item>sl</item>
-        <item>fi</item>
-        <item>sv</item>
-        <item>bo</item>
-        <item>vi</item>
-        <item>tr</item>
-        <item>bg</item>
-        <item>ky</item>
-        <item>kk</item>
-        <item>mk</item>
-        <item>mn</item>
-        <item>ru</item>
-        <item>sr</item>
-        <item>uk</item>
-        <item>el</item>
-        <item>hy</item>
-        <item>iw</item>
-        <item>ur</item>
-        <item>ar</item>
-        <item>fa</item>
-        <item>ne</item>
-        <item>mr</item>
-        <item>hi</item>
-        <item>bn</item>
-        <item>pa</item>
-        <item>gu</item>
-        <item>ta</item>
-        <item>te</item>
-        <item>kn</item>
-        <item>ml</item>
-        <item>si</item>
-        <item>th</item>
-        <item>lo</item>
-        <item>my</item>
-        <item>ka</item>
-        <item>am</item>
-        <item>km</item>
-        <item>zh-CN</item>
-        <item>zh-TW</item>
-        <item>zh-HK</item>
-        <item>ja</item>
-        <item>ko</item>
-    </string-array>
-    <string-array name="language_names">
-        <item>@string/systems_language</item>
-        <item>Afrikaans</item>
-        <item>Azərbaycan</item>
-        <item>Bahasa Indonesia</item>
-        <item>Bahasa Malaysia</item>
-        <item>Català</item>
-        <item>Čeština</item>
-        <item>Dansk</item>
-        <item>Deutsch</item>
-        <item>Eesti</item>
-        <item>English (UK)</item>
-        <item>English (US)</item>
-        <item>Español (España)</item>
-        <item>Español (Latinoamérica)</item>
-        <item>Euskara</item>
-        <item>Filipino</item>
-        <item>Français</item>
-        <item>Français (Canada)</item>
-        <item>Galego</item>
-        <item>Hrvatski</item>
-        <item>IsiZulu</item>
-        <item>Íslenska</item>
-        <item>Italiano</item>
-        <item>Kiswahili</item>
-        <item>Lietuvių</item>
-        <item>Magyar</item>
-        <item>Nederlands</item>
-        <item>Norsk</item>
-        <item>O‘zbek</item>
-        <item>Polski</item>
-        <item>Português</item>
-        <item>Português (Brasil)</item>
-        <item>Română</item>
-        <item>Shqip</item>
-        <item>Slovenčina</item>
-        <item>Slovenščina</item>
-        <item>Suomi</item>
-        <item>Svenska</item>
-        <item>Tibetan བོད་སྐད།</item>
-        <item>Tiếng Việt</item>
-        <item>Türkçe</item>
-        <item>Български</item>
-        <item>Кыргызча</item>
-        <item>Қазақ Тілі</item>
-        <item>Македонски</item>
-        <item>Монгол</item>
-        <item>Русский</item>
-        <item>Српски</item>
-        <item>Українська</item>
-        <item>Ελληνικά</item>
-        <item>Հայերեն</item>
-        <item>עברית</item>
-        <item>اردو</item>
-        <item>العربية</item>
-        <item>فارسی</item>
-        <item>नेपाली</item>
-        <item>मराठी</item>
-        <item>हिन्दी</item>
-        <item>বাংলা</item>
-        <item>ਪੰਜਾਬੀ</item>
-        <item>ગુજરાતી</item>
-        <item>தமிழ்</item>
-        <item>తెలుగు</item>
-        <item>ಕನ್ನಡ</item>
-        <item>മലയാളം</item>
-        <item>සිංහල</item>
-        <item>ภาษาไทย</item>
-        <item>ລາວ</item>
-        <item>ဗမာ</item>
-        <item>ქართული</item>
-        <item>አማርኛ</item>
-        <item>ខ្មែរ</item>
-        <item>中文 (简体)</item>
-        <item>中文 (繁體)</item>
-        <item>中文 (香港)</item>
-        <item>日本語</item>
-        <item>한국어</item>
-    </string-array>
-
-
     <string-array name="country_names">
         <item>@string/systems_language</item>
         <item>Afghanistan</item>
@@ -1359,21 +1139,6 @@
     <string name="list_view_mode_large_grid_key">large_grid</string>
     <string name="list_view_mode_card_key">card</string>
 
-    <string-array name="list_view_mode_values">
-        <item>@string/list_view_mode_auto_key</item>
-        <item>@string/list_view_mode_list_key</item>
-        <item>@string/list_view_mode_grid_key</item>
-        <item>@string/list_view_mode_large_grid_key</item>
-        <item>@string/list_view_mode_card_key</item>
-    </string-array>
-    <string-array name="list_view_mode_description">
-        <item>@string/auto</item>
-        <item>@string/list</item>
-        <item>@string/grid</item>
-        <item>@string/large_grid</item>
-        <item>@string/card</item>
-    </string-array>
-
     <string name="tablet_mode_key">tablet_mode</string>
 
     <string name="tablet_mode_auto_key">auto</string>
@@ -1439,7 +1204,6 @@
     <string name="auto_background_play_key">auto_background_play_key</string>
     <string name="override_cookies_youtube_key">override_cookies_youtube_key</string>
     <string name="override_cookies_youtube_value_key">override_cookies_youtube_value_key</string>
-    <string name="auto_queue_partition_key">auto_queue_partition_key</string>
     <string-array name="font_list">
         <item>Default</item>
         <item>sans-serif</item>
@@ -1451,32 +1215,12 @@
     <!-- ExoPlayer settings -->
     <string name="exoplayer_settings_key">exoplayer_settings_key</string>
     <string name="disable_media_tunneling_key">disable_media_tunneling_key</string>
-    <string name="use_exoplayer_decoder_fallback_key">use_exoplayer_decoder_fallback_key</string>
     <string name="always_use_exoplayer_set_output_surface_workaround_key">always_use_exoplayer_set_output_surface_workaround_key</string>
 
     <!-- Image quality -->
-    <string name="image_quality_key">image_quality_key</string>
     <string name="image_quality_none_key">image_quality_none</string>
     <string name="image_quality_low_key">image_quality_low</string>
-    <string name="image_quality_medium_key">image_quality_medium</string>
     <string name="image_quality_high_key">image_quality_high</string>
-    <string name="image_quality_default">@string/image_quality_medium_key</string>
-    <string-array name="image_quality_description">
-        <item>@string/image_quality_none</item>
-        <item>@string/image_quality_low</item>
-        <item>@string/image_quality_medium</item>
-        <item>@string/image_quality_high</item>
-    </string-array>
-    <string-array name="image_quality_values">
-        <item>@string/image_quality_none_key</item>
-        <item>@string/image_quality_low_key</item>
-        <item>@string/image_quality_medium_key</item>
-        <item>@string/image_quality_high_key</item>
-    </string-array>
-
-
-
-
     <!-- Accounts Cookies -->
     <string name="playlist_sort_mode_key">playlist_sort_mode_key</string>
     <string name="sleep_timer_length_key">sleep_timer_length_key</string>
@@ -1497,17 +1241,6 @@
         <item>60</item>
     </string-array>
 
-    <string-array name="playlist_sorting_mode">
-        <item>@string/oldest_first</item>
-        <item>@string/newest_first</item>
-<!--        <item>@string/same_as_item_mode</item>-->
-    </string-array>
-    <string-array name="playlist_sorting_mode_value">
-        <item>0</item>
-        <item>1</item>
-<!--        <item>2</item>-->
-    </string-array>
-    <string name="playlist_sorting_key">playlist_sorting_key</string>
     <string name="dont_auto_queue_long_key">dont_auto_queue_long_key</string>
     <string name="random_music_play_mode_key">random_music_play_mode_key</string>
     <string name="speeding_playback_key">speeding_playback_key</string>
@@ -1617,10 +1350,6 @@
     </string-array>
     <string name="filter_type_key">filter_type_key</string>
     <string name="filter_by_channel_key">filter_by_channel_key</string>
-    <string name="proxy_token_key">proxy_token_key</string>
-    <string name="enable_proxy_key">enable_proxy_key</string>
-    <string name="check_token_validity_key">check_token_validity_key</string>
-    <string name="donation_encouragement_key">donation_encouragement_key</string>
     <string name="filter_shorts_key">filter_shorts_key</string>
     <string name="filter_paid_contents_key">filter_paid_contents_key</string>
     <string name="loading_timeout_key">loading_timeout_key</string>
@@ -1742,7 +1471,6 @@
         <item>id</item>
         <item>ar</item>
     </string-array>
-    <string name="export_data_to_newpipe_key">export_data_to_newpipe</string>
     <string name="youtube_player_client_key">youtube_player_client</string>
     <string-array name="youtube_player_client_entries">
         <item>VisionOS</item>
