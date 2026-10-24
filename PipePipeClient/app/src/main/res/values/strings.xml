@@ -875,14 +875,6 @@
 <string name="channel_videos">Channel videos</string>
 <string name="channel_is_blocked">This channel is in your block list</string>
 <string name="success">Success</string>
-<string name="settings_category_proxy_title">Proxy (Supporters)</string>
-<string name="proxy_token_title">Token</string>
-<string name="proxy_token_summary">Paste your token here. You can get your token through a Ko-fi donation.</string>
-<string name="enable_proxy_title">Enable Proxy</string>
-<string name="enable_proxy_summary">Bypass YouTube IP blocking &amp; age restrictions without login</string>
-<string name="check_token_validity">Check token validity</string>
-<string name="valid_until">Valid until</string>
-<string name="token_expired">Token expired</string>
 <string name="subscription_kofi_title">Become a supporter on Ko-fi</string>
 <string name="show_stream_details">Show stream details</string>
 <string name="video_not_released">The video has not released yet.</string>
