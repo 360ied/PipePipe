@@ -67,8 +67,7 @@ esac
 
 ./gradlew assembleDebug assembleDebugAndroidTest
 
-abi="$($adb shell getprop ro.product.cpu.abi | tr -d '\r')"
-app_apk="$(find app/build/outputs/apk/debug -name "*-${abi}-debug.apk" -print -quit)"
+app_apk="$(find app/build/outputs/apk/debug -name "PipePipe_*-debug.apk" -print -quit)"
 test_apk="app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
 app_metadata="app/build/outputs/apk/debug/output-metadata.json"
 test_metadata="app/build/outputs/apk/androidTest/debug/output-metadata.json"

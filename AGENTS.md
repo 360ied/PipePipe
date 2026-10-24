@@ -28,7 +28,7 @@ cd PipePipeClient
 ./gradlew assembleDebug --stacktrace -DskipFormatKtlint
 ```
 
-APKs land in `PipePipeClient/app/build/outputs/apk/debug/` (one per ABI).
+APKs land in `PipePipeClient/app/build/outputs/apk/debug/` (single universal APK).
 Always use the Gradle wrapper (`./gradlew`); never a system `gradle`.
 
 ## Branching & Worktree Strategy

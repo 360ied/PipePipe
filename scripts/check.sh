@@ -58,7 +58,7 @@ elif [ "$QUICK" = true ]; then
   echo "For iteration only; run the default gate before completing a task."
   (cd PipePipeClient && nix develop --command ./gradlew assembleDebug --stacktrace -DskipFormatKtlint)
 else
-  echo "Running fast verification (mirrors CI: assemble + lint)..."
+  echo "Running fast verification (assemble + lint)..."
   (cd PipePipeClient && nix develop --command ./gradlew assembleDebug lintDebug --stacktrace -DskipFormatKtlint)
 fi
 
