@@ -75,7 +75,6 @@ class PlayerClickController(private val player: Player) :
         binding.screenRotationButton.setOnClickListener(this)
         binding.lockButton.setOnClickListener(this)
         binding.unlockButton.setOnClickListener(this)
-        binding.switchCommentsVisibility.setOnClickListener(this)
         binding.playWithKodi.setOnClickListener(this)
         binding.openInBrowser.setOnClickListener(this)
         binding.playerCloseButton.setOnClickListener(this)
@@ -112,8 +111,6 @@ class PlayerClickController(private val player: Player) :
                 player.context, player.videoTitle, player.getVideoUrlAtCurrentTime(),
                 player.currentItem!!.thumbnailUrl
             )
-        } else if (v.id == binding.switchCommentsVisibility.id) {
-            player.bulletCommentsController.toggleVisibility()
         } else if (v.id == binding.playWithKodi.id) {
             onPlayWithKodiClicked()
         } else if (v.id == binding.openInBrowser.id) {

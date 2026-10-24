@@ -237,12 +237,6 @@ public final class Player {
 
     @NonNull private final SponsorBlockController sponsorBlockController;
 
-    /*//////////////////////////////////////////////////////////////////////////
-    // Bullet comments
-    //////////////////////////////////////////////////////////////////////////*/
-
-    @NonNull private final BulletCommentsController bulletCommentsController;
-
     private PlayerDataSource dataSource;
 
 
@@ -253,7 +247,6 @@ public final class Player {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         sponsorBlockController = new SponsorBlockController(this);
-        bulletCommentsController = new BulletCommentsController(this);
         listeners = new PlayerListeners(this);
         playbackStateController = new PlayerPlaybackStateController(this);
         queueController = new PlayerQueueController(this);
@@ -444,7 +437,6 @@ public final class Player {
         }
 
         queueController.disposeAdapters();
-        bulletCommentsController.destroy();
         autoQueueController.cancelEnqueueTimer();
     }
 
@@ -534,8 +526,6 @@ public final class Player {
         if (playQueue != null) {
             playQueue.unsetRecovery(playQueue.getIndex());
         }
-        // The live chat extractor owns its own connection/poll and is not driven by ExoPlayer.
-        bulletCommentsController.disconnect();
         // Releasing the source is what actually stops the manifest / playlist refresh and the
         // segment downloads ExoPlayer would otherwise keep doing for a prepared live source.
         simpleExoPlayer.stop();
@@ -827,14 +817,6 @@ public final class Player {
 
     void onBuffering() {
         playbackStateController.onBuffering();
-    }
-
-    public void startBCPlayer() {
-        playbackStateController.startBCPlayer();
-    }
-
-    public void pauseBCPlayer() {
-        playbackStateController.pauseBCPlayer();
     }
 
     void startSabrBackoffCountdown() {
@@ -1692,11 +1674,6 @@ public final class Player {
         return progressController;
     }
 
-    @NonNull
-    BulletCommentsController getBulletCommentsController() {
-        return bulletCommentsController;
-    }
-
     long getStartupTraceId() {
         return startupTraceId;
     }
@@ -1769,7 +1746,6 @@ public final class Player {
 
     public void onBufferingFailed() {
         pause();
-        bulletCommentsController.pause();
         setCurrentState(PlayerPlaybackState.PAUSED);
         notifyPlaybackUpdateToListeners();
     }

@@ -45,7 +45,6 @@ import org.schabi.newpipe.extractor.comments.CommentsInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.extractor.feed.FeedExtractor;
 import org.schabi.newpipe.extractor.feed.FeedInfo;
-import org.schabi.newpipe.extractor.bulletComments.BulletCommentsInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.search.SearchInfo;
@@ -239,15 +238,6 @@ public final class ExtractorHelper {
         return checkCache(forceLoad, serviceId, url, InfoItem.InfoType.COMMENT,
                 Single.fromCallable(() ->
                         CommentsInfo.getInfo(NewPipe.getService(serviceId), url)));
-    }
-
-    public static Single<BulletCommentsInfo> getBulletCommentsInfo(final int serviceId,
-                                                                   final String url,
-                                                                   final boolean forceLoad) {
-        checkServiceId(serviceId);
-        return checkCache(forceLoad, serviceId, url, InfoItem.InfoType.BULLET_COMMENT,
-                Single.fromCallable(() ->
-                        BulletCommentsInfo.getInfo(NewPipe.getService(serviceId), url)));
     }
 
     public static Single<InfoItemsPage<CommentsInfoItem>> getMoreCommentItems(
