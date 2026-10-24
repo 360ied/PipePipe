@@ -1,5 +1,6 @@
 package us.shandian.giga.get
 
+import org.schabi.newpipe.extractor.services.youtube.sabr.exception.SabrProtocolException
 import org.schabi.newpipe.extractor.services.youtube.sabr.media.SabrMediaSegment
 import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrFormatTimeline
 import java.io.IOException
@@ -10,7 +11,7 @@ internal class SabrSegmentWriter(
     private val outputs: Map<Int, OutputStream>,
     private val onBytesWritten: (SabrDownloadTarget, Long) -> Unit,
 ) {
-    @Throws(IOException::class)
+    @Throws(IOException::class, SabrProtocolException::class)
     fun acceptSegment(segment: SabrMediaSegment) {
         val target = targets.firstOrNull {
             it.format.itag == segment.header.itag &&
@@ -35,6 +36,7 @@ internal class SabrSegmentWriter(
         }
     }
 
+    @Throws(SabrProtocolException::class)
     fun observeWrittenInitializations() {
         for (target in targets) {
             val data = target.initializationData ?: continue
@@ -44,12 +46,12 @@ internal class SabrSegmentWriter(
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(IOException::class, SabrProtocolException::class)
     fun writeInitializationData(target: SabrDownloadTarget, data: ByteArray): Boolean {
         return writeInitializationSegment(target, outputs.getValue(target.resourceIndex), data)
     }
 
-    @Throws(IOException::class)
+    @Throws(IOException::class, SabrProtocolException::class)
     private fun writeInitializationSegment(
         target: SabrDownloadTarget,
         output: OutputStream,

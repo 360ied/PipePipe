@@ -489,6 +489,8 @@ internal class SabrDownloader(
         }
     }
 
+    // Retention is deliberate for resume: temp files are kept so a retry
+    // can restore progress instead of redownloading.
     private fun notifyErrorAndCleanup(error: Exception) {
         if (mission.running) {
             mission.notifyError(error)

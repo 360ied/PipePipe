@@ -14,7 +14,7 @@ import java.io.RandomAccessFile;
  */
 public class FileStream extends SharpStream {
 
-    public RandomAccessFile source;
+    private RandomAccessFile source;
     private final boolean readOnly;
 
     public FileStream(@NonNull File target) throws FileNotFoundException {
@@ -33,6 +33,11 @@ public class FileStream extends SharpStream {
     @Override
     public int read() throws IOException {
         return source.read();
+    }
+
+    /** Visible for testing; all production access goes through the stream API. */
+    RandomAccessFile getSourceForTest() {
+        return source;
     }
 
     @Override

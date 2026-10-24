@@ -9,6 +9,9 @@ internal class SabrDownloadException(
 ) : IOException(message, cause) {
     enum class Reason {
         FORMAT,
+        // Unused today (init/network failures surface as FORMAT/PROTOCOL/
+        // STALLED), but MissionAdapter maps them to user-visible strings —
+        // keep the variants rather than orphaning those cases.
         INITIALIZATION,
         PROTECTED,
         STALLED,

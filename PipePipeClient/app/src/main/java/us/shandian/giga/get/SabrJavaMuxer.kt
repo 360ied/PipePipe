@@ -11,6 +11,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.nio.channels.ClosedByInterruptException
+import java.util.Locale
 
 /**
  * Pure-Java SABR remuxer (replaces the retired ffmpeg-kit wrapper).
@@ -35,7 +36,7 @@ internal class SabrJavaMuxer(
         requireValidInputs(inputs, targets)
         // One evaluation shared by the fast-path gate, the output name,
         // and the dispatch agreement check below.
-        val extension = storageExtension().lowercase()
+        val extension = storageExtension().lowercase(Locale.ROOT)
         if (canCopySingleInputDirectly(inputs, targets, extension)) {
             logDebug("copySingleInputDirectly input=${inputs.first().length()}")
             mission.psState = 1
@@ -121,10 +122,16 @@ internal class SabrJavaMuxer(
             )
         }
         inputs.forEach { input ->
-            if (!input.exists() || input.length() <= 0) {
+            if (!input.exists()) {
                 throw SabrDownloadException(
                     SabrDownloadException.Reason.MUXING,
                     "SABR download failed: java mux failed (missing input ${input.absolutePath})",
+                )
+            }
+            if (input.length() <= 0) {
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.MUXING,
+                    "SABR download failed: java mux failed (empty input ${input.absolutePath})",
                 )
             }
         }
@@ -187,8 +194,9 @@ internal class SabrJavaMuxer(
         // audio suffixes (weba) and Matroska names (mkv/mka): WebM bytes
         // remain playable under them (.opus is excluded — conventionally
         // Ogg-Opus), while failing the download over a rename would be
-        // worse. Anything else fails closed.
-        val extension = storageExtension().lowercase()
+        // worse. Anything else fails closed. `extension` arrives lowercased
+        // from remuxAndCopy — do not re-read storage here (a rename between
+        // the two reads would validate a different suffix than the file).
         val unanimous = containers.first()
         val agrees = when (unanimous) {
             Container.MP4 -> extension in MP4_FAMILY_EXTENSIONS
@@ -561,7 +569,7 @@ internal class SabrJavaMuxer(
         } catch (error: IOException) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.STORAGE,
-                "SABR download failed: could not write final file",
+                "SABR download failed: could not write final file (${error.message.orEmpty()})",
                 error,
             )
         }
