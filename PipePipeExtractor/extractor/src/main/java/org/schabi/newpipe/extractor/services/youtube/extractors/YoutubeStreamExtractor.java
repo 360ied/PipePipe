@@ -112,9 +112,9 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     private String mwebCpn;
     private String configuredCpn;
 
-    public WatchDataCache watchDataCache;
-
-    public final ArrayList<Throwable> errors = new ArrayList<>();
+    public YoutubeStreamExtractor(final StreamingService service, final LinkHandler linkHandler) {
+        super(service, linkHandler);
+    }
 
     public void addError(final Throwable error) {
         synchronized (errors) {
@@ -122,11 +122,7 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         }
     }
 
-    public YoutubeStreamExtractor(final StreamingService service, final LinkHandler linkHandler, WatchDataCache watchDataCache) {
-        super(service, linkHandler);
-        this.watchDataCache = watchDataCache;
-        watchDataCache.init(linkHandler.getUrl());
-    }
+    public final ArrayList<Throwable> errors = new ArrayList<>();
 
     /*//////////////////////////////////////////////////////////////////////////
     // Impl
@@ -167,7 +163,6 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Nullable
     @Override
     public String getTextualUploadDate() throws ParsingException {
-        watchDataCache.shouldBeLive = true;
         final JsonObject liveDetails = playerMicroFormatRenderer.getObject(
                 "liveBroadcastDetails");
         if (!liveDetails.getString("endTimestamp", EMPTY_STRING).isEmpty()) {
@@ -181,7 +176,6 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             return null;
         }
 
-        watchDataCache.shouldBeLive = false;
         if (!playerMicroFormatRenderer.getString("uploadDate", EMPTY_STRING).isEmpty()) {
             return playerMicroFormatRenderer.getString("uploadDate");
         } else if (!playerMicroFormatRenderer.getString("publishDate", EMPTY_STRING).isEmpty()) {
@@ -1958,15 +1952,6 @@ public class YoutubeStreamExtractor extends StreamExtractor {
 
 
     @Override
-    public boolean isSupportBulletComments() throws ParsingException {
-        // live chat (or its replay) only exists for streams that are or were live
-        final JsonObject liveDetails = playerMicroFormatRenderer.getObject("liveBroadcastDetails");
-        return getStreamType().equals(StreamType.LIVE_STREAM)
-                || !liveDetails.getString("endTimestamp", EMPTY_STRING).isEmpty()
-                || !liveDetails.getString("startTimestamp", EMPTY_STRING).isEmpty();
-    }
-
-    @Override
     public boolean isSupportComments() throws ParsingException {
         return !getStreamType().equals(StreamType.LIVE_STREAM);
     }
@@ -1994,7 +1979,6 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         } else {
             streamType = StreamType.VIDEO_STREAM;
         }
-        watchDataCache.streamType = streamType;
     }
 
     @Nullable
