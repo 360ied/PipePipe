@@ -158,8 +158,10 @@ androidComponents.onVariants(androidComponents.selector().all()) { variant ->
 
     variant.outputs.each { output ->
         output.versionCode.set(universalVersionCode)
+        // Raw tag keeps the 'v' prefix (AGENTS.md Versioning); never the
+        // stripped versionName, so tag builds emit NanoPipe_vX.Y.Z-<variant>.apk.
         output.outputFileName.set(
-                "NanoPipe_${appVersionName}-${variant.name}.apk")
+                "NanoPipe_${gitDescribeRaw}-${variant.name}.apk")
     }
 }
 
