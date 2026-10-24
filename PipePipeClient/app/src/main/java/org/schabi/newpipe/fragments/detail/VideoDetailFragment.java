@@ -2442,6 +2442,10 @@ public final class VideoDetailFragment
         if (sortedVideoStreams == null || currentInfo == null || activity == null) {
             return;
         }
+        // Null-checked above; snapshotted for the dialog lambdas below, since the
+        // fragment may detach between show() and the click (requireActivity()
+        // would then throw).
+        final Activity dialogActivity = activity;
         // One row per resolution bucket, after preferred-language filtering (mirrors the
         // download path): this list is built with preferVideoOnlyStreams=false and no
         // audio-track filtering (unlike the player's), so dubbed-track variants would
@@ -2477,8 +2481,10 @@ public final class VideoDetailFragment
         }
         final AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setNegativeButton(R.string.cancel, null)
+                // Capture the null-checked activity: the fragment may detach between
+                // show() and the click, when requireActivity() would throw.
                 .setNeutralButton(R.string.open_in_browser, (dialog, i) ->
-                        ShareUtils.openUrlInBrowser(requireActivity(), url)
+                        ShareUtils.openUrlInBrowser(dialogActivity, url)
                 );
         // Maybe there are no video streams available, show just `open in browser` button
         if (resolutions.length > 0) {

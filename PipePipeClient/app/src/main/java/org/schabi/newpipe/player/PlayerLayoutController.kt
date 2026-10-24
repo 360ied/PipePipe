@@ -265,12 +265,14 @@ class PlayerLayoutController(private val player: Player) {
 
         when (info.streamType) {
             StreamType.AUDIO_STREAM -> {
+                player.menuController.clearQualityMenu()
                 binding.surfaceView.visibility = View.GONE
                 binding.endScreen.visibility = View.VISIBLE
                 binding.playbackEndTime.visibility = View.VISIBLE
             }
 
             StreamType.AUDIO_LIVE_STREAM -> {
+                player.menuController.clearQualityMenu()
                 binding.surfaceView.visibility = View.GONE
                 binding.endScreen.visibility = View.VISIBLE
                 binding.playbackLiveSync.visibility = View.VISIBLE
@@ -293,6 +295,7 @@ class PlayerLayoutController(private val player: Player) {
                     // an adaptive-manifest live stream (YouTube): the variants only
                     // exist once ExoPlayer has parsed the manifest, so the resolution button is
                     // owned by the live quality controller
+                    player.menuController.clearQualityMenu()
                     player.liveQualityController.onItemLoaded()
                 }
             }
@@ -311,12 +314,16 @@ class PlayerLayoutController(private val player: Player) {
                     if (distinctBucketCount > 1) {
                         player.menuController.buildQualityMenu()
                         binding.qualityTextView.visibility = View.VISIBLE
+                    } else {
+                        player.menuController.clearQualityMenu()
                     }
 
                     binding.surfaceView.visibility = View.VISIBLE
                     // The original switch fell through to the default branch from here on.
                     binding.endScreen.visibility = View.GONE
                     binding.playbackEndTime.visibility = View.VISIBLE
+                } else {
+                    player.menuController.clearQualityMenu()
                 }
                 // Without a quality to offer, the original switch broke out of the whole
                 // statement here, leaving the end screen and the duration hidden.

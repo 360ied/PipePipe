@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -125,8 +126,13 @@ public final class StreamFilters {
             final Context context,
             final List<VideoStream> videoStreams,
             final List<AudioStream> audioStreams) {
+        if (videoStreams == null || videoStreams.isEmpty()) {
+            return Collections.emptyList();
+        }
         final boolean hasAudioTracks = videoStreams.stream()
-                .anyMatch(s -> s.getAudioTrackId() != null);
+                .filter(Objects::nonNull)
+                .anyMatch(s -> s.getAudioTrackId() != null
+                        && !s.getAudioTrackId().trim().isEmpty());
         if (!hasAudioTracks) {
             return videoStreams;
         }
@@ -142,7 +148,8 @@ public final class StreamFilters {
         final String trackId = defaultTrackId;
         final List<VideoStream> result = new ArrayList<>();
         for (final VideoStream s : videoStreams) {
-            if (trackId.equals(s.getAudioTrackId()) || s.getAudioTrackId() == null) {
+            if (s != null && (trackId.equals(s.getAudioTrackId())
+                    || s.getAudioTrackId() == null)) {
                 result.add(s);
             }
         }
@@ -151,12 +158,22 @@ public final class StreamFilters {
                 : collapseAudioTrackVariants(result);
     }
 
-    private static List<VideoStream> collapseAudioTrackVariants(final List<VideoStream> videoStreams) {
+    // Package-private for tests.
+    static List<VideoStream> collapseAudioTrackVariants(final List<VideoStream> videoStreams) {
         final Map<String, VideoStream> result = new LinkedHashMap<>();
         for (final VideoStream stream : videoStreams) {
+            if (stream == null) {
+                continue;
+            }
+            // Codec family (not raw prefix, so vp9/vp09 collide) and trimmed
+            // resolution; fps-variant granularity is preserved so the download
+            // path loses no rows — resolution bucketing merges variants later.
             final String key = stream.getFormat() + "|"
-                    + getCodecPrefix(stream) + "|" + stream.getResolution() + "|"
-                    + stream.isVideoOnly();
+                    + Objects.toString(
+                    VideoStreamSelector.codecFamilyOf(stream.getCodec()), "")
+                    + "|" + Objects.toString(stream.getResolution(), "")
+                            .trim().toLowerCase(Locale.ROOT)
+                    + "|" + stream.isVideoOnly();
             final VideoStream existing = result.get(key);
             // Legacy preference first (non-HLS over HLS, original track over dub);
             // otherwise keep the comparator-best copy so a higher-bitrate/HFR
@@ -174,19 +191,16 @@ public final class StreamFilters {
 
     private static boolean shouldPreferCollapsedVariant(final VideoStream existing,
                                                         final VideoStream candidate) {
-        if (existing.getDeliveryMethod() == DeliveryMethod.HLS
-                && candidate.getDeliveryMethod() != DeliveryMethod.HLS) {
-            return true;
+        // Delivery decides first: a non-HLS candidate always displaces HLS, and an
+        // HLS candidate never displaces non-HLS, regardless of track originality.
+        final boolean existingHls =
+                existing.getDeliveryMethod() == DeliveryMethod.HLS;
+        final boolean candidateHls =
+                candidate.getDeliveryMethod() == DeliveryMethod.HLS;
+        if (existingHls != candidateHls) {
+            return !candidateHls;
         }
         return isOriginalAudioTrack(candidate) && !isOriginalAudioTrack(existing);
-    }
-
-    private static String getCodecPrefix(final VideoStream stream) {
-        final String codec = stream.getCodec();
-        if (codec == null || codec.isEmpty()) {
-            return "";
-        }
-        return codec.split("\\.")[0];
     }
 
     private static boolean isOriginalAudioTrack(final VideoStream stream) {

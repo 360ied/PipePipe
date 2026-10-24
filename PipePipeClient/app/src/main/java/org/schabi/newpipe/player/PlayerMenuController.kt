@@ -519,6 +519,18 @@ class PlayerMenuController(
         }
     }
 
+    /**
+     * Drops all quality-menu rows and forgets the retained bucket list, e.g. when the
+     * new item offers a single bucket or no quality at all: without this the popup
+     * would keep showing the previous item's labels.
+     */
+    fun clearQualityMenu() {
+        qualityPopupMenu.menu.removeGroup(POPUP_MENU_ID_QUALITY)
+        qualityPopupMenu.menu.removeGroup(POPUP_MENU_ID_LIVE_QUALITY)
+        qualityMenuStreams = emptyList()
+        qualityMenuSource = null
+    }
+
     fun closeAllPopupMenus() {
         qualityPopupMenu.dismiss()
         playbackSpeedPopupMenu.dismiss()

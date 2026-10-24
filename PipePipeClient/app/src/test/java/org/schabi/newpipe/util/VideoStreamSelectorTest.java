@@ -195,14 +195,19 @@ public class VideoStreamSelectorTest {
 
     @Test
     public void hfrFpsVariantsAbove30WinBucket() {
-        assertEquals("720p60 AVC", VideoStreamSelector.qualityLabelOf(
+        // The label keeps the stream's own rate; digit-less HFR renders as 60.
+        assertEquals("720p50 AVC", VideoStreamSelector.qualityLabelOf(
                 stream("720p50", "avc1.64001f", 1000000)));
+        assertEquals("1080p60 AV1", VideoStreamSelector.qualityLabelOf(
+                stream("1080p HFR", "av01.0.05M.08", 12000000)));
         final List<VideoStream> distinct = VideoStreamSelector.getDistinctResolutionStreams(
                 Arrays.asList(
                         stream("1080p", "avc1.640028", 9000000),
                         stream("1080p120", "avc1.640028", 5000000)));
         assertEquals(1, distinct.size());
         assertEquals("1080p120", distinct.get(0).getResolution());
+        assertEquals("1080p120 AVC", VideoStreamSelector.qualityLabelOf(
+                distinct.get(0)));
     }
 
     @Test
@@ -276,6 +281,140 @@ public class VideoStreamSelectorTest {
         assertEquals(1, VideoStreamSelector.getSortedStreamVideosList(
                 new HashSet<>(Arrays.asList("VP9")),
                 Arrays.asList(vp9Mp4), null, true, false).size());
+    }
+
+    @Test
+    public void muxedAndVideoOnlySurviveDedupSeparately() {
+        // Same codec, height and track but different delivery shape: both must
+        // survive sorting so downloads and dropVideoOnlyWhenMuxedExists see them.
+        final List<VideoStream> sorted = VideoStreamSelector.getSortedStreamVideosList(
+                new HashSet<>(),
+                Arrays.asList(
+                        stream("720p", "avc1.64001f", 3000000, MediaFormat.MPEG_4,
+                                false),
+                        stream("720p", "avc1.64001f", 5000000, MediaFormat.MPEG_4,
+                                true)),
+                null, true, false);
+        assertEquals(2, sorted.size());
+    }
+
+    @Test
+    public void uhdLabelsUnifyWithNumericHeights() {
+        // 2160p target matches a 4K stream exactly, not via closest-lower.
+        assertEquals(0, VideoStreamSelector.getDefaultResolutionIndex(
+                "2160p", "Best", Arrays.asList(
+                        stream("4K", "avc1.640028", 15000000),
+                        stream("1080p", "avc1.640028", 8000000))));
+        // 4K60 buckets with 2160p, wins by HFR, and labels honestly.
+        final List<VideoStream> distinct = VideoStreamSelector.getDistinctResolutionStreams(
+                Arrays.asList(
+                        stream("2160p", "avc1.640028", 15000000),
+                        stream("4K60", "avc1.640028", 9000000)));
+        assertEquals(1, distinct.size());
+        assertEquals("4K60", distinct.get(0).getResolution());
+        assertEquals("2160p60 AVC", VideoStreamSelector.qualityLabelOf(
+                distinct.get(0)));
+        assertEquals("2160p", VideoStreamSelector.heightLabelOf("4K60"));
+    }
+
+    @Test
+    public void allNullListsResolveToMissing() {
+        assertEquals(-1, VideoStreamSelector.getDefaultResolutionIndex(
+                "720p", "Best", Arrays.asList((VideoStream) null)));
+        assertEquals(-1, VideoStreamSelector.getResolutionAndCodecIndex(
+                "720p", "avc1.64001f", Arrays.asList((VideoStream) null)));
+    }
+
+    @Test
+    public void unknownCodecFamilyOmitsCodecSuffix() {
+        assertEquals("720p", VideoStreamSelector.qualityLabelOf(
+                stream("720p", "hev1.1.6.L93", 4000000)));
+        assertEquals("", VideoStreamSelector.codecLabelOf("opus"));
+    }
+
+    @Test
+    public void blankAudioTrackBehavesAsTrackless() {
+        final VideoStream blankTrack = new VideoStream.Builder()
+                .setId("blank-track")
+                .setContent("https://example.invalid/blank-track", true)
+                .setDeliveryMethod(DeliveryMethod.PROGRESSIVE_HTTP)
+                .setIsVideoOnly(false)
+                .setResolution("720p")
+                .setCodec("avc1.64001f")
+                .setAudioTrackId("")
+                .build();
+        final VideoStream trackless = stream("720p", "avc1.64001f", 4000000);
+        assertEquals(VideoStreamSelector.bucketKeyOf(trackless),
+                VideoStreamSelector.bucketKeyOf(blankTrack));
+        assertEquals("720p AVC", VideoStreamSelector.qualityLabelOf(blankTrack));
+    }
+
+    @Test
+    public void collapsePrefersNonHlsAndComparatorBest() {
+        // HLS original must not displace a progressive dub; within one delivery
+        // the higher bitrate wins.
+        final VideoStream progressiveDub = new VideoStream.Builder()
+                .setId("prog-dub")
+                .setContent("https://example.invalid/prog-dub", true)
+                .setDeliveryMethod(DeliveryMethod.PROGRESSIVE_HTTP)
+                .setIsVideoOnly(false)
+                .setMediaFormat(MediaFormat.MPEG_4)
+                .setResolution("720p")
+                .setCodec("avc1.64001f")
+                .setAudioTrackId("dub")
+                .build();
+        final VideoStream hlsOriginal = new VideoStream.Builder()
+                .setId("hls-orig")
+                .setContent("https://example.invalid/hls-orig", true)
+                .setDeliveryMethod(DeliveryMethod.HLS)
+                .setIsVideoOnly(false)
+                .setMediaFormat(MediaFormat.MPEG_4)
+                .setResolution("720p")
+                .setCodec("avc1.64001f")
+                .setAudioTrackId("orig")
+                .setAudioTrackName("Original")
+                .build();
+        final VideoStream thinProgressive = new VideoStream.Builder()
+                .setId("prog-thin")
+                .setContent("https://example.invalid/prog-thin", true)
+                .setDeliveryMethod(DeliveryMethod.PROGRESSIVE_HTTP)
+                .setIsVideoOnly(false)
+                .setMediaFormat(MediaFormat.MPEG_4)
+                .setResolution("720p")
+                .setCodec("avc1.64001f")
+                .setAudioTrackId("other-dub")
+                .setBitrate(1000000)
+                .build();
+        final VideoStream fatProgressive = new VideoStream.Builder()
+                .setId("prog-fat")
+                .setContent("https://example.invalid/prog-fat", true)
+                .setDeliveryMethod(DeliveryMethod.PROGRESSIVE_HTTP)
+                .setIsVideoOnly(false)
+                .setMediaFormat(MediaFormat.MPEG_4)
+                .setResolution("720p")
+                .setCodec("avc1.64001f")
+                .setAudioTrackId("another-dub")
+                .setBitrate(5000000)
+                .build();
+        final List<VideoStream> collapsed = StreamFilters.collapseAudioTrackVariants(
+                Arrays.asList(hlsOriginal, progressiveDub));
+        assertEquals(1, collapsed.size());
+        assertEquals("prog-dub", collapsed.get(0).getId());
+        final List<VideoStream> best = StreamFilters.collapseAudioTrackVariants(
+                Arrays.asList(thinProgressive, fatProgressive));
+        assertEquals(1, best.size());
+        assertEquals("prog-fat", best.get(0).getId());
+    }
+
+    @Test
+    public void vp9SpellingsCollapseToBest() {
+        final VideoStream vp09 = stream("480p", "vp09.00.40.08", 1000000,
+                MediaFormat.WEBM);
+        final VideoStream vp9 = stream("480p", "vp9", 2000000, MediaFormat.WEBM);
+        final List<VideoStream> collapsed = StreamFilters.collapseAudioTrackVariants(
+                Arrays.asList(vp09, vp9));
+        assertEquals(1, collapsed.size());
+        assertEquals(2000000, collapsed.get(0).getBitrate());
     }
 
     @Test

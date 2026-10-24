@@ -202,7 +202,7 @@ the vocabulary in section 3:
    live per-stream branch applies the same distinct-count gate before
    falling back to the adaptive menu.
 6. Preference migration: the removed HEVC toggle is purged from
-   stored `advanced_formats` sets by `MIGRATION_8_9` (DB version 8 →
+   stored `advanced_formats` sets by `MIGRATION_8_9` (preferences version 8 →
    9); stale `HEVC`/`H265` tokens would otherwise linger forever.
 
 ## 6. Edge cases and trade-offs
