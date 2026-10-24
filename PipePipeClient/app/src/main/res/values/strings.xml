@@ -642,8 +642,6 @@
 <string name="sponsor_block_notifications_summary">Show a toast notification when a sponsor is automatically skipped.</string>
 <string name="sponsor_block_privacy_title">View Privacy Policy</string>
 <string name="sponsor_block_privacy_summary">View SponsorBlock\'s privacy policy.</string>
-<string name="sponsor_block_api_url_help_text">This is the URL that will be queried when the application needs to know which parts of a video to skip.\n\nYou can set the official URL by clicking the \'Use Official\' option below, though it is highly recommended you view SponsorBlock\'s privacy policy before you do.</string>
-<string name="sponsor_block_privacy_policy_text">SponsorBlock Privacy Policy</string>
 <string name="sponsor_block_skip_sponsor_toast">Skipped sponsor</string>
 <string name="sponsor_block_skip_intro_toast">Skipped intermission/intro</string>
 <string name="sponsor_block_skip_outro_toast">Skipped endcards/credits</string>
@@ -875,7 +873,6 @@
 <string name="channel_videos">Channel videos</string>
 <string name="channel_is_blocked">This channel is in your block list</string>
 <string name="success">Success</string>
-<string name="subscription_kofi_title">Become a supporter on Ko-fi</string>
 <string name="show_stream_details">Show stream details</string>
 <string name="video_not_released">The video has not released yet.</string>
 <string name="filter_shorts_title">Filter short videos</string>
