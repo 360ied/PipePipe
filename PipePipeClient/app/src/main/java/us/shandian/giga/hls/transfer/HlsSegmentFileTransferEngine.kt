@@ -377,13 +377,29 @@ internal class HlsSegmentFileTransferEngine(
         onBuffered: (Long) -> Unit = {},
     ): DownloadedSegment {
         ensureRunning()
+        // Roll back each failed attempt's bytes: without this the shared
+        // in-flight ledger keeps phantom bytes from attempts that threw,
+        // the submit gate sees a permanently full budget, and the drain
+        // loop spins forever with zero pending futures. Each operation
+        // invocation is one attempt, so track-and-rollback lives here
+        // without touching the shared retry policy.
+        var attemptBuffered = 0L
         val result = retryPolicy.withRetries {
-            downloadPartToMemory(
-                url = withManifestCookie(segment.url, rawMediaPlaylistUrl),
-                byteRange = segment.byteRange,
-                defaultByteRangeStart = defaultByteRangeStart,
-                onBuffered = onBuffered,
-            )
+            try {
+                downloadPartToMemory(
+                    url = withManifestCookie(segment.url, rawMediaPlaylistUrl),
+                    byteRange = segment.byteRange,
+                    defaultByteRangeStart = defaultByteRangeStart,
+                    onBuffered = { delta ->
+                        attemptBuffered += delta
+                        onBuffered(delta)
+                    },
+                )
+            } catch (error: IOException) {
+                onBuffered(-attemptBuffered)
+                attemptBuffered = 0L
+                throw error
+            }
         }
         if (result.bytes.size.toLong() > MAX_SEGMENT_BYTES) {
             throw NonRetryableTransferException("HLS segment too large: ${result.bytes.size}")

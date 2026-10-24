@@ -90,10 +90,20 @@ internal class HttpTransferConnectionFactory(
     private fun isSameHostPort(candidate: String, origin: java.net.URI): Boolean {
         return try {
             val url = URL(candidate)
-            url.host.equals(origin.host, ignoreCase = true) && url.port == origin.toURL().port
+            val originUrl = origin.toURL()
+            // Effective ports: an explicit `:443` equals an unspecified
+            // port on https (and likewise `:80`/http). Compare schemes
+            // too so an https->http downgrade never inherits the cookie.
+            url.protocol.equals(originUrl.protocol, ignoreCase = true) &&
+                url.host.equals(origin.host, ignoreCase = true) &&
+                effectivePort(url) == effectivePort(originUrl)
         } catch (error: Exception) {
             false
         }
+    }
+
+    private fun effectivePort(url: URL): Int {
+        return url.port.takeIf { it != -1 } ?: url.defaultPort
     }
 
     private fun formatRange(rangeStart: Long, rangeEnd: Long?): String {
