@@ -107,13 +107,14 @@ disk cache) with `defaultBitmapConfig(RGB_565)` plus a scaling
 but drops alpha and can interact badly with `VP8X`/animated storyboards.
 
 `PipePipeClient/app/src/main/java/org/schabi/newpipe/info_list/ComposeItemUiHelper.kt:157`
-`rememberPicassoBitmap(key, request)` creates its `Target` as a local
-inside `DisposableEffect` and never holds a strong reference. Picasso holds
-`Target` weakly (upstream `square/picasso#39`, `#1658`, `#1667`,
-`SO#24180805`); GC before `onBitmapLoaded` leaves `bitmap = null` → gray
-`surfaceVariant` box. RecyclerView holders (`into(ImageView)`) are not
-affected the same way, so Compose lists can look broken while detail pages
-work, or vice versa.
+`rememberPicassoBitmap(key, request)` created its `Target` as a local
+inside `DisposableEffect` and never held a strong reference (pre-`af00f17`).
+Picasso holds `Target` weakly (upstream `square/picasso#39`, `#1658`,
+`#1667`, `SO#24180805`); GC before `onBitmapLoaded` left `bitmap = null`
+→ gray `surfaceVariant` box. Fixed by strong-holding the `Target` in
+`remember` (`af00f17`); failure now also renders `dummy_thumbnail` instead
+of the gray box. RecyclerView holders (`into(ImageView)`) were never
+affected the same way.
 
 Other amplifiers, all pre-existing and unchanged by the `ffmpeg` merge:
 
@@ -136,12 +137,14 @@ Other amplifiers, all pre-existing and unchanged by the `ffmpeg` merge:
    fresh search (fresh `rs`) vs History/Saved-Playlists (DB-cached `rs`).
    `onBitmapFailed` vs HTTP `404 image/jpeg 120x90` placeholder
    distinguishes decode failure from stale-URL failure. No code change.
-2. Force-JPEG probe (test worktree only): strip `?…` in `fixThumbnailUrl`
-   or prefer `hqdefault.jpg`; if thumbnails return, the cause is the WebP
-   variant, not `ffmpeg`. Cost is larger bytes (`292 KB` JPEG vs `89 KB`
-   WebP for the `720` variant measured above).
-3. Strong-ref probe: hoist the Compose `Target` into `remember` state and
-   retest lists. Fixes intermittent Compose-only gaps if GC is the trigger.
+2. ~~Force-JPEG probe~~ — done, reverted: the strip (`9aa485c`) did not
+   restore thumbnails (no image requests fired at all — the holders never
+   called Picasso), so the WebP variant was exonerated and the strip
+   reverted (`28e6da6`) to avoid larger bytes (`292 KB` JPEG vs `89 KB`
+   WebP) and upstream divergence.
+3. ~~Strong-ref probe~~ — done: `Target` hoisted into `remember`
+   (`af00f17`), plus `Target`-overload cancel fix and failure placeholder
+   in the review follow-up.
 4. Device split: API 30 vs 31+ on the same build. API-30-only failure
    points at platform WebP/`ImageDecoder` + `RGB_565`; all-API failure
    points at URL/caching.
