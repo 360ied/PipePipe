@@ -109,7 +109,7 @@ public final class NewPipeSettings {
             }
 
             final SharedPreferences.Editor spEditor = prefs.edit();
-            spEditor.putString(key, getNewPipeChildFolderPathForDir(getDir(defaultDirectoryName)));
+            spEditor.putString(key, getDefaultChildFolderPathForDir(getDir(defaultDirectoryName)));
             spEditor.apply();
         }
     }
@@ -119,7 +119,7 @@ public final class NewPipeSettings {
         return new File(Environment.getExternalStorageDirectory(), defaultDirectoryName);
     }
 
-    private static String getNewPipeChildFolderPathForDir(final File dir) {
+    private static String getDefaultChildFolderPathForDir(final File dir) {
         return new File(dir, "NanoPipe").toURI().toString();
     }
 
