@@ -503,7 +503,7 @@ public final class Player {
      *
      * <p>A live stream is stateless: while it is paused there is no position worth preserving, so
      * {@link #enterLiveIdle()} releases the ExoPlayer source (which stops the manifest / playlist
-     * refresh and the segment downloads) and disconnects the live-only connections. The source is
+     * refresh and the segment downloads). The source is
      * rebuilt by {@link #exitLiveIdle()} on the next play request.</p>
      */
     boolean isLiveIdle() {

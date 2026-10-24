@@ -1160,7 +1160,19 @@ public final class VideoDetailFragment
         pageAdapter.notifyDataSetUpdate();
 
         if (pageAdapter.getCount() >= 2) {
-            final int position = pageAdapter.getItemPositionByTitle(selectedTabTag);
+            int position = pageAdapter.getItemPositionByTitle(selectedTabTag);
+            if (position == -1) {
+                // The persisted tab no longer exists (e.g. a removed feature tab):
+                // fall back to the first real tab so the dead value is not re-saved.
+                for (int i = 0; i < pageAdapter.getCount(); i++) {
+                    final String title = pageAdapter.getItemTitle(i);
+                    if (title != null && !EMPTY_TAB_TAG.equals(title)) {
+                        selectedTabTag = title;
+                        position = i;
+                        break;
+                    }
+                }
+            }
             if (position != -1) {
                 binding.viewPager.setCurrentItem(position, false);
             }
