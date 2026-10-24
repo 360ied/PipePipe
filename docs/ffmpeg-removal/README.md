@@ -8,7 +8,7 @@ APIs (HLS).
   `.github/workflows/`).
 - Audited: 2026-10-24, `main` at `15ed881`, app version `5.5.0-beta3`.
 - All paths below are relative to the repository root.
-- Status: **implemented and verified in the `ffmpeg-removal-spike` worktree — pending merge.** 18 pedantic review rounds closed with full `./scripts/check.sh` green (final round: SABR/docs clean, single HLS finding rebutted as a false positive against the SDK stub); no merge, push, or worktree cleanup without explicit request.
+- Status: **done — merged into `main` (`4312e6f`) and verified green.** 18 pedantic review rounds closed with full `./scripts/check.sh` green plus an on-device install; the now-pointless ABI splits were dropped as follow-up (per-ABI APKs were identical without ffmpeg natives).
 
 ## 1. Summary and recommendation
 

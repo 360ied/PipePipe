@@ -67,8 +67,12 @@ esac
 
 ./gradlew assembleDebug assembleDebugAndroidTest
 
-abi="$($adb shell getprop ro.product.cpu.abi | tr -d '\r')"
-app_apk="$(find app/build/outputs/apk/debug -name "*-${abi}-debug.apk" -print -quit)"
+mapfile -t app_apk_matches < <(find app/build/outputs/apk/debug -type f -name "PipePipe_*-debug.apk")
+if [ "${#app_apk_matches[@]}" -ne 1 ]; then
+  echo "Expected exactly one app APK in app/build/outputs/apk/debug, found ${#app_apk_matches[@]}" >&2
+  exit 2
+fi
+app_apk="${app_apk_matches[0]}"
 test_apk="app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
 app_metadata="app/build/outputs/apk/debug/output-metadata.json"
 test_metadata="app/build/outputs/apk/androidTest/debug/output-metadata.json"

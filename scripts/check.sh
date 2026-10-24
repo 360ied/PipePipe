@@ -54,12 +54,11 @@ if [ "$FULL_TEST" = true ]; then
   echo "Running full verification (assemble + lint + unit tests)..."
   (cd PipePipeClient && nix develop --command ./gradlew assembleDebug lintDebug testDebugUnitTest --stacktrace -DskipFormatKtlint)
 elif [ "$QUICK" = true ]; then
-  echo "Running quick verification (single-ABI assemble only, no lint)..."
+  echo "Running quick verification (assemble only, no lint)..."
   echo "For iteration only; run the default gate before completing a task."
-  QUICK_ABI="${QUICK_ABI:-arm64-v8a}"
-  (cd PipePipeClient && nix develop --command ./gradlew assembleDebug -PsingleAbi="$QUICK_ABI" --stacktrace -DskipFormatKtlint)
+  (cd PipePipeClient && nix develop --command ./gradlew assembleDebug --stacktrace -DskipFormatKtlint)
 else
-  echo "Running fast verification (mirrors CI: assemble + lint)..."
+  echo "Running fast verification (assemble + lint)..."
   (cd PipePipeClient && nix develop --command ./gradlew assembleDebug lintDebug --stacktrace -DskipFormatKtlint)
 fi
 
