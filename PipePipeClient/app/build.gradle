@@ -20,13 +20,22 @@ def signingKeyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProps.getPrope
 def baseVersionCode = 1110
 // versionName is tag-driven (see AGENTS.md "Versioning"): the release
 // tag is the single source of truth. Never hardcode appVersionName.
-def gitDescribeRaw = providers.exec {
-    // --always: never fail; falls back to a bare commit hash when no tag
-    // is reachable (e.g. CI checkout without fetch-tags). The dual --match
-    // accepts both v-prefixed and legacy bare tags.
-    commandLine "git", "describe", "--tags", "--match", "v[0-9]*.[0-9]*.[0-9]*", "--match", "[0-9]*.[0-9]*.[0-9]*", "--always"
-}.standardOutput.asText.get().trim()
-// Strip the leading 'v' so versionName stays bare semver.
+def gitDescribeRaw
+try {
+    gitDescribeRaw = providers.exec {
+        // --always: never fails for missing tags; falls back to a bare
+        // commit hash when no tag is reachable (e.g. CI checkout without
+        // fetch-tags). Still requires a git checkout (see fallback below).
+        // --dirty marks uncommitted changes; the dual --match accepts both
+        // v-prefixed and legacy bare tags.
+        commandLine "git", "describe", "--tags", "--dirty", "--match", "v[0-9]*.[0-9]*.[0-9]*", "--match", "[0-9]*.[0-9]*.[0-9]*", "--always"
+    }.standardOutput.asText.get().trim()
+} catch (Exception describeFailed) {
+    // Source tarball without .git, or git binary unavailable.
+    logger.warn("git describe failed ({}); using fallback version", describeFailed.getMessage())
+    gitDescribeRaw = "0.0.0-unknown"
+}
+// Strip the leading 'v' so the tag prefix never leaks into versionName.
 def appVersionName = gitDescribeRaw.replaceFirst(/^v(?=\d)/, "")
 // Single universal APK: ABI splits were dropped with ffmpeg-kit (the per-ABI
 // APKs were identical apart from a ~10 KB transitive AndroidX .so). The x100

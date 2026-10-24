@@ -75,13 +75,18 @@ Always use the Gradle wrapper (`./gradlew`); never a system `gradle`.
 
 - **Dynamic versionName**: `PipePipeClient/app/build.gradle` resolves
   `appVersionName` at configuration time via
-  `git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --match "[0-9]*.[0-9]*.[0-9]*" --always`
+  `git describe --tags --dirty --match "v[0-9]*.[0-9]*.[0-9]*" --match "[0-9]*.[0-9]*.[0-9]*" --always`
   (lazy `providers.exec`, configuration-cache safe), with the leading
-  `v` stripped. Never hardcode `appVersionName`.
+  `v` stripped. Never hardcode `appVersionName`. Uncommitted changes
+  append `-dirty`; checkouts without git fall back to `0.0.0-unknown`.
 - **Release tagging**: tag releases with annotated tags, `v` prefix
   canonical: `git tag -a v<version> -m "Release v<version>"`
   (e.g. `git tag -a v5.5.0-beta4 -m "Release v5.5.0-beta4"`).
   Debug builds append `-debug` via `versionNameSuffix`.
+- **APK filename** interpolates the raw tag
+  (`PipePipe_<tag>-<variant>.apk`), not the runtime `versionName`, so
+  it never carries `-debug`/`-dirty`; the variant name already
+  disambiguates.
 - **versionCode**: frozen at `100 * baseVersionCode` (stays above the
   legacy per-ABI split codes). Bump `baseVersionCode` only if
   store-style upgrade ordering ever requires it; it is not tied to
