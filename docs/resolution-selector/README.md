@@ -10,8 +10,8 @@ YouTube-only, and how to implement it without touching downloads.
   `ItagItem`, `YoutubeStreamExtractor`).
 - Audited: 2026-10-24, `main` at `dcd305e` (doc commits `527f7bf`, `febe228`, `dcd305e`; revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **implemented** on branch `one-pick-per-resolution` (commits
-  `26b9101` + review follow-ups; revalidate refs against that branch).
+- Status: **implemented** on branch `one-pick-per-resolution`
+  (see branch history; revalidate refs against that branch).
   Rows carry `height + fps-class + codec family` (`qualityLabelOf`,
   e.g. `720p60 AVC`); the button stays height-only except while the
   selector is open, when it shows the current stream's full label.
@@ -123,9 +123,11 @@ All in `VideoStreamSelector.java` unless noted; all unreachable with
 the vocabulary in section 3:
 
 - `HIGH_RESOLUTION_LIST:26` — defined, zero references. Delete.
-- `calculateResolution():419-440` — `8K / 4K / 高帧率 / 高码率 / HDR /
-  杜比 / 低画質` branches never match a YouTube string. Replace with a
-  `(\d+)p` parser (+ fps-class suffix) instead of extending it.
+- `calculateResolution():419-440` — `高帧率 / 高码率 / HDR /
+  杜比 / 低画質` branches never match a YouTube string. Replaced with a
+  `(\d+)p` parser (+ fps-class suffix); bare `4K`/`8K` kept as an
+  explicit exception with their historical ranks (2160/4320) so a
+  non-YouTube label can never sink below `144p`.
 - `normalizeResolutionKey:180` HDR handling and comment (`1440p HDR →
   1440p`) — no YouTube stream emits an HDR suffix in `resolution`.
 - `codecFamilyOf():193-212` `hev1/hvc1 → hevc` branch, `getCodecPriority
@@ -166,7 +168,9 @@ the vocabulary in section 3:
    shows the current stream's full label, height-only otherwise.
    Click maps back to the representative stream and calls the existing
    `setSelectedStream()` — resolver, persistence, and sticky-codec
-   behavior unchanged.
+   behavior unchanged. Tapping the already-playing bucket is a no-op
+   (`bucketKeyOf` equality, not stream identity, since the
+   representative may differ in codec).
 3. `showExternalPlaybackDialog()` uses the same bucket helper on its
    own input list (fixes the identical-label bug) — note that list
    differs from the player's: the fragment builds with
@@ -185,14 +189,21 @@ the vocabulary in section 3:
 4. Explicitly unchanged: `getSortedStreamVideosList()` ordering and
    filtering, `DownloadDialog`/`StreamItemAdapter` rows,
    `VideoPlaybackResolver` protocol, live/HLS adaptive menu
-   (`POPUP_MENU_ID_LIVE_QUALITY` path).
-5. VOD button visibility must key off distinct-bucket count, not raw
-   stream count — 3×1080p in different codecs is one bucket and should
-   not offer a one-item menu. Note `:278` (`size > 1`) is the
-   live-only branch; the VOD branch (`VIDEO_STREAM, POST_LIVE_STREAM`,
-   ~`PlayerLayoutController.kt:291-298`) currently shows the button
-   whenever streams are non-empty with no count check — that branch is
-   the one that needs the `distinctBuckets.size <= 1` hide rule.
+   (`POPUP_MENU_ID_LIVE_QUALITY` path). One deliberate change inside
+   the sorter: on dedup-key collision the comparator-best copy wins
+   instead of iteration luck, so a higher-bitrate/HFR duplicate is
+   never lost before bucketing.
+5. VOD button visibility keys off distinct-bucket count, not raw
+   stream count — 3×1080p in different codecs is one bucket and must
+   not offer a one-item menu. Only the menu + button are gated; the
+   surface, end-screen, and duration follow the VOD branch
+   unconditionally (with safe defaults when quality is null) so a
+   single-bucket video never leaks the previous item's views. The
+   live per-stream branch applies the same distinct-count gate before
+   falling back to the adaptive menu.
+6. Preference migration: the removed HEVC toggle is purged from
+   stored `advanced_formats` sets by `MIGRATION_8_9` (DB version 8 →
+   9); stale `HEVC`/`H265` tokens would otherwise linger forever.
 
 ## 6. Edge cases and trade-offs
 
@@ -259,7 +270,8 @@ the vocabulary in section 3:
 ## 7. Cleanup bundled with the change
 
 Delete `HIGH_RESOLUTION_LIST`; replace `calculateResolution`'s
-non-YouTube branches with the section-3 height parser and score `60` /
+non-YouTube branches with the section-3 height parser (keeping bare
+`4K`/`8K` as an explicit ranked exception) and score `60` /
 `HFR` above plain height so the in-bucket winner prefers HFR
 (`1080p60 → 1081` today; give `1080p HFR` the same rank instead of
 tying `1080`); collapse the bucket/variant key to height only
@@ -277,7 +289,10 @@ so one pass avoids three re-reviews of `compareVideoStreamResolution`.
   set (`1080p` AVC + `1080p` VP9 + `1080p HFR` AV1 + `1080p HFR High`
   AV1 + `1080p60` AVC + `1080p60` VP9 + `720p` AVC → `{1080p: 1 row,
   HFR High AV1 wins}`, `{720p: 1 row}`); unknown-resolution fallback;
-  sticky-codec re-resolution via `getResolutionAndCodecIndex` unchanged.
+  sticky-codec re-resolution via `getResolutionAndCodecIndex` unchanged;
+  plain default target prefers HFR in-bucket, sticky variant keeps
+  variant-first; bare `4K` outranks FHD; dedup collision keeps the best
+  copy; `qualityLabelOf` height+fps+codec rendering.
 - Manual: open a video with VP9 + AV1 enabled and check the menu shows
   each height exactly once (no `60` twins); picking `1080p` plays the
   HFR encode; disable AV1/VP9 in `advanced_formats` and confirm the
