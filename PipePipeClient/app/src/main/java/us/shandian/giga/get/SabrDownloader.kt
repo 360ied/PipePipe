@@ -68,6 +68,16 @@ internal class SabrDownloader(
         session.setInfoReloader(SabrPlayerReloader)
         val workDir = prepareWorkDirectory()
         val targets = SabrDownloadFormatResolver.buildTargets(info, recoveries, workDir)
+        // SabrSegmentWriter routes segments by (itag, xtags) to the first
+        // matching target; duplicates would starve the rest into STALLED.
+        val duplicates = targets.groupBy { it.format.itag to it.format.xtags }
+            .filterValues { it.size > 1 }.keys
+        if (duplicates.isNotEmpty()) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.FORMAT,
+                "SABR download failed: duplicate formats $duplicates",
+            )
+        }
         restoreTargets(targets)
         val outputs = mutableMapOf<Int, FileOutputStream>()
         try {
@@ -116,7 +126,10 @@ internal class SabrDownloader(
 
     @Throws(IOException::class)
     private fun validateRecoveryInfo(): Array<MissionRecoveryInfo> {
-        val recoveries = mission.recoveryInfo ?: throw IOException("Missing SABR recovery info")
+        val recoveries = mission.recoveryInfo ?: throw SabrDownloadException(
+            SabrDownloadException.Reason.FORMAT,
+            "SABR download failed: missing recovery info",
+        )
         if (recoveries.size != mission.urls.size) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.FORMAT,
@@ -175,6 +188,7 @@ internal class SabrDownloader(
 
     private fun restoreTargets(targets: List<SabrDownloadTarget>) {
         try {
+            val kept = mutableListOf<SabrResourceCheckpoint>()
             targets.forEach { target ->
                 val checkpoint = mission.sabrCheckpoint?.resources?.firstOrNull {
                     it.resourceIndex == target.resourceIndex &&
@@ -195,6 +209,11 @@ internal class SabrDownloader(
                     return@forEach
                 }
                 RandomAccessFile(target.file, "rw").use { file ->
+                    // Re-check after open: a concurrent delete recreates the
+                    // file via "rw" and must not be zero-padded as restored.
+                    if (file.length() < checkpoint.bytesWritten) {
+                        throw IOException("Temporary media changed during restore: ${target.file}")
+                    }
                     file.setLength(checkpoint.bytesWritten)
                     if (checkpoint.initializationBytes > 0) {
                         val initialization = ByteArray(checkpoint.initializationBytes)
@@ -205,7 +224,16 @@ internal class SabrDownloader(
                     }
                 }
                 target.nextWriteSequence = checkpoint.nextWriteSequence
+                kept += checkpoint
             }
+            // Drop stale resources (format/path change) so persisted progress
+            // matches the files on disk instead of overcounting `done`.
+            val current = mission.sabrCheckpoint
+            if (current != null) {
+                mission.sabrCheckpoint = current.copy(resources = kept.sortedBy { it.resourceIndex })
+            }
+            mission.done = targets.sumOf { if (it.file.exists()) it.file.length() else 0 }
+            mission.writeThisToFile()
         } catch (error: IOException) {
             throw storageException("could not restore temporary media", error)
         }
@@ -224,8 +252,14 @@ internal class SabrDownloader(
         val resources = current.resources
             .filterNot { it.resourceIndex == target.resourceIndex }
             .toMutableList()
+        // Key the frozen size on format identity: a re-resolved itag/xtags
+        // pair must not inherit the previous init size.
         val previousInitializationBytes = current.resources
-            .firstOrNull { it.resourceIndex == target.resourceIndex }
+            .firstOrNull {
+                it.resourceIndex == target.resourceIndex &&
+                    it.itag == target.format.itag &&
+                    it.xtags == target.format.xtags
+            }
             ?.initializationBytes
             ?: 0
         resources += SabrResourceCheckpoint(

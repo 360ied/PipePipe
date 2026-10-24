@@ -47,10 +47,13 @@ internal class SabrJavaMuxer(
         }
         if (canCopySingleInputDirectly(inputs, targets)) {
             logDebug("copySingleInputDirectly input=${inputs.first().length()}")
+            mission.psState = 1
+            mission.writeThisToFile()
             try {
                 return copyOutputToStorage(inputs.first())
             } catch (error: InterruptedException) {
                 mission.psState = 0
+                mission.writeThisToFile()
                 throw error
             } catch (error: IOException) {
                 mission.psState = 0
@@ -312,15 +315,13 @@ internal class SabrJavaMuxer(
     @Throws(IOException::class)
     private fun openSources(inputs: List<File>): List<FileStream> {
         // Opened streams are tracked incrementally so a throwing Nth
-        // constructor still cleans up streams 0..N-1.
+        // constructor (`FileStream` throws `FileNotFoundException`) cleans
+        // up streams 0..N-1 instead of losing them with the unassigned list.
         val opened = mutableListOf<FileStream>()
         try {
             inputs.forEach { input ->
                 opened.add(FileStream(input))
             }
-        } catch (error: InterruptedException) {
-            opened.forEach { closeQuietly(it) }
-            throw error
         } catch (error: Exception) {
             opened.forEach { closeQuietly(it) }
             throw error

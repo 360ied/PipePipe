@@ -579,6 +579,7 @@ public class DownloadMission extends Mission {
             hlsCheckpoint = null;
             sabrCheckpoint = null;
             sabrStarted = false;
+            psState = 0;
             try {
                 HlsDownloader.cleanup(this);
             } catch (Exception ignored) {
