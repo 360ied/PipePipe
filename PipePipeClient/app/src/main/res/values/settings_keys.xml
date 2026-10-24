@@ -1195,13 +1195,8 @@
     <string name="streams_notifications_channels_key">streams_notifications_channels</string>
     <string name="player_notification_screen_key">player_notification_screen</string>
     <string name="enable_eye_protection_key">enable_eye_protection_key</string>
-    <string name="logout_key">logout_key</string>
-    <string name="login_key">login_key</string>
-    <string name="youtube_cookies_key">youtube_cookies_key</string>
     <string name="toggle_show_future_items_key">toggle_show_future_items_key</string>
     <string name="auto_background_play_key">auto_background_play_key</string>
-    <string name="override_cookies_youtube_key">override_cookies_youtube_key</string>
-    <string name="override_cookies_youtube_value_key">override_cookies_youtube_value_key</string>
 
     <!-- ExoPlayer settings -->
     <string name="exoplayer_settings_key">exoplayer_settings_key</string>
@@ -1212,7 +1207,6 @@
     <string name="image_quality_none_key">image_quality_none</string>
     <string name="image_quality_low_key">image_quality_low</string>
     <string name="image_quality_high_key">image_quality_high</string>
-    <!-- Accounts Cookies -->
     <string name="playlist_sort_mode_key">playlist_sort_mode_key</string>
     <string name="sleep_timer_length_key">sleep_timer_length_key</string>
     <string-array name="sleep_timer_length_key">
@@ -1338,7 +1332,6 @@
     <string name="filter_shorts_key">filter_shorts_key</string>
     <string name="filter_paid_contents_key">filter_paid_contents_key</string>
     <string name="loading_timeout_key">loading_timeout_key</string>
-    <string name="youtube_po_token_key">youtube_po_token_key</string>
     <string name="always_start_from_beginning_key">always_start_from_beginning_key</string>
     <string name="fetch_full_playlist_key">fetch_full_playlist_key</string>
     <string name="auto_ellipsize_key">auto_ellipsize_key</string>

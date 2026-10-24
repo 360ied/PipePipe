@@ -2,12 +2,10 @@ package org.schabi.newpipe.youtube
 
 import android.content.Context
 import android.util.Log
-import androidx.preference.PreferenceManager
 import com.grack.nanojson.JsonObject
 import com.grack.nanojson.JsonParser
 import com.grack.nanojson.JsonWriter
 import org.schabi.newpipe.DownloaderImpl
-import org.schabi.newpipe.R
 import org.schabi.newpipe.SharedWebViewRuntime
 import org.schabi.newpipe.extractor.services.youtube.YoutubePoTokenResult
 import org.schabi.newpipe.extractor.services.youtube.sabr.exception.SabrProtocolException
@@ -104,11 +102,8 @@ object LocalDomPoTokenProvider {
         synchronized(initializationLock) {
             initializationTask?.let { return it }
             val task = FutureTask {
-                val loginCookies = PreferenceManager.getDefaultSharedPreferences(appContext)
-                    .getString(appContext.getString(R.string.youtube_cookies_key), null)
-                    ?.takeIf(String::isNotBlank)
-                val loggedIn = loginCookies != null
-                val bootstrap = fetchHomeBootstrap(loginCookies)
+                // Anonymous-only: never bootstrap with account cookies.
+                val bootstrap = fetchHomeBootstrap()
                 if (bootstrap.binding == YoutubePoTokenBinding.NONE) {
                     throw SabrProtocolException(
                         "YouTube home does not enable a supported PO token binding",
@@ -120,14 +115,7 @@ object LocalDomPoTokenProvider {
                 )
                 try {
                     val sessionPoToken = if (bootstrap.binding == YoutubePoTokenBinding.SESSION) {
-                        val sessionBinding = if (loggedIn) {
-                            bootstrap.dataSyncId ?: throw SabrProtocolException(
-                                "Authenticated YouTube home has no Data Sync ID",
-                            )
-                        } else {
-                            bootstrap.visitorData
-                        }
-                        session.mint(sessionBinding)
+                        session.mint(bootstrap.visitorData)
                     } else {
                         null
                     }
@@ -149,14 +137,14 @@ object LocalDomPoTokenProvider {
         }
     }
 
-    private fun fetchHomeBootstrap(loginCookies: String?): YoutubePageAttestationBootstrap {
+    private fun fetchHomeBootstrap(): YoutubePageAttestationBootstrap {
         val downloader = DownloaderImpl.getInstance()
             ?: throw SabrProtocolException("DownloaderImpl is not initialized")
         val response = downloader.get(
             YOUTUBE_HOME,
             mapOf(
                 "Accept-Language" to listOf("en-US"),
-                "Cookie" to listOf(loginCookies ?: ANONYMOUS_COOKIE),
+                "Cookie" to listOf(ANONYMOUS_COOKIE),
                 "User-Agent" to listOf(SharedWebViewRuntime.USER_AGENT),
             ),
         )

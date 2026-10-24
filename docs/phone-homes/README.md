@@ -74,8 +74,6 @@ reader and currently routes nothing.
   copy-to-clipboard (`error/ErrorActivity.java`). The `ErrorMatcher` wiki-fetch
   block is inside `if (false)` and never executes.
 - Donation link `https://ko-fi.com/pipepipe` (`res/values/donottranslate.xml`).
-- YouTube login WebView (`YouTubeLoginWebViewActivity`) — user-initiated; stores
-  cookies the user explicitly provides.
 
 ## Known nuances / follow-ups
 

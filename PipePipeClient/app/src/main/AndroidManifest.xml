@@ -374,10 +374,6 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <activity android:name=".views.YouTubeLoginWebViewActivity"
-                  android:configChanges="orientation|screenSize"
-                  android:theme="@style/Theme.AppCompat.NoActionBar" />
-
         <activity
                 android:name=".settings.KeywordFilterListActivity"
                 android:label="@string/filter_by_keyword_title"

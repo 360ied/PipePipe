@@ -7,7 +7,6 @@ import kotlinx.parcelize.Parcelize
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.Info
 import org.schabi.newpipe.extractor.NewPipe
-import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.exceptions.AccountTerminatedException
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException
@@ -104,12 +103,8 @@ class ErrorInfo(
 
         private fun getServiceNameFromId(serviceId: Int) = NewPipe.getNameOfService(serviceId) +
                 if (serviceId != -1) {
-                    val loggedIn = try {
-                        ServiceList.all().any { it.serviceId == serviceId && it.hasTokens() }
-                    } catch (e: Exception) {
-                        false
-                    }
-                    " (" + (if (loggedIn) "Logged in" else "Anonymous") + ")"
+                    // PipePipe is anonymous-only, so tokens are never populated.
+                    " (Anonymous)"
                 } else {
                     ""
                 }

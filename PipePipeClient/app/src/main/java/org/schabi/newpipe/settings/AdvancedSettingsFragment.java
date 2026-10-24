@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -104,10 +103,8 @@ public class AdvancedSettingsFragment extends BasePreferenceFragment implements 
             DeviceUtils.updateAndroidAutoComponentState(requireContext());
         } else if (key.equals(getString(R.string.fetch_full_playlist_key))) {
             ServiceHelper.initServices(this.getContext());
-        } else if (key.equals(getString(R.string.youtube_cookies_key))
-                || key.equals(getString(R.string.show_auto_translated_subtitles_key))) {
+        } else if (key.equals(getString(R.string.show_auto_translated_subtitles_key))) {
             updateAutoTranslatedSubtitlesPreferences();
-            updateYoutubePlayerClientPreference();
             ServiceHelper.initServices(this.getContext());
         } else if (key.equals(getString(R.string.auto_translated_subtitles_language_key))) {
             ServiceHelper.initServices(this.getContext());
@@ -124,18 +121,12 @@ public class AdvancedSettingsFragment extends BasePreferenceFragment implements 
             return;
         }
 
-        final String youtubeCookies = defaultPreferences.getString(
-                getString(R.string.youtube_cookies_key), null);
-        final boolean hasYouTubeLogin = !TextUtils.isEmpty(youtubeCookies);
         final boolean autoTranslatedSubtitlesEnabled = defaultPreferences.getBoolean(
                 getString(R.string.show_auto_translated_subtitles_key), true);
 
-        autoTranslatedSubtitlesPreference.setEnabled(hasYouTubeLogin);
-        autoTranslatedSubtitlesPreference.setSummary(hasYouTubeLogin
-                ? getString(R.string.show_auto_translated_subtitles_summary)
-                : getString(R.string.show_auto_translated_subtitles_login_required_summary));
-        autoTranslatedSubtitlesLanguagePreference.setEnabled(hasYouTubeLogin
-                && autoTranslatedSubtitlesEnabled);
+        autoTranslatedSubtitlesPreference.setSummary(
+                getString(R.string.show_auto_translated_subtitles_summary));
+        autoTranslatedSubtitlesLanguagePreference.setEnabled(autoTranslatedSubtitlesEnabled);
     }
 
     private void updateYoutubePlayerClientPreference() {
@@ -144,16 +135,12 @@ public class AdvancedSettingsFragment extends BasePreferenceFragment implements 
         if (preference == null) {
             return;
         }
-        final boolean loggedIn = !TextUtils.isEmpty(defaultPreferences.getString(
-                getString(R.string.youtube_cookies_key), null));
         final String[] entries = getResources().getStringArray(
                 R.array.youtube_player_client_entries);
         final String[] values = getResources().getStringArray(
                 R.array.youtube_player_client_values);
-        // Logged in: MWEB only. Logged out: VisionOS, TV (Samsung), MWEB.
-        final String[] shownValues = loggedIn
-                ? new String[]{"mweb"}
-                : new String[]{"visionos", "tv_samsung", "mweb"};
+        // Anonymous-only: VisionOS, TV (Samsung), MWEB.
+        final String[] shownValues = new String[]{"visionos", "tv_samsung", "mweb"};
         final List<CharSequence> shownEntries = new ArrayList<>();
         for (final String value : shownValues) {
             shownEntries.add(entries[Arrays.asList(values).indexOf(value)]);
@@ -162,8 +149,7 @@ public class AdvancedSettingsFragment extends BasePreferenceFragment implements 
         preference.setEntryValues(shownValues);
         App.reconcileYoutubePlayerClient(requireContext());
         preference.setValue(defaultPreferences.getString(
-                getString(R.string.youtube_player_client_key),
-                loggedIn ? "mweb" : "visionos"));
+                getString(R.string.youtube_player_client_key), "visionos"));
     }
 
     @Override
