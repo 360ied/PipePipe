@@ -451,7 +451,7 @@ internal class SabrDownloader(
             val missionId = if (mission.timestamp > 0) {
                 mission.timestamp.toString()
             } else {
-                mission.storage.name.hashCode().toString()
+                (mission.storage.name?.hashCode() ?: 0).toString()
             }
             return File(base, "sabr-downloader/$missionId")
         }

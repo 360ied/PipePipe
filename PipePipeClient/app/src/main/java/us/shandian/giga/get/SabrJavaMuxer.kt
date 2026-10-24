@@ -20,7 +20,8 @@ import java.io.IOException
  * - mp4+mp4 -> [Mp4FromDashWriter], track picked by audio/video kind
  * - webm+webm -> [WebMWriter] (video track from video source, audio from audio)
  * - single input -> direct copy for webm/webm (legacy fast path), otherwise
- *   single-track Java mux
+ *   single-track Java mux with verbatim-copy fallback for very short clips
+ *   ([Mp4FromDashWriter] needs >= 8 samples per track)
  * - mixed mp4<->webm -> fail closed with [SabrDownloadException.Reason.MUXING],
  *   never a corrupt output.
  */
@@ -33,7 +34,7 @@ internal class SabrJavaMuxer(
             logDebug("copySingleInputDirectly input=${inputs.first().length()}")
             return copyOutputToStorage(inputs.first())
         }
-        val output = File(workDir, "output.${outputExtension()}")
+        val output = File(workDir, "output.${downloadOutputExtension(mission.storage.name)}")
         remux(inputs, targets, output)
         return try {
             copyOutputToStorage(output)
@@ -49,6 +50,9 @@ internal class SabrJavaMuxer(
         try {
             dispatchRemux(inputs, targets, output)
         } catch (error: SabrDownloadException) {
+            mission.psState = 0
+            throw error
+        } catch (error: InterruptedException) {
             mission.psState = 0
             throw error
         } catch (error: IOException) {
@@ -68,7 +72,7 @@ internal class SabrJavaMuxer(
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(IOException::class, InterruptedException::class)
     private fun dispatchRemux(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
         if (inputs.isEmpty() || targets.isEmpty() || inputs.size != targets.size) {
             throw SabrDownloadException(
@@ -113,12 +117,15 @@ internal class SabrJavaMuxer(
         }
 
         // The output filename selects the container; never write bytes the
-        // suffix mislabels.
-        val extension = outputExtension().lowercase()
+        // suffix mislabels. WEBM family deliberately covers user-renamed
+        // audio suffixes (opus/weba) and Matroska names (mkv/mka): WebM bytes
+        // remain playable under them, while failing the download over a
+        // rename would be worse. Anything else fails closed.
+        val extension = downloadOutputExtension(mission.storage.name).lowercase()
         val unanimous = containers.first()
         val agrees = when (unanimous) {
             Container.MP4 -> extension in MP4_FAMILY_EXTENSIONS
-            Container.WEBM -> extension == "webm"
+            Container.WEBM -> extension in WEBM_FAMILY_EXTENSIONS
             Container.UNKNOWN -> false
         }
         if (!agrees) {
@@ -127,11 +134,6 @@ internal class SabrJavaMuxer(
                 "SABR download failed: java mux failed (output .$extension disagrees " +
                     "with $unanimous inputs, mimes=${targets.map { it.format.mimeType }})",
             )
-        }
-
-        // Fresh output: FileStream opens "rw" without truncating.
-        if (output.exists() && !output.delete()) {
-            throw IOException("Could not reset java mux output ${output.absolutePath}")
         }
 
         when (unanimous) {
@@ -144,27 +146,54 @@ internal class SabrJavaMuxer(
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(IOException::class, InterruptedException::class)
     private fun remuxMp4(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
-        val sources = inputs.map { FileStream(it) }
+        var sources: List<FileStream> = emptyList()
         var muxer: Mp4FromDashWriter? = null
         var out: FileStream? = null
         var completed = false
         try {
+            sources = inputs.map { FileStream(it) }
+            ensureRunning()
             muxer = Mp4FromDashWriter(*sources.toTypedArray())
             muxer.parseSources()
+            ensureRunning()
             val indexes = IntArray(sources.size) { sourceIndex ->
                 val tracks = muxer.getTracksFromSource(sourceIndex)
-                pickMp4Track(tracks, targets[sourceIndex].format.isVideo, sourceIndex)
+                pickMp4Track(tracks, wantVideoFor(targets[sourceIndex]), sourceIndex)
             }
             muxer.selectTracks(*indexes)
+            ensureRunning()
             if (mission.kind == 'a') {
                 // Audio-only MP4 must carry the M4A brand (M4aNoDash precedent).
                 muxer.setMainBrand(M4A_BRAND)
             }
+            // Fresh output: FileStream opens "rw" without truncating an
+            // existing file, so delete first and truncate as belt-and-braces.
+            if (output.exists() && !output.delete()) {
+                throw IOException("Could not reset java mux output ${output.absolutePath}")
+            }
             out = FileStream(output)
             out.setLength(0)
-            muxer.build(out)
+            try {
+                muxer.build(out)
+            } catch (error: IOException) {
+                // Very short clips (< 8 samples/track) can't be muxed; a
+                // single fragmented input is already playable verbatim.
+                if (sources.size != 1) {
+                    throw error
+                }
+                logDebug("single-input mux failed, verbatim fallback: ${error.message.orEmpty()}")
+                try {
+                    out.close()
+                } catch (ignored: Exception) {
+                }
+                out = null
+                deleteQuietly(output)
+                inputs.first().inputStream().use { input ->
+                    output.outputStream().use { input.copyTo(it) }
+                }
+            }
             completed = true
         } finally {
             try {
@@ -189,20 +218,28 @@ internal class SabrJavaMuxer(
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(IOException::class, InterruptedException::class)
     private fun remuxWebm(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
-        val sources = inputs.map { FileStream(it) }
+        var sources: List<FileStream> = emptyList()
         var muxer: WebMWriter? = null
         var out: FileStream? = null
         var completed = false
         try {
+            sources = inputs.map { FileStream(it) }
+            ensureRunning()
             muxer = WebMWriter(*sources.toTypedArray())
             muxer.parseSources()
+            ensureRunning()
             val indexes = IntArray(sources.size) { sourceIndex ->
                 val tracks = muxer.getTracksFromSource(sourceIndex)
-                pickWebmTrack(tracks, targets[sourceIndex].format.isVideo, sourceIndex)
+                pickWebmTrack(tracks, wantVideoFor(targets[sourceIndex]), sourceIndex)
             }
             muxer.selectTracks(*indexes)
+            ensureRunning()
+            // Fresh output: see remuxMp4 comment.
+            if (output.exists() && !output.delete()) {
+                throw IOException("Could not reset java mux output ${output.absolutePath}")
+            }
             out = FileStream(output)
             out.setLength(0)
             muxer.build(out)
@@ -225,6 +262,18 @@ internal class SabrJavaMuxer(
             if (!completed) {
                 deleteQuietly(output)
             }
+        }
+    }
+
+    private fun wantVideoFor(target: SabrDownloadTarget): Boolean {
+        val format = target.format
+        return when {
+            format.isVideo -> true
+            format.isAudio -> false
+            else -> throw SabrDownloadException(
+                SabrDownloadException.Reason.MUXING,
+                "SABR download failed: java mux failed (unsupported mime ${format.mimeType})",
+            )
         }
     }
 
@@ -313,12 +362,6 @@ internal class SabrJavaMuxer(
         }
     }
 
-    private fun outputExtension(): String {
-        val name = mission.storage.name ?: return "mp4"
-        val extension = name.substringAfterLast('.', missingDelimiterValue = "")
-        return extension.takeIf { it.isNotBlank() && it.all { char -> char.isLetterOrDigit() } } ?: "mp4"
-    }
-
     private fun canCopySingleInputDirectly(
         inputs: List<File>,
         targets: List<SabrDownloadTarget>,
@@ -326,9 +369,10 @@ internal class SabrJavaMuxer(
         if (inputs.size != 1 || targets.size != 1) {
             return false
         }
-        val extension = outputExtension().lowercase()
+        // Same case-sensitive rule as dispatch: only an exact webm pair copies.
+        val extension = downloadOutputExtension(mission.storage.name).lowercase()
         val mimeType = targets.first().format.mimeType ?: return false
-        return extension == "webm" && mimeType.contains("webm", ignoreCase = true)
+        return extension == "webm" && mimeType.contains("webm")
     }
 
     private fun logDebug(message: String) {
@@ -354,5 +398,6 @@ internal class SabrJavaMuxer(
         private const val TAG = "SabrJavaMuxer"
         private const val M4A_BRAND = 0x4D344120
         private val MP4_FAMILY_EXTENSIONS = setOf("mp4", "m4a", "m4v", "mov")
+        private val WEBM_FAMILY_EXTENSIONS = setOf("webm", "weba", "opus", "mkv", "mka")
     }
 }
