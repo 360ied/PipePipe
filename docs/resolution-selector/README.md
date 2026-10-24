@@ -238,9 +238,11 @@ so one pass avoids three re-reviews of `compareVideoStreamResolution`.
 - Vocabulary: `PipePipeExtractor/extractor/src/main/java/org/schabi/newpipe/extractor/services/youtube/ItagItem.java:31-108,150-182`,
   `.../extractors/YoutubeStreamExtractor.java:940-1075,1585-1602,1660-1740`.
 
-## Open decisions
+## Decisions (resolved)
 
-- Confirm the bitrate-tiebreak direction (prefer higher bitrate in a
-  bucket?) — currently inverted.
-- Confirm dropping the HEVC toggle's plumbing vs leaving the (dead)
-  preference key in place for settings stability.
+- Bitrate tiebreak: **prefer higher bitrate** inside a bucket.
+  The current `return -A + B` reads inverted (lower wins); flip the
+  sign with a named comment + unit test (`HFR` vs `HFR High`).
+- HEVC cleanup: **remove fully** — `useH265` gate, `hevc` codec
+  branch, and the HEVC toggle entry. YouTube serves no HEVC, so the
+  preference is dead.
