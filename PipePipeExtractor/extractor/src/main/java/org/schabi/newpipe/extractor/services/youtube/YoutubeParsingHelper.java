@@ -1132,18 +1132,6 @@ YoutubeParsingHelper {
             result = "https://" + result;
         }
 
-        // YouTube serves WebP bytes for /vi/ thumbnails carrying ?sqp=...&rs=...
-        // despite the .jpg path, which breaks image pipelines expecting JPEG.
-        // The bare path (no query) still returns stable JPEG, so strip the query
-        // for video thumbnails only. Storyboard /sb/...?sigh=... and avatar
-        // yt3.ggpht.com?... URLs must keep their query strings.
-        if (result.contains("ytimg.com") && result.contains("/vi/")) {
-            final int queryIndex = result.indexOf('?');
-            if (queryIndex != -1) {
-                result = result.substring(0, queryIndex);
-            }
-        }
-
         return result;
     }
 
