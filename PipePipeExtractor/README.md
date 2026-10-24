@@ -1,3 +1,3 @@
 ## README
 
-The extractor of [PipePipe](https://codeberg.org/NullPointerException/PipePipe)
+The extractor of [NanoPipe](https://codeberg.org/NullPointerException/PipePipe)
