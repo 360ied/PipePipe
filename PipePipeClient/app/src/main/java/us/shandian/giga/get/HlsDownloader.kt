@@ -18,6 +18,8 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
+import java.nio.channels.ClosedByInterruptException
+import java.util.Locale
 
 internal class HlsDownloader(
     private val mission: DownloadMission,
@@ -295,6 +297,13 @@ internal class HlsDownloader(
         } catch (error: InterruptedIOException) {
             // SABR parity: an interrupt surfacing as I/O is a pause.
             throw TransferInterruptedException()
+        } catch (error: ClosedByInterruptException) {
+            throw TransferInterruptedException()
+        } catch (error: IOException) {
+            if (Thread.currentThread().isInterrupted) {
+                throw TransferInterruptedException()
+            }
+            throw error
         }
         return copied
     }
@@ -310,7 +319,7 @@ internal class HlsDownloader(
         }
         // A storage rename changes the container; never copy a stale remux
         // whose suffix no longer matches the current target.
-        if (output.extension.lowercase() != outputExtension().lowercase()) {
+        if (output.extension.lowercase(Locale.ROOT) != outputExtension().lowercase(Locale.ROOT)) {
             return null
         }
         return output
@@ -323,10 +332,11 @@ internal class HlsDownloader(
     }
 
     private fun completeMission(finalBytes: Long) {
-        if (finalBytes > 0) {
-            mission.done = finalBytes
-            mission.length = finalBytes
+        if (finalBytes <= 0) {
+            throw IOException("HLS framework remux failed: empty output")
         }
+        mission.done = finalBytes
+        mission.length = finalBytes
         mission.current = mission.urls.size
         mission.psState = 2
         mission.hlsCheckpoint = null

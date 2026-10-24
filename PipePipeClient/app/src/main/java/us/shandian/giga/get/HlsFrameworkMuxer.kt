@@ -10,6 +10,7 @@ import us.shandian.giga.hls.transfer.TransferInterruptedException
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.util.Locale
 
 /**
  * Framework HLS remuxer replacing ffmpeg `-c copy` in [HlsDownloader].
@@ -53,7 +54,7 @@ internal object HlsFrameworkMuxer {
             throw IOException("HLS framework remux failed: subtitles unsupported")
         }
 
-        val ext = extIn.lowercase().takeIf { it.isNotBlank() } ?: "mp4"
+        val ext = extIn.lowercase(Locale.ROOT).takeIf { it.isNotBlank() } ?: "mp4"
         // Validate the container before opening any extractor: only containers
         // MediaMuxer understands are accepted (mp3 handled below via concat).
         // Anything else fails closed instead of writing mislabeled MP4 bytes.
@@ -194,12 +195,14 @@ internal object HlsFrameworkMuxer {
                         ?: throw IOException("HLS framework remux failed: unexpected track $extractorTrack")
                     // Fail closed instead of truncating: an undersized buffer
                     // would write a corrupt sample as if valid. 8 MiB covers
-                    // normal keyframes; anything larger is rejected rather
-                    // than silently clipped.
+                    // normal keyframes (documented ceiling, not a tunable);
+                    // anything larger is rejected rather than silently
+                    // clipped. A failed size query must throw, never -1,
+                    // or every guard below would accept a truncation.
                     val sampleSize: Long = try {
                         info.extractor.sampleSize
                     } catch (error: Exception) {
-                        -1L
+                        throw IOException("HLS framework remux failed: sampleSize", error)
                     }
                     if (sampleSize > MAX_BUFFER_SIZE.toLong()) {
                         throw IOException("HLS framework remux failed: sample too large ($sampleSize)")

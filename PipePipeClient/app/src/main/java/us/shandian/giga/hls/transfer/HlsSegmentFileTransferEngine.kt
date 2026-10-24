@@ -521,6 +521,7 @@ class HlsSegmentFileTransferEngine(
     ): Long {
         val buffer = ByteArray(config.bufferSize)
         var total = 0L
+        output.seek(outputPosition)
 
         while (true) {
             ensureRunning()
@@ -529,7 +530,6 @@ class HlsSegmentFileTransferEngine(
                 return total
             }
 
-            output.seek(outputPosition + total)
             output.write(buffer, 0, read)
             total += read
             listener?.onProgress(
@@ -546,6 +546,7 @@ class HlsSegmentFileTransferEngine(
     private fun copyPartToMemory(input: InputStream, initialCapacity: Int = config.bufferSize): ByteArray {
         val buffer = ByteArray(config.bufferSize)
         val output = ByteArrayOutputStream(initialCapacity)
+        var total = 0L
 
         while (true) {
             ensureRunning()
@@ -555,6 +556,12 @@ class HlsSegmentFileTransferEngine(
             }
 
             output.write(buffer, 0, read)
+            total += read
+            // In-loop ceiling: the post-hoc size check cannot save a process
+            // that already OOMed while buffering a lying stream.
+            if (total > MAX_SEGMENT_BYTES) {
+                throw IOException("HLS segment too large")
+            }
         }
     }
 
@@ -621,14 +628,24 @@ class HlsSegmentFileTransferEngine(
             ?: throw UnsupportedHlsPlaylistException("HLS encryption key URI is missing")
         // Double-checked lookup: never hold the cache monitor across
         // network I/O with retry backoff, which would serialize all
-        // parallel segment workers on the first key download.
-        synchronized(keyCache) { keyCache[keyUrl] }?.let { return it }
-        val fresh = downloadEncryptionKey(withManifestCookie(keyUrl, rawMediaPlaylistUrl))
-        synchronized(keyCache) {
-            keyCache[keyUrl]?.let { return it }
-            keyCache[keyUrl] = fresh
+        // parallel segment workers on the first key download. Bind (never
+        // return) the cached bytes: this function returns decrypted media,
+        // not the key.
+        val cachedKey: ByteArray? = synchronized(keyCache) { keyCache[keyUrl] }
+        val key: ByteArray = if (cachedKey != null) {
+            cachedKey
+        } else {
+            val fresh = downloadEncryptionKey(withManifestCookie(keyUrl, rawMediaPlaylistUrl))
+            synchronized(keyCache) {
+                val raced = keyCache[keyUrl]
+                if (raced != null) {
+                    raced
+                } else {
+                    keyCache[keyUrl] = fresh
+                    fresh
+                }
+            }
         }
-        val key = fresh
         val iv = encryptionKey.iv?.let { parseIv(it) } ?: ivFromSequence(sequenceNumber)
 
         return try {
