@@ -67,6 +67,9 @@ captures/
 release.keystore
 keystore.properties
 
+# --- Release notes staging (pipepipe-release skill, never commit) ---
+/plans/
+
 # --- Python ---
 __pycache__/
 *.py[cod]
