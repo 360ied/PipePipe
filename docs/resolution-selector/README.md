@@ -245,8 +245,8 @@ the vocabulary in section 3:
   `qualityLabelOf()`: `height + fps-class + codec family`
   (e.g. `720p60 · AVC`, `1080p · VP9`), falling back to the raw string
   for unknown resolutions and omitting the codec when it is missing —
-  never a blank or `" 1080p"`-style label. The button, the popup rows,
-  and the dismiss-restore path all use the same helper.
+  never a blank or `" 1080p"`-style label. Only the popup rows use the
+  full label; the quality button stays height-only.
 
 ## 7. Cleanup bundled with the change
 
