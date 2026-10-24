@@ -185,7 +185,8 @@ class PlayerMenuController(
         }
 
         // One row per resolution bucket; itemId indexes the deduped list, not the raw
-        // sorted list, so keep the representative streams for the click mapping below.
+        // sorted list. The click handler rebuilds the same deduped list from the
+        // current streams to map the item back to its representative stream.
         val distinctStreams =
             VideoStreamSelector.getDistinctResolutionStreams(
                 quality?.sortedVideoStreams ?: return)
@@ -443,6 +444,16 @@ class PlayerMenuController(
             val distinctStreams = VideoStreamSelector.getDistinctResolutionStreams(
                 quality?.sortedVideoStreams ?: return true)
             if (menuItemIndex < 0 || distinctStreams.size <= menuItemIndex) {
+                return true
+            }
+            // Tapping the already-playing bucket is a no-op: the representative may
+            // differ in codec from the stored stream, so compare buckets, not streams.
+            val currentBucket = selectedVideoStream?.let {
+                VideoStreamSelector.bucketKeyOf(it)
+            }
+            if (currentBucket != null
+                && currentBucket == VideoStreamSelector.bucketKeyOf(
+                    distinctStreams[menuItemIndex])) {
                 return true
             }
 

@@ -89,6 +89,22 @@ public final class PipePipeMigrations {
         }
     };
 
+    public static final Migration MIGRATION_8_9 = new Migration(8, 9) {
+        @Override
+        protected void migrate(final Context context, final SharedPreferences preferences) {
+            // HEVC advanced-format toggle removed (YouTube serves no HEVC); drop the
+            // stale token so it does not linger in the stored set forever.
+            final String key = context.getString(R.string.advanced_formats_key);
+            final Set<String> formats = preferences.getStringSet(key, null);
+            if (formats != null && (formats.contains("HEVC") || formats.contains("H265"))) {
+                final Set<String> cleaned = new HashSet<>(formats);
+                cleaned.remove("HEVC");
+                cleaned.remove("H265");
+                preferences.edit().putStringSet(key, cleaned).apply();
+            }
+        }
+    };
+
     // Sign-in support was removed along with its string resources, so the
     // deleted keys are referenced by literal value here.
     private static void removeYoutubeAuthKeys(final SharedPreferences preferences) {
@@ -107,9 +123,10 @@ public final class PipePipeMigrations {
             MIGRATION_5_6,
             MIGRATION_6_7,
             MIGRATION_7_8,
+            MIGRATION_8_9,
     };
 
-    public static final int VERSION = 8;
+    public static final int VERSION = 9;
 
     public static void initMigrations(final Context context, final boolean isFirstRun) {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);

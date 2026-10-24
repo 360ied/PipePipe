@@ -9,10 +9,10 @@ import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.MediaFormat;
-import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public final class VideoStreamSelector {
@@ -21,6 +21,13 @@ public final class VideoStreamSelector {
     // Video format in order of quality. 0=lowest quality, n=highest quality
     private static final List<MediaFormat> VIDEO_FORMAT_QUALITY_RANKING =
             Arrays.asList(MediaFormat.v3GPP, MediaFormat.WEBM, MediaFormat.MPEG_4);
+
+    private static final Pattern NUMERIC_HEIGHT_PATTERN =
+            Pattern.compile("(\\d+)p", Pattern.CASE_INSENSITIVE);
+    private static final Pattern RESOLUTION_SUFFIX_PATTERN =
+            Pattern.compile("(?i)p.*");
+    private static final Pattern RESOLUTION_VARIANT_SUFFIX_PATTERN =
+            Pattern.compile("(?i)(p\\d*).*");
 
     /**
      * @see #getDefaultResolutionIndex(String, String, List)
@@ -174,7 +181,8 @@ public final class VideoStreamSelector {
      * 1080p60 → 1080p, 1440p HDR → 1440p, etc.
      */
     private static String normalizeResolutionKey(@NonNull final String raw) {
-        return raw.replaceAll("(?i)p.*", "p");  // CASE-insensitive removal after the "p"
+        // CASE-insensitive removal after the "p"
+        return RESOLUTION_SUFFIX_PATTERN.matcher(raw).replaceAll("p");
     }
 
     /**
@@ -182,7 +190,7 @@ public final class VideoStreamSelector {
      * For example, 1080p HDR becomes 1080p while 1080p60 HDR becomes 1080p60.
      */
     private static String normalizeResolutionVariantKey(@NonNull final String raw) {
-        return raw.replaceAll("(?i)(p\\d*).*", "$1");
+        return RESOLUTION_VARIANT_SUFFIX_PATTERN.matcher(raw).replaceAll("$1");
     }
 
     @Nullable
@@ -191,6 +199,8 @@ public final class VideoStreamSelector {
             return null;
         }
         final String normalized = codec.toLowerCase(Locale.ROOT);
+        // No hev1/hvc1 branch: YouTube serves no HEVC, so such codecs (if any)
+        // intentionally fall through and score lowest via the default branch.
         if (normalized.startsWith("av01")) {
             return "av1";
         }
@@ -426,7 +436,8 @@ public final class VideoStreamSelector {
      * menu order is preserved. Never returns an empty list for a non-empty input.
      *
      * @param streams sorted stream list (e.g. from {@link #getSortedStreamVideosList})
-     * @return one best stream per bucket, in input order
+     * @return one best stream per bucket, in input order; empty only if the input
+     *         holds no non-null streams
      */
     @NonNull
     public static List<VideoStream> getDistinctResolutionStreams(
@@ -470,9 +481,7 @@ public final class VideoStreamSelector {
      * so {@code Collections.max()} can never crown them as "best".
      */
     private static int calculateResolution(final String x) {
-        final java.util.regex.Matcher matcher = java.util.regex.Pattern
-                .compile("(\\d+)p", java.util.regex.Pattern.CASE_INSENSITIVE)
-                .matcher(x);
+        final java.util.regex.Matcher matcher = NUMERIC_HEIGHT_PATTERN.matcher(x);
         if (!matcher.find()) {
             return -1;
         }
@@ -492,15 +501,9 @@ public final class VideoStreamSelector {
 
     private static int compareVideoStreamResolution(@NonNull final String r1,
                                                     @NonNull final String r2) {
-
-        try {
-            return calculateResolution(r1) - calculateResolution(r2);
-        } catch (final NumberFormatException e) {
-            // Consider the first one greater because we don't know if the two streams are
-            // different or not (a NumberFormatException was thrown so we don't know the resolution
-            // of one stream or of all streams)
-            return 1;
-        }
+        // calculateResolution never throws (unknown resolutions score -1),
+        // so no fallback is needed here.
+        return calculateResolution(r1) - calculateResolution(r2);
     }
 
     private static int getCodecPriority(final VideoStream stream) {
@@ -530,8 +533,9 @@ public final class VideoStreamSelector {
             return 1;
         }
 
-        final int resComp = compareVideoStreamResolution(streamA.getResolution(),
-                streamB.getResolution());
+        final int resComp = compareVideoStreamResolution(
+                Objects.toString(streamA.getResolution(), ""),
+                Objects.toString(streamB.getResolution(), ""));
         if (resComp != 0) {
             return resComp;
         }
