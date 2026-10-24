@@ -22,10 +22,6 @@ public final class VideoStreamSelector {
     private static final List<MediaFormat> VIDEO_FORMAT_QUALITY_RANKING =
             Arrays.asList(MediaFormat.v3GPP, MediaFormat.WEBM, MediaFormat.MPEG_4);
 
-    // Use a HashSet for better performance
-    private static final Set<String> HIGH_RESOLUTION_LIST = new HashSet<>(
-            Arrays.asList("1440p", "2160p"));
-
     /**
      * @see #getDefaultResolutionIndex(String, String, List)
      * @param context      Android app context
@@ -201,9 +197,6 @@ public final class VideoStreamSelector {
         if (normalized.startsWith("vp09") || normalized.startsWith("vp9")) {
             return "vp9";
         }
-        if (normalized.startsWith("hev1") || normalized.startsWith("hvc1")) {
-            return "hevc";
-        }
         if (normalized.startsWith("avc")) {
             return "avc";
         }
@@ -261,7 +254,8 @@ public final class VideoStreamSelector {
             // No match: use the closest lower resolution, or the lowest one available.
             String fallbackResolution = null;
             for (final VideoStream stream : streams) {
-                final String resolution = normalizeResolutionKey(stream.getResolution());
+                final String resolution = normalizeResolutionKey(
+                        Objects.toString(stream.getResolution(), ""));
                 if (compareVideoStreamResolution(resolution, normalizedTarget) < 0
                         && (fallbackResolution == null || compareVideoStreamResolution(
                         resolution, fallbackResolution) > 0)) {
@@ -270,7 +264,8 @@ public final class VideoStreamSelector {
             }
             if (fallbackResolution == null) {
                 for (final VideoStream stream : streams) {
-                    final String resolution = normalizeResolutionKey(stream.getResolution());
+                    final String resolution = normalizeResolutionKey(
+                            Objects.toString(stream.getResolution(), ""));
                     if (fallbackResolution == null || compareVideoStreamResolution(
                             resolution, fallbackResolution) < 0) {
                         fallbackResolution = resolution;
@@ -293,13 +288,15 @@ public final class VideoStreamSelector {
                                                          final String resolutionKey) {
         final List<VideoStream> result = new ArrayList<>();
         for (final VideoStream stream : streams) {
-            if (variantKey.equals(normalizeResolutionVariantKey(stream.getResolution()))) {
+            if (variantKey.equals(normalizeResolutionVariantKey(
+                    Objects.toString(stream.getResolution(), "")))) {
                 result.add(stream);
             }
         }
         if (result.isEmpty()) {
             for (final VideoStream stream : streams) {
-                if (resolutionKey.equals(normalizeResolutionKey(stream.getResolution()))) {
+                if (resolutionKey.equals(normalizeResolutionKey(
+                        Objects.toString(stream.getResolution(), "")))) {
                     result.add(stream);
                 }
             }
@@ -330,7 +327,6 @@ public final class VideoStreamSelector {
     ) {
         boolean useWebM = advancedFormats.contains("VP9");
         boolean useAV1 = advancedFormats.contains("AV01");
-        boolean useH265 = advancedFormats.contains("HEVC");
         // Determine order of streams
         // The last added list is preferred
         final List<List<VideoStream>> videoStreamsOrdered =
@@ -345,12 +341,11 @@ public final class VideoStreamSelector {
                 // Filter out higher resolutions (or not if high resolutions should always be shown)
                 .filter(stream -> {
                     try {
+                        final String codec = Objects.toString(stream.getCodec(), "");
                         if (stream.getFormat() == MediaFormat.WEBM) {
                             return useWebM;
-                        } else if (stream.getCodec().startsWith("av01")) {
+                        } else if (codec.startsWith("av01")) {
                             return useAV1;
-                        } else if (stream.getCodec().startsWith("hev1") || stream.getCodec().startsWith("hvc1")) {
-                            return useH265;
                         } else {
                             return true;
                         }
@@ -366,8 +361,9 @@ public final class VideoStreamSelector {
         for (final VideoStream videoStream : allInitialStreams) {
             final String trackSuffix = videoStream.getAudioTrackId() != null
                     ? "|" + videoStream.getAudioTrackId() : "";
-            hashMap.put(videoStream.getCodec().split("\\.")[0]
-                    + videoStream.getResolution() + trackSuffix, videoStream);
+            hashMap.put(Objects.toString(videoStream.getCodec(), "").split("\\.")[0]
+                    + Objects.toString(videoStream.getResolution(), "")
+                    + trackSuffix, videoStream);
         }
 
         return sortStreamList(new ArrayList<>(hashMap.values()), ascendingOrder);
@@ -377,14 +373,15 @@ public final class VideoStreamSelector {
      * Sort the streams list depending on the parameter ascendingOrder;
      * <p>
      * It works like that:<br>
-     * - Take a string resolution, remove the letters, replace "0p60" (for 60fps videos) with "1"
-     * and sort by the greatest:<br>
+     * - Take the numeric height, adding 1 for the high-frame-rate class
+     * (60fps videos, {@code HFR}, {@code HFR High}) and sort by the greatest:<br>
      * <blockquote><pre>
-     *      720p     ->  720
-     *      720p60   ->  721
-     *      360p     ->  360
-     *      1080p    ->  1080
-     *      1080p60  ->  1081
+     *      720p        ->  720
+     *      720p60      ->  721
+     *      360p        ->  360
+     *      1080p       ->  1080
+     *      1080p60     ->  1081
+     *      1080p HFR   ->  1081
      * <br>
      * ascendingOrder  ? 360 < 720 < 721 < 1080 < 1081
      * !ascendingOrder ? 1081 < 1080 < 721 < 720 < 360</pre></blockquote>
@@ -398,6 +395,55 @@ public final class VideoStreamSelector {
         final Comparator<VideoStream> comparator = VideoStreamSelector::compareVideoStreamResolution;
         Collections.sort(videoStreams, ascendingOrder ? comparator : comparator.reversed());
         return videoStreams;
+    }
+
+    /**
+     * Plain-height label for a resolution string ({@code 1080p HFR} → {@code 1080p}),
+     * null-safe. This is what the player quality menu and the external-player dialog show.
+     */
+    @NonNull
+    public static String heightLabelOf(@Nullable final String resolution) {
+        return normalizeResolutionKey(Objects.toString(resolution, ""));
+    }
+
+    /**
+     * Bucket key for one-pick-per-resolution dedup: numeric height plus audio track,
+     * null-safe. Fps ({@code 60}) and bitrate-tier ({@code HFR}, {@code HFR High})
+     * suffixes are not part of the key; the winner inside a bucket is picked by
+     * {@link #compareVideoStreamResolution(VideoStream, VideoStream)} (HFR preferred,
+     * then higher bitrate) and the caller must dedup after audio-track filtering.
+     */
+    @NonNull
+    public static String bucketKeyOf(@NonNull final VideoStream stream) {
+        final String trackSuffix = stream.getAudioTrackId() != null
+                ? "|" + stream.getAudioTrackId() : "";
+        return heightLabelOf(stream.getResolution()) + trackSuffix;
+    }
+
+    /**
+     * Collapse an already-sorted stream list to one representative per resolution bucket
+     * (see {@link #bucketKeyOf}). Insertion order follows the input list, so descending
+     * menu order is preserved. Never returns an empty list for a non-empty input.
+     *
+     * @param streams sorted stream list (e.g. from {@link #getSortedStreamVideosList})
+     * @return one best stream per bucket, in input order
+     */
+    @NonNull
+    public static List<VideoStream> getDistinctResolutionStreams(
+            @NonNull final List<VideoStream> streams) {
+        final LinkedHashMap<String, VideoStream> buckets = new LinkedHashMap<>();
+        for (final VideoStream stream : streams) {
+            if (stream == null) {
+                continue;
+            }
+            final String key = bucketKeyOf(stream);
+            final VideoStream current = buckets.get(key);
+            if (current == null
+                    || compareVideoStreamResolution(stream, current) > 0) {
+                buckets.put(key, stream);
+            }
+        }
+        return new ArrayList<>(buckets.values());
     }
 
     /**
@@ -416,27 +462,32 @@ public final class VideoStreamSelector {
                 context.getString(R.string.best_resolution_key), videoStreams);
     }
 
-    private static int calculateResolution(String x){
-        int res = 0;
-        if(x.contains("8K")) {
-            res = 4320;
-        } else if(x.contains("4K")) {
-            res = 2160;
-        } else if(x.contains("高帧率")) {
-            res = 1083;
-        } else if(x.contains("高码率")) {
-            res = 1082;
-        } else if (x.contains("HDR")) {
-            res = 2162;
-        } else if (x.contains("杜比")){
-            res = 2163;
-        } else if (x.contains("低画質")) {
-            res = 240;
-        } else{
-            res = Integer.parseInt(x.replaceAll("0p\\d+$", "1")
-                    .replaceAll("[^\\d.]", ""));
+    /**
+     * Score a YouTube resolution string as {@code height} for standard frame rate or
+     * {@code height + 1} for the high-frame-rate class ({@code 60}, {@code HFR},
+     * {@code HFR High}), so the in-bucket winner prefers the HFR encode.
+     * Unknown resolutions rank below every numeric height (instead of throwing)
+     * so {@code Collections.max()} can never crown them as "best".
+     */
+    private static int calculateResolution(final String x) {
+        final java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("(\\d+)p", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(x);
+        if (!matcher.find()) {
+            return -1;
         }
-        return res;
+        final int height;
+        try {
+            height = Integer.parseInt(matcher.group(1));
+        } catch (final NumberFormatException e) {
+            return -1;
+        }
+        final String affix = (x.substring(0, matcher.start())
+                + x.substring(matcher.end())).toUpperCase(Locale.ROOT);
+        if (affix.contains("60") || affix.contains("HFR")) {
+            return height + 1;
+        }
+        return height;
     }
 
     private static int compareVideoStreamResolution(@NonNull final String r1,
@@ -462,8 +513,6 @@ public final class VideoStreamSelector {
                 return 4;
             case "vp9":
                 return 3;
-            case "hevc":
-                return 2;
             case "avc":
                 return 1;
             default:
@@ -492,8 +541,10 @@ public final class VideoStreamSelector {
             return codecComp;
         }
 
-        if (streamA.getBitrate() - streamB.getBitrate() != 0) {
-            return - streamA.getBitrate() + streamB.getBitrate();
+        if (streamA.getBitrate() != streamB.getBitrate()) {
+            // Prefer the higher bitrate once codec and height are equal (e.g. AV1
+            // `HFR High` over `HFR`): quality over data saving inside a bucket.
+            return Integer.compare(streamA.getBitrate(), streamB.getBitrate());
         }
 
         // Same bitrate and format

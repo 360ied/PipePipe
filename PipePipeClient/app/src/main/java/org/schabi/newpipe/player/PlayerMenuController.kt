@@ -20,7 +20,7 @@ import org.schabi.newpipe.extractor.stream.VideoStream
 import org.schabi.newpipe.player.helper.PlaybackParameterDialog
 import org.schabi.newpipe.player.helper.PlayerHelper
 import org.schabi.newpipe.player.mediaitem.MediaItemQuality
-import java.util.Locale
+import org.schabi.newpipe.util.VideoStreamSelector
 
 /**
  * Owns the player's popup menus: quality, playback speed, captions, audio track and display mode.
@@ -115,8 +115,7 @@ class PlayerMenuController(
 
         selectedVideoStream?.let { videoStream ->
             player.binding.qualityTextView.text =
-                videoStream.codec.uppercase(Locale.getDefault())
-                    .split("\\.".toRegex()).toTypedArray()[0] + " " + videoStream.resolution
+                VideoStreamSelector.heightLabelOf(videoStream.resolution)
         }
 
         player.saveWasPlaying()
@@ -185,17 +184,20 @@ class PlayerMenuController(
             return
         }
 
-        val availableStreams = quality?.sortedVideoStreams ?: return
-        for (i in availableStreams.indices) {
-            val videoStream = availableStreams[i]
+        // One row per resolution bucket; itemId indexes the deduped list, not the raw
+        // sorted list, so keep the representative streams for the click mapping below.
+        val distinctStreams =
+            VideoStreamSelector.getDistinctResolutionStreams(
+                quality?.sortedVideoStreams ?: return)
+        for (i in distinctStreams.indices) {
             qualityPopupMenu.menu.add(
                 POPUP_MENU_ID_QUALITY, i, Menu.NONE,
-                videoStream.codec.uppercase(Locale.getDefault()).split(Regex("\\."))[0]
-                    + " " + videoStream.resolution
+                VideoStreamSelector.heightLabelOf(distinctStreams[i].resolution)
             )
         }
         selectedVideoStream?.let {
-            player.binding.qualityTextView.text = it.resolution
+            player.binding.qualityTextView.text =
+                VideoStreamSelector.heightLabelOf(it.resolution)
         }
         qualityPopupMenu.setOnMenuItemClickListener(this)
         qualityPopupMenu.setOnDismissListener(this)
@@ -438,17 +440,15 @@ class PlayerMenuController(
 
         if (menuItem.groupId == POPUP_MENU_ID_QUALITY) {
             val menuItemIndex = menuItem.itemId
-            val selectedQuality = quality ?: return true
-            val availableStreams = selectedQuality.sortedVideoStreams
-            if (selectedQuality.selectedVideoStreamIndex == menuItemIndex
-                || availableStreams.size <= menuItemIndex
-            ) {
+            val distinctStreams = VideoStreamSelector.getDistinctResolutionStreams(
+                quality?.sortedVideoStreams ?: return true)
+            if (menuItemIndex < 0 || distinctStreams.size <= menuItemIndex) {
                 return true
             }
 
             player.saveStreamProgressState() //TODO added, check if good
             player.setRecovery()
-            player.setSelectedStream(availableStreams[menuItemIndex])
+            player.setSelectedStream(distinctStreams[menuItemIndex])
             player.reloadPlayQueueManager()
 
             player.binding.qualityTextView.text = menuItem.title
@@ -473,7 +473,8 @@ class PlayerMenuController(
         }
         isSomePopupMenuVisible = false
         selectedVideoStream?.let {
-            player.binding.qualityTextView.text = it.resolution
+            player.binding.qualityTextView.text =
+                VideoStreamSelector.heightLabelOf(it.resolution)
         }
         if (player.isPlaying) {
             player.hideControls(Player.DEFAULT_CONTROLS_DURATION.toLong(), 0L)

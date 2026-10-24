@@ -2442,9 +2442,28 @@ public final class VideoDetailFragment
         if (sortedVideoStreams == null) {
             return;
         }
-        final CharSequence[] resolutions = new CharSequence[sortedVideoStreams.size()];
-        for (int i = 0; i < sortedVideoStreams.size(); i++) {
-            resolutions[i] = sortedVideoStreams.get(i).getResolution();
+        // One row per resolution bucket: this list is built with preferVideoOnlyStreams=false
+        // and no audio-track filtering (unlike the player's), so dedup it on its own terms.
+        final List<VideoStream> distinctStreams =
+                VideoStreamSelector.getDistinctResolutionStreams(sortedVideoStreams);
+        final CharSequence[] resolutions = new CharSequence[distinctStreams.size()];
+        for (int i = 0; i < distinctStreams.size(); i++) {
+            resolutions[i] =
+                    VideoStreamSelector.heightLabelOf(distinctStreams.get(i).getResolution());
+        }
+        // Map the raw-list pre-selection across to its bucket: the two lists differ.
+        int checkedIndex = -1;
+        if (selectedVideoStreamIndex >= 0
+                && selectedVideoStreamIndex < sortedVideoStreams.size()) {
+            final String selectedBucket = VideoStreamSelector.bucketKeyOf(
+                    sortedVideoStreams.get(selectedVideoStreamIndex));
+            for (int i = 0; i < distinctStreams.size(); i++) {
+                if (VideoStreamSelector.bucketKeyOf(distinctStreams.get(i))
+                        .equals(selectedBucket)) {
+                    checkedIndex = i;
+                    break;
+                }
+            }
         }
         final AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setNegativeButton(R.string.cancel, null)
@@ -2453,9 +2472,9 @@ public final class VideoDetailFragment
                 );
         // Maybe there are no video streams available, show just `open in browser` button
         if (resolutions.length > 0) {
-            builder.setSingleChoiceItems(resolutions, selectedVideoStreamIndex, (dialog, i) -> {
+            builder.setSingleChoiceItems(resolutions, checkedIndex, (dialog, i) -> {
                         dialog.dismiss();
-                        startOnExternalPlayer(activity, currentInfo, sortedVideoStreams.get(i));
+                        startOnExternalPlayer(activity, currentInfo, distinctStreams.get(i));
                     }
             );
         }

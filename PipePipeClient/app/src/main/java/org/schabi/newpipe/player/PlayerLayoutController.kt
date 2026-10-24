@@ -21,6 +21,7 @@ import org.schabi.newpipe.extractor.stream.StreamType
 import org.schabi.newpipe.ktx.animate
 import org.schabi.newpipe.ktx.animateRotation
 import org.schabi.newpipe.player.helper.PlayerHelper
+import org.schabi.newpipe.util.VideoStreamSelector
 import org.schabi.newpipe.util.external_communication.KoreUtils
 
 /**
@@ -290,8 +291,14 @@ class PlayerLayoutController(private val player: Player) {
 
             StreamType.VIDEO_STREAM, StreamType.POST_LIVE_STREAM -> {
                 val quality = player.currentMetadata?.maybeQuality?.orElse(null)
+                // One bucket can hold every codec's copy of a height, so a one-bucket
+                // video must not offer a one-item menu: gate on distinct buckets.
+                val distinctBucketCount = quality?.sortedVideoStreams?.let {
+                    VideoStreamSelector.getDistinctResolutionStreams(it).size
+                } ?: 0
                 if (quality != null
                     && (info.videoStreams.isNotEmpty() || info.videoOnlyStreams.isNotEmpty())
+                    && distinctBucketCount > 1
                 ) {
                     player.menuController.buildQualityMenu()
 
