@@ -1,6 +1,6 @@
 package us.shandian.giga.hls.transfer
 
-data class HttpTransferConfig(
+internal data class HttpTransferConfig(
     val maxRetries: Int = 3,
     val parallelism: Int = 1,
     val bufferSize: Int = 256 * 1024,

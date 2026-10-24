@@ -456,12 +456,14 @@ internal object HlsFrameworkMuxer {
                 }
                 // MPEG frame sync plus valid version/layer bits: rejects
                 // reserved combos and ADTS (layer 00), which the bare sync
-                // mask would otherwise over-accept.
-                if (header[0] != 0xFF.toByte() || (header[1].toInt() and 0xE0) != 0xE0) {
+                // mask would otherwise over-accept. Mask with 0xFF first so
+                // sign-extended negative bytes read as unsigned.
+                val second = header[1].toInt() and 0xFF
+                if (header[0] != 0xFF.toByte() || (second and 0xE0) != 0xE0) {
                     return false
                 }
-                val versionBits = (header[1].toInt() ushr 3) and 0x03
-                val layerBits = (header[1].toInt() ushr 1) and 0x03
+                val versionBits = (second ushr 3) and 0x03
+                val layerBits = (second ushr 1) and 0x03
                 return versionBits != 0x01 && layerBits != 0x00
             }
         }

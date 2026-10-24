@@ -7,7 +7,7 @@ import us.shandian.giga.hls.transfer.useTransferConnection
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
-class HlsManifestResolver(
+internal class HlsManifestResolver(
     config: HttpTransferConfig = HttpTransferConfig(),
 ) {
     private val connectionFactory = HttpTransferConnectionFactory(config)
@@ -39,7 +39,7 @@ class HlsManifestResolver(
                     output.write(buffer, 0, read)
                 }
 
-                output.toString(Charsets.UTF_8.name())
+                output.toString(Charsets.UTF_8)
             }
 
             return parser.parse(finalUrl, body)

@@ -233,6 +233,8 @@ internal class HlsDownloader(
         output: java.io.OutputStream,
         onProgress: (Long) -> Unit,
     ) {
+        // Same interrupt taxonomy as copyOutputToStorage: NIO interrupts
+        // and a set interrupt flag mean pause, not download error.
         try {
             val buffer = ByteArray(transferConfig.bufferSize)
             while (true) {
@@ -246,17 +248,25 @@ internal class HlsDownloader(
             }
         } catch (error: InterruptedIOException) {
             throw TransferInterruptedException()
+        } catch (error: ClosedByInterruptException) {
+            throw TransferInterruptedException()
+        } catch (error: IOException) {
+            if (Thread.currentThread().isInterrupted) {
+                throw TransferInterruptedException()
+            }
+            throw error
         }
     }
 
     @Throws(IOException::class)
     private fun copyWithPsStateReset(copy: () -> Long): Long {
-        // The copy phases run with psState == 1; a storage failure must reset
-        // it or pause() stays disabled, mirroring SabrJavaMuxer.
+        // The copy phases run with psState == 1; any failure must reset and
+        // persist it or pause() stays disabled, mirroring SabrJavaMuxer.
         try {
             return copy()
         } catch (error: TransferInterruptedException) {
             mission.psState = 0
+            mission.writeThisToFile()
             throw error
         } catch (error: Exception) {
             mission.psState = 0
@@ -277,6 +287,7 @@ internal class HlsDownloader(
             HlsFrameworkMuxer.remux(inputs, output, mission.kind, outputExtension())
         } catch (error: TransferInterruptedException) {
             mission.psState = 0
+            mission.writeThisToFile()
             throw error
         } catch (error: Exception) {
             mission.psState = 0
@@ -349,10 +360,16 @@ internal class HlsDownloader(
     }
 
     private fun currentResourcesFingerprint(): String {
-        return mission.hlsCheckpoint?.resources
+        // Include the mission-level URLs: recovery can retarget them while
+        // keeping the checkpoint, and the old remux must not be reused.
+        // Strip cookie fragments so rotation alone does not force re-remux.
+        val urls = (mission.urls?.toList().orEmpty() + (mission.resourceManifestUrls?.toList().orEmpty()))
+            .joinToString(",") { it.substringBefore("#cookie=") }
+        val resources = mission.hlsCheckpoint?.resources
             ?.sortedBy { it.resourceIndex }
             ?.joinToString("|") { "${it.mediaPlaylistUrl}@${it.playlistFingerprint}" }
             .orEmpty()
+        return "$urls|$resources"
     }
 
     private fun markRemuxOutput(output: File) {

@@ -6,7 +6,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLDecoder
 
-class HttpTransferConnectionFactory(
+internal class HttpTransferConnectionFactory(
     private val config: HttpTransferConfig,
 ) {
     @Throws(IOException::class)
@@ -18,6 +18,17 @@ class HttpTransferConnectionFactory(
     ): HttpURLConnection {
         val requestUrl = stripCookieFragment(rawUrl)
         val cookie = extractCookie(rawUrl)
+        // Fail closed on non-HTTP(S) schemes: `as HttpURLConnection` below
+        // would throw ClassCastException, bypassing the IOException contract
+        // and retry accounting.
+        val scheme = try {
+            URL(requestUrl).toURI().scheme?.lowercase(java.util.Locale.ROOT)
+        } catch (error: Exception) {
+            null
+        }
+        if (scheme != "http" && scheme != "https") {
+            throw IOException("Unsupported URL scheme")
+        }
         val connection = URL(requestUrl).openConnection() as HttpURLConnection
 
         connection.instanceFollowRedirects = true
@@ -37,11 +48,6 @@ class HttpTransferConnectionFactory(
         }
 
         return connection
-    }
-
-    fun acceptsRanges(connection: HttpURLConnection): Boolean {
-        return connection.getHeaderField("Accept-Ranges").equals("bytes", ignoreCase = true) ||
-            connection.getHeaderField("Content-Range") != null
     }
 
     private fun formatRange(rangeStart: Long, rangeEnd: Long?): String {

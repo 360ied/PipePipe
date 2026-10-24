@@ -27,7 +27,7 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-class HlsSegmentFileTransferEngine(
+internal class HlsSegmentFileTransferEngine(
     private val config: HttpTransferConfig = HttpTransferConfig(),
     private val controller: TransferController = AlwaysRunningTransferController,
 ) {
@@ -761,7 +761,8 @@ class HlsSegmentFileTransferEngine(
             }
             // Fatal Errors (e.g. OOM) must never masquerade as retryable I/O.
             is Error -> throw cause
-            else -> IOException(cause)
+            // Name the unexpected cause instead of a messageless wrapper.
+            else -> IOException("HLS segment failed: ${cause?.javaClass?.simpleName}", cause)
         }
     }
 
