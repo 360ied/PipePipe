@@ -215,9 +215,9 @@ extension; delete the temp `output.*` after copy as today.
 
 ### 5.2 HLS: framework `MediaExtractor` → `MediaMuxer`
 
-`minSdk` is 23; `MediaMuxer` exists since API 18 (`MUXER_OUTPUT_MPEG_4`) with
-WebM output since API 26 — no new dependency, no native code. Per temp input
-file:
+`minSdk` is 30 (raised from 23 after implementation; WebM output since
+API 26 is therefore always available); `MediaMuxer` needs no new
+dependency, no native code. Per temp input file:
 
 1. `MediaExtractor.setDataSource(path)`; iterate tracks, read
    `MediaFormat` (`MIME`, `DURATION`, codec-specific-data).
@@ -240,9 +240,9 @@ Container decisions:
 
 - Output container follows today's `outputExtension()` (storage filename).
   `mp4/m4a/mov/m4v` → `MUXER_OUTPUT_MPEG_4`; `webm` → `MUXER_OUTPUT_WEBM`
-  (API 26+; below that, fail closed with a clear error — HLS outputs are
-  MP4-family in practice via the manifest/audio fallbacks, so this is a
-  backstop). Unknown extensions keep today's `mp4` default.
+  (always available at `minSdk` 30; the pre-bump plan failed closed below
+  API 26 — HLS outputs are MP4-family in practice via the manifest/audio
+  fallbacks, so this is a backstop). Unknown extensions fail closed.
 - **MP3 fast path:** if all selected tracks are MP3 and the output extension
   is `mp3` (SoundCloud-style audio HLS), skip the muxer entirely and
   concatenate inputs — remuxing MP3→MP4 via `MediaMuxer` is unsupported and
@@ -292,7 +292,7 @@ Container decisions:
 |---|---|---|
 | 6.1 | Very short clips: `Mp4FromDashWriter` warns it needs ≥ 8 samples per track | Spike must include a < 8-sample fixture; if it fails, fall back to direct/fragmented copy for that case and document the threshold |
 | 6.2 | Mixed-container SABR pairs (resolver picks by itag, no container check) | Section 5.1 mixed row: constrain pairing or MediaMuxer fallback; never emit corrupt output; `Reason.MUXING` otherwise |
-| 6.3 | VP9/Opus-in-MP4 through framework `MediaMuxer` | Device-dependent — verify on API 23/26/29/34 emulators in the spike; if unsupported, route those pairs to the Java muxers (preferred) |
+| 6.3 | VP9/Opus-in-MP4 through framework `MediaMuxer` | Device-dependent — verify on API 30/33/34+ emulators in the spike; if unsupported, route those pairs to the Java muxers (preferred) |
 | 6.4 | Non-monotonic PTS in TS sources | Rewrite/shift per 5.2(3); log corrections in debug builds; failure only if samples are unorderable |
 | 6.5 | Multi-GB outputs (`co64`) | `Mp4FromDashWriter` already handles `THRESHOLD_FOR_CO64`; `MediaMuxer` handles large files natively — include a large-output case in QA, don't assume |
 | 6.6 | 60fps / B-frames | `MediaMuxer` supports B-frames since N MR1; Java writer uses 6-samples-per-chunk packing — verify A/V sync on a 60fps fixture |
@@ -332,7 +332,7 @@ For each fixture in section 7, verify replacement output vs ffmpeg output:
 | Byte-size within ±5% of ffmpeg output (stream-copy should be near-identical modulo headers) | `ls -l` |
 | Pause → resume → complete across the mux step | manual, both downloaders |
 | In-flight upgrade: old-version mission files resume under new build | install old, start SABR + HLS downloads, upgrade, resume |
-| API-level sweep: 23 (minSdk), 26 (WebM-output gate), 29, 34+ | emulators; 6.3 lives or dies here |
+| API-level sweep: 30 (minSdk), 31/33, 34+ | emulators; 6.3 lives or dies here |
 | Error paths: corrupt truncated input → clean failure, no partial file kept, correct error bucket | unit/instrumented test with truncated fixture |
 
 ## 9. Work breakdown (rough estimates)
@@ -346,7 +346,7 @@ Per `AGENTS.md`: each code step in its own worktree off `main`
 - Feed captured SABR mp4/webm temp files through `Mp4DashReader.parse()` /
   `WebMReader` (`parseSources` + `getTracksFromSource`) in a scratch
   instrumented test. Success = tracks enumerated with sane sample tables.
-- Feed HLS TS + fMP4 fixtures through `MediaExtractor` on API 23/26/34
+- Feed HLS TS + fMP4 fixtures through `MediaExtractor` on API 30/33/34+
   emulators; record which track MIME types appear and whether VP9/Opus
   survive `MediaMuxer.addTrack` per API level (decides 6.3 and the 5.1 mixed
   row).
