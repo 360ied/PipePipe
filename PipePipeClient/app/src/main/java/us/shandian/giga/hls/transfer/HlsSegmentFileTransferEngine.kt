@@ -628,19 +628,20 @@ class HlsSegmentFileTransferEngine(
 
     @Throws(IOException::class)
     private fun downloadEncryptionKey(rawKeyUrl: String): ByteArray {
-        return retryPolicy.withRetries {
+        // Retry only the fetch; a wrong-size key is deterministic.
+        val key = retryPolicy.withRetries {
             connectionFactory.open(rawKeyUrl, "GET", null, null).useTransferConnection { connection ->
                 val statusCode = connection.responseCode
                 if (statusCode < 200 || statusCode > 299) {
                     throw TransferHttpException(statusCode)
                 }
-                val key = connection.inputStream.use { input -> copyPartToMemory(input, AES_128_KEY_BYTES) }
-                if (key.size != AES_128_KEY_BYTES) {
-                    throw IOException("Invalid HLS AES-128 key size: ${key.size}")
-                }
-                key
+                connection.inputStream.use { input -> copyPartToMemory(input, AES_128_KEY_BYTES) }
             }
         }
+        if (key.size != AES_128_KEY_BYTES) {
+            throw IOException("Invalid HLS AES-128 key size: ${key.size}")
+        }
+        return key
     }
 
     @Throws(IOException::class)

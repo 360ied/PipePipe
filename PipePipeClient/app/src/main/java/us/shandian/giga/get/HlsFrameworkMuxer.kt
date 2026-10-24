@@ -508,6 +508,9 @@ internal object HlsFrameworkMuxer {
                 }
             }
         } catch (error: TransferInterruptedException) {
+            // Unwrap: the caller distinguishes pause (TransferInterrupted
+            // Exception) from failure (IOException) to decide silent return
+            // vs notifyError.
             try {
                 output.delete()
             } catch (ignored: Exception) {
@@ -531,7 +534,9 @@ internal object HlsFrameworkMuxer {
         }
     }
 
-    private val SUPPORTED_MUX_EXTENSIONS = setOf("mp4", "m4a", "mov", "m4v", "webm")
+    // Accepted early (pre-inspect); muxerOutputFormat narrows further
+    // (audio-only m4a; mov/m4v rejected as mislabeled MP4 brands).
+    private val SUPPORTED_MUX_EXTENSIONS = setOf("mp4", "m4a", "webm")
     private const val INITIAL_BUFFER_SIZE = 512 * 1024
     private const val MAX_BUFFER_SIZE = 8 * 1024 * 1024
 }
