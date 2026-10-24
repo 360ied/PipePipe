@@ -242,10 +242,11 @@ public final class VideoStreamSelector {
     /**
      * Core selection logic that prefers an exact frame rate variant, then falls back to another
      * variant at the same effective resolution and finally to the closest lower resolution.
+     * Package-private for tests.
      */
-    private static int getDefaultResolutionIndex(@NonNull final String targetRes,
-                                                 @NonNull final String bestResolutionKey,
-                                                 @Nullable final List<VideoStream> streams) {
+    static int getDefaultResolutionIndex(@NonNull final String targetRes,
+                                          @NonNull final String bestResolutionKey,
+                                          @Nullable final List<VideoStream> streams) {
         if (streams == null || streams.isEmpty()) {
             return -1;
         }
@@ -257,8 +258,13 @@ public final class VideoStreamSelector {
         }
 
         final String normalizedTarget = normalizeResolutionKey(targetRes);
-        List<VideoStream> bucket = findMatchingStreams(
-                streams, normalizeResolutionVariantKey(targetRes), normalizedTarget);
+        final String variantKey = normalizeResolutionVariantKey(targetRes);
+        // A plain target (fresh-start default like "720p") carries no fps variant: match by
+        // resolution so every fps variant enters the bucket and the comparator picks the HFR
+        // encode. Matching by variant first would leave only the 30fps streams in play.
+        // An explicit variant target (sticky "1080p60") keeps variant-first matching.
+        List<VideoStream> bucket = findMatchingStreams(streams, variantKey, normalizedTarget,
+                !variantKey.equals(normalizedTarget));
 
         if (bucket.isEmpty()) {
             // No match: use the closest lower resolution, or the lowest one available.
@@ -282,7 +288,8 @@ public final class VideoStreamSelector {
                     }
                 }
             }
-            bucket = findMatchingStreams(streams, fallbackResolution, fallbackResolution);
+            bucket = findMatchingStreams(streams, fallbackResolution, fallbackResolution,
+                    false);
         }
 
         bucket.sort(VideoStreamSelector::compareVideoStreamResolution);
@@ -291,16 +298,21 @@ public final class VideoStreamSelector {
 
     /**
      * Streams matching the exact frame rate variant, or else the same resolution ignoring
-     * the frame rate suffix. Empty if neither matches.
+     * the frame rate suffix. Empty if neither matches. When the target carries no fps
+     * variant, callers pass {@code matchVariantFirst = false} so the fps-blind resolution
+     * match runs directly and every variant enters the bucket.
      */
     private static List<VideoStream> findMatchingStreams(final List<VideoStream> streams,
                                                          @NonNull final String variantKey,
-                                                         @NonNull final String resolutionKey) {
+                                                         @NonNull final String resolutionKey,
+                                                         final boolean matchVariantFirst) {
         final List<VideoStream> result = new ArrayList<>();
-        for (final VideoStream stream : streams) {
-            if (variantKey.equals(normalizeResolutionVariantKey(
-                    Objects.toString(stream.getResolution(), "")))) {
-                result.add(stream);
+        if (matchVariantFirst) {
+            for (final VideoStream stream : streams) {
+                if (variantKey.equals(normalizeResolutionVariantKey(
+                        Objects.toString(stream.getResolution(), "")))) {
+                    result.add(stream);
+                }
             }
         }
         if (result.isEmpty()) {

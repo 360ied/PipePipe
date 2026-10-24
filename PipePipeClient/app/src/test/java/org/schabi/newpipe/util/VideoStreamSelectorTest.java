@@ -133,6 +133,25 @@ public class VideoStreamSelectorTest {
     }
 
     @Test
+    public void plainTargetPrefersHfrInsideBucket() {
+        // Fresh-start default "720p": the 60fps variant must enter the bucket even though
+        // the 30fps stream carries a far higher bitrate.
+        final VideoStream hfr = stream("720p60", "avc1.64001f", 5000000);
+        final VideoStream plain = stream("720p", "avc1.64001f", 9000000);
+        assertEquals(0, VideoStreamSelector.getDefaultResolutionIndex(
+                "720p", "Best", Arrays.asList(hfr, plain)));
+    }
+
+    @Test
+    public void explicitVariantTargetKeepsVariantPreference() {
+        // Sticky "720p60" from a previous session still prefers the 60fps encode.
+        final VideoStream hfr = stream("720p60", "avc1.64001f", 5000000);
+        final VideoStream plain = stream("720p", "avc1.64001f", 9000000);
+        assertEquals(1, VideoStreamSelector.getDefaultResolutionIndex(
+                "720p60", "Best", Arrays.asList(plain, hfr)));
+    }
+
+    @Test
     public void unknownResolutionSurvivesAsOwnFallbackBucket() {
         final List<VideoStream> distinct = VideoStreamSelector.getDistinctResolutionStreams(
                 Arrays.asList(

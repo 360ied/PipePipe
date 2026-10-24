@@ -221,6 +221,11 @@ the vocabulary in section 3:
   dialog has no resolver filter, so it filters by preferred language
   first and additionally drops video-only streams shadowed by a muxed
   stream at the same height (identical labels, and silent video, otherwise).
+- **Plain default targets resolve fps-blind.** Settings offer plain heights only
+  (`720p`, …), so a fresh-start default must match by resolution, not by variant —
+  otherwise variant-first matching leaves only the 30fps streams in the bucket and
+  autoplay picks 30fps while the row itself plays the HFR encode. Explicit variant
+  targets (sticky `1080p60`) keep variant-first matching.
 - **Live streams unaffected.** `buildLiveQualityMenu()` (manifest
   variants + Adaptive row) is a separate path and keeps its rows.
 - **Empty/unknown resolutions.** `RESOLUTION_UNKNOWN ("")` must still
