@@ -8,7 +8,7 @@ APIs (HLS).
   `.github/workflows/`).
 - Audited: 2026-10-24, `main` at `15ed881`, app version `5.5.0-beta3`.
 - All paths below are relative to the repository root.
-- Status: **plan only — nothing is implemented yet.**
+- Status: **implemented in the `ffmpeg-removal-spike` worktree — pending verification/merge.**
 
 ## 1. Summary and recommendation
 
@@ -30,14 +30,14 @@ Both jobs can be done without native code:
 
 Removal deletes ~48 MB of binaries from git, ~15–19 MB of native libraries
 per ABI from the APK (11–14% of APK content), and the last hand-maintained
-native blob in the app. Upstream `arthenica/ffmpeg-kit` was retired and
-archived in January 2025, so every month we keep it is unpatched FFmpeg 5.x
-shipped to users. **Recommendation: remove it**, staged as
+native blob in the app. Upstream `arthenica/ffmpeg-kit` was retired January 2025 (repo archived
+June 2025), so every month we keep it is unpatched FFmpeg 5.x shipped
+to users. **Recommendation: remove it**, staged as
 spike → SABR → HLS → delete (section 9).
 
 ## 2. Background
 
-### 2.1 What we ship today
+### 2.1 What we shipped pre-removal (`main@15ed881` snapshot)
 
 | Artifact | Fact |
 |---|---|
@@ -114,8 +114,8 @@ FFmpeg is replaceable.
 
 ### 2.3 Why remove it
 
-1. **Upstream is retired.** arthenica retired ffmpeg-kit on 2026-01-06
-   (announced "Saying Goodbye to FFmpegKit"), archived the repository, and
+1. **Upstream is retired.** arthenica retired ffmpeg-kit on 2025-01-06
+   (announced "Saying Goodbye to FFmpegKit"; repo archived June 2025), and
    stated already-published binaries will be removed. No new releases, no
    CVE fixes, no FFmpeg 6/7 upgrade. We ship FFmpeg 5.x-era natives with no
    patch path except rebuilding a dead fork ourselves.
@@ -137,12 +137,12 @@ FFmpeg is replaceable.
   consistent with an NDK r27+ rebuild (the workflow pins NDK 28.2). So
   "the app will crash on 16 KB devices" is **not** a live argument — the
   urgency is maintenance/security debt, not an active crash.
-- **The rebuild workflow cannot reproduce the committed AAR as committed.**
-  `.github/workflows/build-ffmpeg.yml` passes `--disable-arm-v7a`, yet the
-  committed `.aar` contains `armeabi-v7a` and `x86` outputs. Either the AAR
-  was built with different options or by a different run; neither is
-  recorded. Treat the current AAR as provenance-unknown even though a build
-  script exists.
+- **The rebuild workflow could not reproduce the committed AAR as committed.**
+  `.github/workflows/build-ffmpeg.yml` passed `--disable-arm-v7a`, yet the
+  committed `.aar` contained `armeabi-v7a` and `x86` outputs. Either the AAR
+  was built with different options or by a different run; neither was
+  recorded. The AAR was provenance-unknown even though a build script
+  existed (both deleted by this branch).
 - **ffmpeg is more forgiving than its replacements.** `-c copy` tolerates
   timestamp gaps/overlaps and odd brand combos that `MediaMuxer` (strictly
   increasing PTS per track) and `Mp4FromDashWriter` (requires ≥ 8 samples
@@ -222,8 +222,10 @@ dependency, no native code. Per temp input file:
 1. `MediaExtractor.setDataSource(path)`; iterate tracks, read
    `MediaFormat` (`MIME`, `DURATION`, codec-specific-data).
 2. Mirror today's `-map` semantics: for `kind == 'a'` single-input missions
-   take audio tracks only (`-map 0:a? -vn`); otherwise take the first video
-   and first audio track per input (today's `-map i:v? -map i:a?`).
+   take audio tracks only (`-map 0:a? -vn`); otherwise keep every audio
+   track plus the first video track across inputs (a superset of
+   `-map i:v? -map i:a?` that preserves alternate dubs while never playing
+   two videos at once).
 3. `MediaMuxer.addTrack()` per selected track, `start()`, then per input,
    per track: `seekTo`/`selectTrack`, loop `readSampleData` → `writeSampleData`
    with `BufferInfo` (offset/size/`presentationTimeUs`/flags). **Rewrite PTS
@@ -269,22 +271,21 @@ Container decisions:
 
 ### 5.4 Deletion checklist (execute last, section 9.4)
 
-- [ ] Delete `PipePipeClient/ffmpeg/` (AAR, `.bk`, `build.gradle.kts`,
+- [x] Delete `PipePipeClient/ffmpeg/` (AAR, `.bk`, `build.gradle.kts`,
       empty `build/`).
-- [ ] `PipePipeClient/settings.gradle`: remove `include ':ffmpeg'`.
-- [ ] `PipePipeClient/app/build.gradle`: remove commented Maven line +
+- [x] `PipePipeClient/settings.gradle`: remove `include ':ffmpeg'`.
+- [x] `PipePipeClient/app/build.gradle`: remove commented Maven line +
       `project(':ffmpeg')` + `smart-exception-java`.
-- [ ] Delete or repurpose `.github/workflows/build-ffmpeg.yml` (it builds
+- [x] Delete or repurpose `.github/workflows/build-ffmpeg.yml` (it builds
       something nothing consumes afterward).
-- [ ] Remove the two `com.arthenica.ffmpegkit` imports and both
-      `remuxWithFfmpeg` methods; no other source references exist
-      (only `SabrDownloader.kt:104` calls into the SABR muxer wrapper).
-- [ ] Verify `proguard-rules.pro` needs no change (no arthenica keep rules
-      exist today) and the manifest needs none (the AAR's manifest merged
-      automatically; nothing in `app/src/main/AndroidManifest.xml` names it).
-- [ ] Verify APKs: no `libav*`/`libsw*`/`libffmpegkit*` under `lib/` per ABI;
-      only `libandroidx.graphics.path.so` should remain.
-- [ ] Re-run `./scripts/check.sh` (Fast Gate) from a clean worktree.
+- [x] Remove the two `com.arthenica.ffmpegkit` imports and both
+      `remuxWithFfmpeg` methods (replaced by `SabrJavaMuxer` +
+      `HlsFrameworkMuxer`; verified no source references remain).
+- [x] Verify `proguard-rules.pro` needs no change (no arthenica keep rules)
+      and the manifest needs none.
+- [x] Verify APKs: no `libav*`/`libsw*`/`libffmpegkit*` under `lib/` per ABI;
+      only `libandroidx.graphics.path.so` remains (arm64 debug ~51 MB).
+- [x] Re-run `./scripts/check.sh` (Fast Gate) from a clean worktree.
 
 ## 6. Edge cases and risks
 
@@ -436,9 +437,7 @@ SABR (`SabrFfmpegMuxer.kt`, argv via `executeWithArguments`):
 
 ### C. Provenance note
 
-Rebuild path exists (`.github/workflows/build-ffmpeg.yml` → fork
-`InfinityLoop1308/ffmpeg-kit`, NDK 28.2) but **as committed it cannot
-reproduce the committed AAR**: the workflow passes `--disable-arm-v7a`
-while the AAR ships `armeabi-v7a` + `x86`. If removal is deferred, the
-minimum viable stopgap is recording the exact options/commit that produced
-the next AAR alongside it.
+A rebuild path existed (`.github/workflows/build-ffmpeg.yml` → fork
+`InfinityLoop1308/ffmpeg-kit`, NDK 28.2) but **as committed it could not
+reproduce the committed AAR**: the workflow passed `--disable-arm-v7a`
+while the AAR shipped `armeabi-v7a` + `x86` (both deleted by this branch).
