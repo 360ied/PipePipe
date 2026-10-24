@@ -115,7 +115,7 @@ class PlayerMenuController(
 
         selectedVideoStream?.let { videoStream ->
             player.binding.qualityTextView.text =
-                VideoStreamSelector.heightLabelOf(videoStream.resolution)
+                VideoStreamSelector.qualityLabelOf(videoStream)
         }
 
         player.saveWasPlaying()
@@ -193,12 +193,12 @@ class PlayerMenuController(
         for (i in distinctStreams.indices) {
             qualityPopupMenu.menu.add(
                 POPUP_MENU_ID_QUALITY, i, Menu.NONE,
-                VideoStreamSelector.heightLabelOf(distinctStreams[i].resolution)
+                VideoStreamSelector.qualityLabelOf(distinctStreams[i])
             )
         }
         selectedVideoStream?.let {
             player.binding.qualityTextView.text =
-                VideoStreamSelector.heightLabelOf(it.resolution)
+                VideoStreamSelector.qualityLabelOf(it)
         }
         qualityPopupMenu.setOnMenuItemClickListener(this)
         qualityPopupMenu.setOnDismissListener(this)
@@ -485,7 +485,7 @@ class PlayerMenuController(
         isSomePopupMenuVisible = false
         selectedVideoStream?.let {
             player.binding.qualityTextView.text =
-                VideoStreamSelector.heightLabelOf(it.resolution)
+                VideoStreamSelector.qualityLabelOf(it)
         }
         if (player.isPlaying) {
             player.hideControls(Player.DEFAULT_CONTROLS_DURATION.toLong(), 0L)

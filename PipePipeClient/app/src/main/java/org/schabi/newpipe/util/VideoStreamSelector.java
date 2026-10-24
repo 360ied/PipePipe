@@ -421,11 +421,53 @@ public final class VideoStreamSelector {
 
     /**
      * Plain-height label for a resolution string ({@code 1080p HFR} → {@code 1080p}),
-     * null-safe. This is what the player quality menu and the external-player dialog show.
+     * null-safe. Bucketing key component; not a display label on its own (see
+     * {@link #qualityLabelOf}).
      */
     @NonNull
     public static String heightLabelOf(@Nullable final String resolution) {
         return normalizeResolutionKey(Objects.toString(resolution, ""));
+    }
+
+    /**
+     * Display label for one bucket row: height plus the representative's fps class
+     * ({@code 720p60}) and codec family ({@code 720p60 · AVC}), null-safe. Unknown
+     * resolutions fall back to the raw string; a missing codec is omitted.
+     */
+    @NonNull
+    public static String qualityLabelOf(@NonNull final VideoStream stream) {
+        final String resolution = Objects.toString(stream.getResolution(), "").trim();
+        final String height = heightLabelOf(resolution);
+        final String base = height.isEmpty() ? resolution
+                : height + (isHfrResolution(resolution) ? "60" : "");
+        final String codec = codecLabelOf(stream.getCodec());
+        if (base.isEmpty()) {
+            return codec;
+        }
+        return codec.isEmpty() ? base : base + " · " + codec;
+    }
+
+    /**
+     * Uppercase codec family for display ({@code avc1.64001f} → {@code AVC}), or empty
+     * when the codec is missing or unrecognized.
+     */
+    @NonNull
+    public static String codecLabelOf(@Nullable final String codec) {
+        final String family = codecFamilyOf(codec);
+        return family == null ? "" : family.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Whether a resolution string denotes the HFR fps class ({@code 60}, {@code HFR}).
+     */
+    private static boolean isHfrResolution(@NonNull final String resolution) {
+        final java.util.regex.Matcher matcher = NUMERIC_HEIGHT_PATTERN.matcher(resolution);
+        if (!matcher.find()) {
+            return false;
+        }
+        final String affix = (resolution.substring(0, matcher.start())
+                + resolution.substring(matcher.end())).toUpperCase(Locale.ROOT);
+        return affix.contains("60") || affix.contains("HFR");
     }
 
     /**
@@ -535,12 +577,7 @@ public final class VideoStreamSelector {
         } catch (final NumberFormatException e) {
             return -1;
         }
-        final String affix = (x.substring(0, matcher.start())
-                + x.substring(matcher.end())).toUpperCase(Locale.ROOT);
-        if (affix.contains("60") || affix.contains("HFR")) {
-            return height + 1;
-        }
-        return height;
+        return isHfrResolution(x) ? height + 1 : height;
     }
 
     private static int compareVideoStreamResolution(@NonNull final String r1,

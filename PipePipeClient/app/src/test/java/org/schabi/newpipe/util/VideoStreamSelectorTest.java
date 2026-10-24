@@ -133,6 +133,24 @@ public class VideoStreamSelectorTest {
     }
 
     @Test
+    public void qualityLabelShowsHeightFpsAndCodec() {
+        assertEquals("720p60 · AVC",
+                VideoStreamSelector.qualityLabelOf(
+                        stream("720p60", "avc1.64001f", 5000000)));
+        assertEquals("1080p · VP9",
+                VideoStreamSelector.qualityLabelOf(
+                        stream("1080p", "vp9", 8000000)));
+        assertEquals("1080p60 · AV1",
+                VideoStreamSelector.qualityLabelOf(
+                        stream("1080p HFR High", "av01.0.05M.08", 12000000)));
+        assertEquals("720p",
+                VideoStreamSelector.qualityLabelOf(
+                        stream("720p", null, 2500000)));
+        assertEquals("",
+                VideoStreamSelector.qualityLabelOf(stream("", null, 0)));
+    }
+
+    @Test
     public void plainTargetPrefersHfrInsideBucket() {
         // Fresh-start default "720p": the 60fps variant must enter the bucket even though
         // the 30fps stream carries a far higher bitrate.

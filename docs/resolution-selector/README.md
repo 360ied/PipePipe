@@ -239,15 +239,14 @@ the vocabulary in section 3:
   (first-is-greater) — so unknown currently sorts as *greatest* and
   `Collections.max` can crown it. Null-guard the helper inputs and
   rank unknown below every numeric height.
-- **Null/empty codec labels.** The doc's "always `CODEC + resolution`"
-  overstates: HLS leaves `codec` unset for some variants
+- **Null/empty codec labels.** HLS leaves `codec` unset for some variants
   (`YoutubeStreamExtractor.java:1677-1684` only sets it for
-  `avc/mp4a`/`vp9`), flowing through Java platform-type `getCodec()`
-  into `codec.uppercase()` (`PlayerMenuController.kt:117-119,189-198`)
-  and `getCodec().split(...)` (`VideoStreamSelector.java:341`).
-  In practice the builder falls back to `""` (label `" 1080p"`),
-  but the dedup helper and plain-height labels must be explicitly
-  null/empty-safe for both `codec` and `resolution`.
+  `avc/mp4a`/`vp9`). Row labels therefore go through
+  `qualityLabelOf()`: `height + fps-class + codec family`
+  (e.g. `720p60 · AVC`, `1080p · VP9`), falling back to the raw string
+  for unknown resolutions and omitting the codec when it is missing —
+  never a blank or `" 1080p"`-style label. The button, the popup rows,
+  and the dismiss-restore path all use the same helper.
 
 ## 7. Cleanup bundled with the change
 
