@@ -44,7 +44,8 @@ def baseVersionCode = 1110
 def appVersionName = "5.5.0-beta3"
 ```
 
-with mumla's resolution, verbatim:
+with mumla's resolution, verbatim (plus the `-debug` suffix decision
+from below):
 
 ```groovy
 def baseVersionCode = 1110
@@ -86,22 +87,26 @@ cached builds during review.
 ### 2. Tag convention and bootstrapping
 
 `appVersionName` has been `"5.5.0-beta3"` since the repo's squashed
-import, and there are no tags. The change must therefore ship with
-its first tag, or every build reports a bare hash until one exists:
+import, and there are no tags. The change therefore ships with a
+genesis anchor tag — created *before* the implementation lands, so
+`git describe` resolves from the start:
 
 ```sh
-git tag -a v5.5.0-beta3 -m "Release v5.5.0-beta3"
+git tag -a v0.0.0 -m "Release v0.0.0"
 ```
 
-tagging current `main` to anchor what the code already claims to be.
+`v0.0.0`, not `v5.5.0-beta3`: current `main` was never cut as a
+release, so backdating a release tag would rewrite history. Until
+the first real release tag, builds honestly report `0.0.0-N-g...`.
 After that: `v5.5.0-beta4`, `v5.5.0`, and so on — annotated tags,
 `v` prefix canonical, bare match kept only as fallback. Release
 process becomes tag plus build. Builds from a tag yield an exact
 `versionName`; worktree/dev builds self-identify as
-`5.5.0-beta3-4-gabc1234`.
+`<tag>-N-gabc1234`.
 
-Optional: mumla's `versionNameSuffix "-debug"` in the `debug` block.
-Cheap and makes About-screen identification airtight. It does not
+Also included (decided, not optional): mumla's `versionNameSuffix
+"-debug"` in the `debug` block. One line, and it makes
+About-screen identification airtight for dev builds. It does not
 affect the APK filename (which interpolates the raw variable, not
 the suffixed name) unless that line is touched too — leave the
 filename as-is.
@@ -130,9 +135,9 @@ review:
 
 - `./scripts/check.sh --quick`, then the default Fast Gate
   (`assembleDebug` + `lintDebug`).
-- Confirm the About-screen version and APK filename from a clean
-  worktree versus a worktree a few commits after the tag
-  (`5.5.0-beta3` vs. `5.5.0-beta3-N-g...`).
+- Confirm the About-screen version and APK filename from a worktree
+  at the anchor tag versus a few commits later (`0.0.0` vs.
+  `0.0.0-N-g...`, plus `-debug` for debug builds).
 - Two back-to-back `./gradlew assembleDebug` runs to confirm the
   configuration cache stays clean (`problems=warn` surfaces any
   complaint without failing).
@@ -148,9 +153,9 @@ review:
 - `PipePipeExtractor/build.gradle`'s `version 'v5.4.0'` is a
   separate Maven-style coordinate and out of scope.
 
-## Open decisions
+## Decisions (resolved)
 
-- Tag current `main` as `v5.5.0-beta3` as part of the change, or land
-  the mechanism untagged and tag at the next real release (accepting
-  hash-versions in between)?
-- Include the `-debug` `versionNameSuffix`, or keep the diff minimal?
+- Bootstrap with a `v0.0.0` genesis tag rather than backdating
+  `v5.5.0-beta3`: current `main` was never a release cut.
+- Include the `-debug` `versionNameSuffix`: saving a single line is
+  not worth dev builds that look exactly like releases.
