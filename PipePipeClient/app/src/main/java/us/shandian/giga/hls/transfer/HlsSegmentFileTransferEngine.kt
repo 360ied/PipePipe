@@ -857,7 +857,7 @@ class HlsSegmentFileTransferEngine(
         }
     }
 
-    companion object {
+    private companion object {
         const val TAG = "HlsSegmentFileTransferEngine"
         const val MAX_INITIAL_MEMORY_BUFFER_BYTES = 16L * 1024L * 1024L
         const val AES_128_KEY_BYTES = 16

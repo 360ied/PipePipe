@@ -88,8 +88,14 @@ internal class HlsDownloader(
     @Throws(IOException::class)
     private fun transferHlsResource(index: Int, targetFile: File) {
         val previous = mission.hlsCheckpoint?.resources?.firstOrNull { it.resourceIndex == index }
+        // Seed only what restoredProgress actually counted: a truncated temp
+        // file contributes 0, so seeding its stale count would double-
+        // subtract via onRestart and drive done negative.
         var lastProgress = previous
-            ?.takeIf { it.tempFilePath == targetFile.absolutePath && targetFile.exists() }
+            ?.takeIf {
+                it.tempFilePath == targetFile.absolutePath && targetFile.exists() &&
+                    targetFile.length() >= it.bytesWritten
+            }
             ?.bytesWritten
             ?: 0L
 
@@ -131,7 +137,12 @@ internal class HlsDownloader(
             ) {
                 return
             }
-            mission.notifyProgress(-previous.bytesWritten)
+            // Subtract only what restoredProgress counted: a truncated file
+            // contributed 0, so subtracting the stale count would drive done
+            // negative.
+            if (previousFile.length() >= previous.bytesWritten) {
+                mission.notifyProgress(-previous.bytesWritten)
+            }
         }
 
         val parent = targetFile.parentFile ?: throw IOException("HLS companion target has no parent")

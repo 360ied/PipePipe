@@ -40,7 +40,7 @@ internal object HlsFrameworkMuxer {
     private const val KIND_SUBTITLES = 's'
 
     @Throws(IOException::class)
-    fun remux(inputs: List<File>, output: File, kind: Char, outputExt: String) {
+    fun remux(inputs: List<File>, output: File, kind: Char, extIn: String) {
         if (inputs.isEmpty()) {
             throw IOException("HLS framework remux failed: no inputs")
         }
@@ -53,7 +53,7 @@ internal object HlsFrameworkMuxer {
             throw IOException("HLS framework remux failed: subtitles unsupported")
         }
 
-        val ext = outputExt.lowercase().takeIf { it.isNotBlank() } ?: "mp4"
+        val ext = extIn.lowercase().takeIf { it.isNotBlank() } ?: "mp4"
         // Validate the container before opening any extractor: only containers
         // MediaMuxer understands are accepted (mp3 handled below via concat).
         // Anything else fails closed instead of writing mislabeled MP4 bytes.
@@ -98,10 +98,9 @@ internal object HlsFrameworkMuxer {
                 inspected[index] = InspectedInput(info.extractor, info.selected - drop.toSet())
             }
         }
-        if (inspected.sumOf { it.selected.size } == 0) {
-            inspected.forEach { it.releaseQuietly() }
-            throw IOException("HLS framework remux failed: no audio/video tracks found")
-        }
+        // The pre-dedup check above already guaranteed non-empty, and dedup
+        // only removes duplicate videos while keeping the first — the list
+        // cannot become empty here.
         logDebug("inputs=${inputs.size} tracks=${inspected.map { it.selected.map { s -> s.mime } }}")
 
         // MP3 fast path: remuxing MP3->MP4 via MediaMuxer is unsupported and
@@ -139,7 +138,7 @@ internal object HlsFrameworkMuxer {
         var completed = false
         try {
             // muxerOutputFormat is infallible here (ext validated above).
-            muxer = MediaMuxer(output.absolutePath, muxerOutputFormat(ext))
+            muxer = MediaMuxer(output.absolutePath, muxerOutputFormat(ext, isAudioOnly))
             // Phase 2: add every selected track (1:1 per input-track).
             val muxerTrackFor = mutableListOf<MutableMap<Int, Int>>()
             val lastPts = mutableListOf<Long>()
@@ -218,10 +217,32 @@ internal object HlsFrameworkMuxer {
                     if (bufferInfo.size < 0) {
                         break
                     }
+                    // Guard against a misreporting extractor: a full buffer
+                    // with a smaller reported size may hide a truncation.
+                    if (bufferInfo.size >= buffer.capacity() && sampleSize in 0 until bufferInfo.size) {
+                        if (sampleSize > MAX_BUFFER_SIZE.toLong()) {
+                            throw IOException("HLS framework remux failed: sample too large ($sampleSize)")
+                        }
+                        buffer.clear()
+                        if (sampleSize > buffer.capacity().toLong()) {
+                            buffer = ByteBuffer.allocate(sampleSize.toInt())
+                        }
+                        bufferInfo.size = try {
+                            info.extractor.readSampleData(buffer, 0)
+                        } catch (error: Exception) {
+                            throw IOException("HLS framework remux failed: read (${error.message.orEmpty()})", error)
+                        }
+                        if (bufferInfo.size < 0) {
+                            break
+                        }
+                    }
                     val rawPts = try {
                         info.extractor.sampleTime
                     } catch (error: Exception) {
                         throw IOException("HLS framework remux failed: sampleTime", error)
+                    }
+                    if (rawPts < 0) {
+                        throw IOException("HLS framework remux failed: negative timestamp")
                     }
                     bufferInfo.presentationTimeUs = rewritePts(lastPts, ptsOffset, muxerTrack, rawPts).also {
                         if (it != rawPts) {
@@ -353,22 +374,31 @@ internal object HlsFrameworkMuxer {
     }
 
     @Throws(IOException::class)
-    private fun muxerOutputFormat(ext: String): Int {
+    private fun muxerOutputFormat(ext: String, isAudioOnly: Boolean): Int {
         // minSdk is 30, so WebM muxer output (API 26+) is always available.
-        return when (ext) {
-            "mp4", "m4a", "mov", "m4v" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
-            "webm" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+        // MediaMuxer always writes MP4 brands: .mov/.m4v would be mislabeled,
+        // and .m4a must be audio-only (a video track under .m4a misleads).
+        return when {
+            ext == "mp4" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+            ext == "m4a" && isAudioOnly -> MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+            ext == "webm" -> MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+            ext == "mp3" -> throw IOException("HLS framework remux failed: internal mp3 routing")
             else -> throw IOException("HLS framework remux failed: unsupported output .$ext")
         }
     }
 
     /**
-     * True when [input] looks like raw MP3 bytes (ID3 tag or frame sync),
-     * ruling out TS/fMP4/WebM-wrapped MP3 which must never be concatenated.
+     * True when [input] looks like raw MP3 bytes (ID3 tag or validated frame
+     * sync), ruling out TS/fMP4/WebM-wrapped MP3 which must never be
+     * concatenated. I/O failures propagate instead of masquerading as
+     * "non-MP3" (which would misreport the error bucket).
+     *
+     * Known over-rejection: APEv2/ID3v1-only files without a leading sync
+     * are rejected though concatenation would be valid.
      */
+    @Throws(IOException::class)
     private fun isRawMp3(input: File): Boolean {
-        return try {
-            input.inputStream().use { stream ->
+        return input.inputStream().use { stream ->
                 val header = ByteArray(12)
                 var read = 0
                 while (read < header.size) {
@@ -423,10 +453,7 @@ internal object HlsFrameworkMuxer {
                 val layerBits = (header[1].toInt() ushr 1) and 0x03
                 return versionBits != 0x01 && layerBits != 0x00
             }
-        } catch (ignored: Exception) {
-            false
         }
-    }
 
     private fun rewritePts(
         lastPts: MutableList<Long>,
@@ -484,6 +511,9 @@ internal object HlsFrameworkMuxer {
             try {
                 output.delete()
             } catch (ignored: Exception) {
+                if (BuildConfig.DEBUG) {
+                    Log.w(TAG, "delete partial MP3: ${ignored.message.orEmpty()}")
+                }
             }
             throw error
         } catch (error: IOException) {
