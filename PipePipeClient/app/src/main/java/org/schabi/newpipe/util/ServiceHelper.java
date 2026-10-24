@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static org.schabi.newpipe.extractor.ServiceList.SoundCloud;
 public final class ServiceHelper {
     private static final StreamingService DEFAULT_FALLBACK_SERVICE = ServiceList.YouTube;
 
@@ -32,8 +30,6 @@ public final class ServiceHelper {
         switch (serviceId) {
             case 0:
                 return R.drawable.ic_youtube;
-            case 1:
-                return R.drawable.place_holder_cloud;
             default:
                 return R.drawable.place_holder_circle;
         }
@@ -164,25 +160,6 @@ public final class ServiceHelper {
         switch (serviceId) {
             case 0:
                 return R.string.import_youtube_instructions;
-            case 1:
-                return R.string.import_soundcloud_instructions;
-            default:
-                return -1;
-        }
-    }
-
-    /**
-     * For services that support importing from a channel url, return a hint that will
-     * be used in the EditText that the user will type in his channel url.
-     *
-     * @param serviceId service to get the hint for
-     * @return the hint's string resource or -1 if the service don't support it
-     */
-    @StringRes
-    public static int getImportInstructionsHint(final int serviceId) {
-        switch (serviceId) {
-            case 1:
-                return R.string.import_soundcloud_instructions_hint;
             default:
                 return -1;
         }
@@ -231,11 +208,7 @@ public final class ServiceHelper {
     }
 
     public static long getCacheExpirationMillis(final int serviceId) {
-        if (serviceId == SoundCloud.getServiceId()) {
-            return TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
-        } else {
-            return TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS);
-        }
+        return TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS);
     }
 
     public static boolean isBeta(final StreamingService s) {

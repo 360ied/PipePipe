@@ -34,7 +34,8 @@ public final class TabsJsonHelper {
      * If the JSON is null or empty, or the list of tabs that it represents is empty, the
      * {@link #getDefaultTabs fallback list} will be returned.
      * <p>
-     * Tabs with invalid ids (i.e. not in the {@link Tab.Type} enum) will be ignored.
+     * Tabs with invalid ids (i.e. not in the {@link Tab.Type} enum) and tabs referencing
+     * services that are no longer supported will be ignored.
      *
      * @param tabsJson a JSON string got from {@link #getJsonToSave(List)}.
      * @return a list of {@link Tab tabs}.
@@ -66,7 +67,7 @@ public final class TabsJsonHelper {
 
                 final Tab tab = Tab.from((JsonObject) o);
 
-                if (tab != null) {
+                if (tab != null && tab.isValid()) {
                     returnTabs.add(tab);
                 }
             }

@@ -224,9 +224,6 @@ public class RouterActivity extends AppCompatActivity {
             Toast.makeText(context, R.string.paid_content_new, Toast.LENGTH_LONG).show();
         } else if (throwable instanceof PrivateContentException) {
             Toast.makeText(context, R.string.private_content_new, Toast.LENGTH_LONG).show();
-        } else if (throwable instanceof SoundCloudGoPlusContentException) {
-            Toast.makeText(context, R.string.soundcloud_go_plus_content_new,
-                    Toast.LENGTH_LONG).show();
         } else if (throwable instanceof YoutubeMusicPremiumContentException) {
             Toast.makeText(context, R.string.youtube_music_premium_content_new,
                     Toast.LENGTH_LONG).show();

@@ -1,9 +1,7 @@
 package org.schabi.newpipe.extractor;
 
-import org.schabi.newpipe.extractor.services.soundcloud.SoundcloudService;
 import org.schabi.newpipe.extractor.services.youtube.YoutubeService;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,16 +33,12 @@ public final class ServiceList {
     }
 
     public static final YoutubeService YouTube;
-    public static final SoundcloudService SoundCloud;
     /**
      * When creating a new service, put this service in the end of this list,
      * and give it the next free id.
      */
-    private static final List<StreamingService> SERVICES = Collections.unmodifiableList(
-            Arrays.asList(
-                    YouTube = new YoutubeService(0),
-                    SoundCloud = new SoundcloudService(1)
-            ));
+    private static final List<StreamingService> SERVICES = Collections.singletonList(
+            YouTube = new YoutubeService(0));
 
     /**
      * Get all the supported services.

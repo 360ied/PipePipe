@@ -103,6 +103,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginStart="4dp"
+                android:visibility="gone"
                 app:srcCompat="@drawable/ic_arrow_drop_down"
                 app:tint="@color/drawer_header_font_color"
                 tools:ignore="ContentDescription" />
@@ -114,6 +115,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="?selectableItemBackground"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

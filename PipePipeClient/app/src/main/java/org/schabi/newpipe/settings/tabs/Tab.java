@@ -102,6 +102,31 @@ public abstract class Tab {
         return type.getTab();
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+    // Validity
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /**
+     * Whether this tab can still be displayed.
+     *
+     * <p>Tabs saved by older versions may reference services that have since been removed
+     * (e.g. SoundCloud); such tabs are dropped when loading the saved tabs.</p>
+     *
+     * @return {@code true} if the tab can be displayed
+     */
+    public boolean isValid() {
+        return true;
+    }
+
+    protected static boolean isKnownService(final int serviceId) {
+        try {
+            NewPipe.getService(serviceId);
+            return true;
+        } catch (final ExtractionException e) {
+            return false;
+        }
+    }
+
     public abstract int getTabId();
 
     public abstract String getTabName(Context context);
@@ -363,6 +388,11 @@ public abstract class Tab {
         }
 
         @Override
+        public boolean isValid() {
+            return isKnownService(kioskServiceId);
+        }
+
+        @Override
         protected void readDataFromJson(final JsonObject jsonObject) {
             kioskServiceId = jsonObject.getInt(JSON_KIOSK_SERVICE_ID_KEY, -1);
             kioskId = jsonObject.getString(JSON_KIOSK_ID_KEY, NO_ID);
@@ -443,6 +473,11 @@ public abstract class Tab {
             writerSink.value(JSON_CHANNEL_SERVICE_ID_KEY, channelServiceId)
                     .value(JSON_CHANNEL_URL_KEY, channelUrl)
                     .value(JSON_CHANNEL_NAME_KEY, channelName);
+        }
+
+        @Override
+        public boolean isValid() {
+            return isKnownService(channelServiceId);
         }
 
         @Override
@@ -583,6 +618,12 @@ public abstract class Tab {
             } else { // playlistType == LocalItemType.PLAYLIST_REMOTE_ITEM
                 return PlaylistFragment.getInstance(playlistServiceId, playlistUrl, playlistName);
             }
+        }
+
+        @Override
+        public boolean isValid() {
+            return playlistType == LocalItemType.PLAYLIST_LOCAL_ITEM
+                    || isKnownService(playlistServiceId);
         }
 
         @Override

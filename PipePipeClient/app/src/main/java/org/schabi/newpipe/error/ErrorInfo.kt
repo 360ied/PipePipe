@@ -104,7 +104,12 @@ class ErrorInfo(
 
         private fun getServiceNameFromId(serviceId: Int) = NewPipe.getNameOfService(serviceId) +
                 if (serviceId != -1) {
-                    " (" + (if (ServiceList.all()[serviceId].hasTokens()) "Logged in" else "Anonymous") + ")"
+                    val loggedIn = try {
+                        ServiceList.all().any { it.serviceId == serviceId && it.hasTokens() }
+                    } catch (e: Exception) {
+                        false
+                    }
+                    " (" + (if (loggedIn) "Logged in" else "Anonymous") + ")"
                 } else {
                     ""
                 }

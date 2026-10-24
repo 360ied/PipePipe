@@ -28,6 +28,8 @@ import com.grack.nanojson.JsonParser;
 import com.grack.nanojson.JsonWriter;
 
 import org.schabi.newpipe.BuildConfig;
+import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor.InvalidSourceException;
 import org.schabi.newpipe.extractor.subscription.SubscriptionItem;
 
@@ -55,6 +57,21 @@ public final class ImportExportJsonHelper {
     private static final String JSON_NAME_KEY = "name";
 
     private ImportExportJsonHelper() { }
+
+    /**
+     * Whether the given service id belongs to a currently supported service.
+     *
+     * <p>Subscriptions exported by older versions may reference services that have since
+     * been removed (e.g. SoundCloud); those entries are skipped on import.</p>
+     */
+    private static boolean isKnownService(final int serviceId) {
+        try {
+            NewPipe.getService(serviceId);
+            return true;
+        } catch (final ExtractionException e) {
+            return false;
+        }
+    }
 
     /**
      * Read a JSON source through the input stream.
@@ -93,7 +110,9 @@ public final class ImportExportJsonHelper {
                     final String name = itemObject.getString(JSON_NAME_KEY);
 
                     if (url != null && name != null && !url.isEmpty() && !name.isEmpty()) {
-                        channels.add(new SubscriptionItem(serviceId, url, name));
+                        if (isKnownService(serviceId)) {
+                            channels.add(new SubscriptionItem(serviceId, url, name));
+                        }
                         if (eventListener != null) {
                             eventListener.onItemCompleted(name);
                         }

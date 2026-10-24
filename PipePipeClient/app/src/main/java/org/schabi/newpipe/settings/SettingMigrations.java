@@ -108,6 +108,19 @@ public final class SettingMigrations {
         }
     };
 
+    public static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        protected void migrate(final Context context) {
+            // SoundCloud support was removed: reset a stored SoundCloud service selection
+            // to the default (YouTube) so the app does not reference an unknown service.
+            final String serviceKey = context.getString(R.string.current_service_key);
+            if ("SoundCloud".equals(sp.getString(serviceKey, ""))) {
+                sp.edit().putString(serviceKey,
+                        context.getString(R.string.default_service_value)).apply();
+            }
+        }
+    };
+
     /**
      * List of all implemented migrations.
      * <p>
@@ -119,12 +132,13 @@ public final class SettingMigrations {
             MIGRATION_1_2,
             MIGRATION_2_3,
             MIGRATION_3_4,
+            MIGRATION_4_5,
     };
 
     /**
      * Version number for preferences. Must be incremented every time a migration is necessary.
      */
-    public static final int VERSION = 4;
+    public static final int VERSION = 5;
 
 
     public static void initMigrations(final Context context, final boolean isFirstRun) {

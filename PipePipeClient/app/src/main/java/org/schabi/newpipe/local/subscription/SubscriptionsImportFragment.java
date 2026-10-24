@@ -145,7 +145,6 @@ public class SubscriptionsImportFragment extends BaseFragment {
         if (supportedSources.contains(CHANNEL_URL)) {
             inputButton.setText(R.string.import_title);
             inputText.setVisibility(View.VISIBLE);
-            inputText.setHint(ServiceHelper.getImportInstructionsHint(currentServiceId));
         } else {
             inputButton.setText(R.string.import_file_title);
         }

@@ -13,23 +13,4 @@
         <item name="colorPrimaryDark">@color/dark_youtube_statusbar_color</item>
     </style>
 
-    <!-- SoundCloud -->
-    <style name="LightTheme.SoundCloud" parent="LightTheme" tools:keep="@style/LightTheme_SoundCloud">
-        <item name="colorPrimary">@color/light_soundcloud_primary_color</item>
-        <item name="colorPrimaryDark">@color/light_soundcloud_statusbar_color</item>
-        <item name="colorAccent">@color/light_soundcloud_accent_color</item>
-    </style>
-
-    <style name="DarkTheme.SoundCloud" parent="DarkTheme" tools:keep="@style/DarkTheme_SoundCloud">
-        <item name="colorPrimary">@color/dark_soundcloud_primary_color</item>
-        <item name="colorPrimaryDark">@color/dark_soundcloud_statusbar_color</item>
-        <item name="colorAccent">@color/dark_soundcloud_accent_color</item>
-    </style>
-
-    <style name="BlackTheme.SoundCloud" parent="BlackTheme" tools:keep="@style/BlackTheme_SoundCloud">
-        <item name="colorPrimary">@color/dark_soundcloud_primary_color</item>
-        <item name="colorPrimaryDark">@color/dark_soundcloud_statusbar_color</item>
-        <item name="colorAccent">@color/dark_soundcloud_accent_color</item>
-    </style>
-
 </resources>

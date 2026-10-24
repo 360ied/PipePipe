@@ -14,7 +14,7 @@
         android:padding="16dp"
         android:scrollbars="vertical"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        tools:text="@string/import_soundcloud_instructions" />
+        tools:text="@string/import_youtube_instructions" />
 
     <LinearLayout
         android:id="@+id/inputs_panel"
@@ -33,7 +33,7 @@
             android:layout_marginBottom="8dp"
             android:inputType="text"
             android:visibility="gone"
-            tools:hint="@string/import_soundcloud_instructions_hint"
+            tools:hint="@string/import_title"
             tools:visibility="visible" />
 
         <Button

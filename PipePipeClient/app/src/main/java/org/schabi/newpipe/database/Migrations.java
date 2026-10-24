@@ -29,6 +29,7 @@ public final class Migrations {
     public static final int DB_VER_9 = 9;
     public static final int DB_VER_900 = 900;
     public static final int DB_VER_901 = 901;
+    public static final int DB_VER_902 = 902;
 
     private static final String TAG = Migrations.class.getName();
     public static final boolean DEBUG = MainActivity.DEBUG;
@@ -412,6 +413,44 @@ public final class Migrations {
         @Override
         public void migrate(@NonNull final SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE streams ADD COLUMN is_paid INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+
+    public static final Migration MIGRATION_901_902 = new Migration(DB_VER_901, DB_VER_902) {
+        @Override
+        public void migrate(@NonNull final SupportSQLiteDatabase database) {
+            try {
+                database.beginTransaction();
+
+                // SoundCloud (service_id 1) support was removed: purge its rows so that no
+                // orphaned entries referencing an unknown service remain. YouTube rows
+                // (service_id 0) are untouched.
+                // Delete referencing rows first, then the referenced rows themselves.
+                database.execSQL("DELETE FROM stream_history WHERE stream_id IN "
+                        + "(SELECT uid FROM streams WHERE service_id = 1)");
+                database.execSQL("DELETE FROM stream_state WHERE stream_id IN "
+                        + "(SELECT uid FROM streams WHERE service_id = 1)");
+                database.execSQL("DELETE FROM playlist_stream_join WHERE stream_id IN "
+                        + "(SELECT uid FROM streams WHERE service_id = 1)");
+                database.execSQL("DELETE FROM feed WHERE stream_id IN "
+                        + "(SELECT uid FROM streams WHERE service_id = 1) "
+                        + "OR subscription_id IN "
+                        + "(SELECT uid FROM subscriptions WHERE service_id = 1)");
+                database.execSQL("DELETE FROM feed_last_updated WHERE subscription_id IN "
+                        + "(SELECT uid FROM subscriptions WHERE service_id = 1)");
+                database.execSQL("DELETE FROM feed_group_subscription_join "
+                        + "WHERE subscription_id IN "
+                        + "(SELECT uid FROM subscriptions WHERE service_id = 1)");
+                database.execSQL("DELETE FROM streams WHERE service_id = 1");
+                database.execSQL("DELETE FROM subscriptions WHERE service_id = 1");
+                database.execSQL("DELETE FROM remote_playlists WHERE service_id = 1");
+                database.execSQL("DELETE FROM search_history WHERE service_id = 1");
+
+                database.setTransactionSuccessful();
+            } finally {
+                database.endTransaction();
+            }
         }
     };
 

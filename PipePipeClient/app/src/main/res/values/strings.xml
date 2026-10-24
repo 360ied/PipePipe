@@ -250,7 +250,6 @@
 <string name="short_thousand">k</string>
 <string name="short_million">M</string>
 <string name="short_billion">B</string>
-<string name="drawer_header_description">Toggle service, currently selected:</string>
 <!--Zero don't get selected (in some languages) as it is not a "special case" for android-->
 <string name="no_subscribers">No subscribers</string>
 <plurals name="subscribers">
@@ -324,7 +323,7 @@
 <string name="title_licenses">Third-party Licenses</string>
 <string name="copyright">© %1$s by %2$s under %3$s</string>
 <string name="tab_about">About</string>
-<string name="app_description_new">A FLOSS Android app to let you browse YouTube and SoundCloud freely </string>
+<string name="app_description_new">A FLOSS Android app to let you browse YouTube freely </string>
 <string name="contribution_title">Contribute</string>
 <string name="contribution_encouragement">Whether you have ideas of; translation, design changes, code cleaning, or real heavy code changes—help is always welcome. The more is done the better it gets!</string>
 <string name="donation_title">Donate</string>
@@ -462,8 +461,6 @@
 \n5. Click on the \"Download\" button after it appears
 \n6. Click on IMPORT FILE below and select the downloaded .zip file
 \n7. [If the .zip import fails] Extract the .csv file (usually under \"YouTube and YouTube Music/subscriptions/subscriptions.csv\"), click on IMPORT FILE below and select the extracted csv file</string>
-<string name="import_soundcloud_instructions">Import a SoundCloud profile by typing either the URL or your ID:\n\n1. Enable \"desktop mode\" in a web-browser (the site is not available for mobile devices)\n2. Go to this URL: %1$s\n3. Log in when asked\n4. Copy the profile URL you were redirected to.</string>
-<string name="import_soundcloud_instructions_hint">yourID, soundcloud.com/yourid</string>
 <string name="import_network_expensive_warning">Keep in mind this operation can be network expensive.\n\nDo you want to continue?</string>
 <!-- Playback Parameters -->
 <string name="playback_speed_control">Playback Speed Controls</string>
@@ -753,7 +750,6 @@
 <string name="no_appropriate_file_manager_message_android_10">No appropriate file manager was found for this action.
 \nPlease install a Storage Access Framework compatible file manager</string>
 <string name="georestricted_content">This content is not available in your country.</string>
-<string name="soundcloud_go_plus_content_new">This is a SoundCloud Go+ track, at least in your country, so it cannot be streamed or downloaded by PipePipe.</string>
 <string name="private_content_new">This content is private, so it cannot be streamed or downloaded by PipePipe.</string>
 <string name="youtube_music_premium_content_new">This video is available only to YouTube Music Premium members, so it cannot be streamed or downloaded by PipePipe.</string>
 <string name="live_not_started">The live is not started yet.</string>
@@ -1063,8 +1059,6 @@
 <string name="export_subscriptions_summary">Export subscriptions to a JSON file</string>
 <string name="import_youtube_subscriptions_title">Import from YouTube</string>
 <string name="import_youtube_subscriptions_summary">Import subscriptions from Google Takeout</string>
-<string name="import_soundcloud_subscriptions_title">Import from SoundCloud</string>
-<string name="import_soundcloud_subscriptions_summary">Import subscriptions from a SoundCloud profile</string>
 <string name="clear_subscriptions_title">Clear subscriptions</string>
 <string name="clear_subscriptions_summary">Remove all subscribed channels from PipePipe</string>
 <string name="clear_subscriptions_confirmation">Clear all subscriptions? This cannot be undone.</string>

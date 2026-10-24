@@ -7,7 +7,7 @@ sealed class LocalizationService {
     companion object {
         @JvmStatic
         fun of(serviceId: Int): LocalizationService? =
-            // No remaining service (YouTube, SoundCloud) needs localized stat keys.
+            // No remaining service needs localized stat keys.
             null
     }
 
