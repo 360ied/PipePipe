@@ -454,7 +454,7 @@ public final class VideoStreamSelector {
         if (base.isEmpty()) {
             return codec;
         }
-        return codec.isEmpty() ? base : base + " · " + codec;
+        return codec.isEmpty() ? base : base + " " + codec;
     }
 
     /**

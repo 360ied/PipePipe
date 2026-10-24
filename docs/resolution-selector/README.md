@@ -12,8 +12,9 @@ YouTube-only, and how to implement it without touching downloads.
 - All paths below are relative to the repository root.
 - Status: **implemented** on branch `one-pick-per-resolution` (commits
   `26b9101` + review follow-ups; revalidate refs against that branch).
-  Rows carry `height + fps-class + codec family` (`qualityLabelOf`),
-  the quality button stays height-only.
+  Rows carry `height + fps-class + codec family` (`qualityLabelOf`,
+  e.g. `720p60 AVC`); the button stays height-only except while the
+  selector is open, when it shows the current stream's full label.
 
 ## 1. Summary
 
@@ -160,8 +161,9 @@ the vocabulary in section 3:
 2. `PlayerMenuController.buildQualityMenu()` builds from the deduped
    list; keep a `dedupedList ↔ stream` map because `itemId` can no
    longer double as the `sortedVideoStreams` index. Label rows with
-   `qualityLabelOf()` (`720p60 · AVC`: height + fps-class + codec
-   family of the representative); the quality button stays height-only.
+   `qualityLabelOf()` (`720p60 AVC`: height + fps-class + codec
+   family of the representative); while the selector is open the button
+   shows the current stream's full label, height-only otherwise.
    Click maps back to the representative stream and calls the existing
    `setSelectedStream()` — resolver, persistence, and sticky-codec
    behavior unchanged.
@@ -248,10 +250,11 @@ the vocabulary in section 3:
   (`YoutubeStreamExtractor.java:1677-1684` only sets it for
   `avc/mp4a`/`vp9`). Row labels therefore go through
   `qualityLabelOf()`: `height + fps-class + codec family`
-  (e.g. `720p60 · AVC`, `1080p · VP9`), falling back to the raw string
+  (e.g. `720p60 AVC`, `1080p VP9`), falling back to the raw string
   for unknown resolutions and omitting the codec when it is missing —
-  never a blank or `" 1080p"`-style label. Only the popup rows use the
-  full label; the quality button stays height-only.
+  never a blank or `" 1080p"`-style label. Popup rows always use the
+  full label; the button uses it only while the selector is open
+  (dismiss restores height-only).
 
 ## 7. Cleanup bundled with the change
 

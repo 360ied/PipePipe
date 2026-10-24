@@ -115,7 +115,7 @@ class PlayerMenuController(
 
         selectedVideoStream?.let { videoStream ->
             player.binding.qualityTextView.text =
-                VideoStreamSelector.heightLabelOf(videoStream.resolution)
+                VideoStreamSelector.qualityLabelOf(videoStream)
         }
 
         player.saveWasPlaying()
