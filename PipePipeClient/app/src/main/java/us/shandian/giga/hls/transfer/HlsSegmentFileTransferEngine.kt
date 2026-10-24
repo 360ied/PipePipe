@@ -666,14 +666,30 @@ class HlsSegmentFileTransferEngine(
 
     @Throws(IOException::class)
     private fun downloadEncryptionKey(rawKeyUrl: String): ByteArray {
-        // Retry only the fetch; a wrong-size key is deterministic.
+        // Retry only the fetch; a wrong-size key is deterministic. Read with
+        // a hard 64-byte ceiling instead of the segment path: a compromised
+        // key URL serving megabytes must not reach the 256 MiB buffer.
         val key = retryPolicy.withRetries {
             connectionFactory.open(rawKeyUrl, "GET", null, null).useTransferConnection { connection ->
                 val statusCode = connection.responseCode
                 if (statusCode < 200 || statusCode > 299) {
                     throw TransferHttpException(statusCode)
                 }
-                connection.inputStream.use { input -> copyPartToMemory(input, AES_128_KEY_BYTES) }
+                connection.inputStream.use { input ->
+                    val buffer = ByteArray(MAX_KEY_BYTES + 1)
+                    var total = 0
+                    while (true) {
+                        val read = input.read(buffer, total, buffer.size - total)
+                        if (read == -1) {
+                            break
+                        }
+                        total += read
+                        if (total > MAX_KEY_BYTES) {
+                            throw IOException("HLS AES-128 key too large")
+                        }
+                    }
+                    buffer.copyOf(total)
+                }
             }
         }
         if (key.size != AES_128_KEY_BYTES) {
@@ -818,11 +834,20 @@ class HlsSegmentFileTransferEngine(
         return try {
             val uri = URI(withoutCookie)
             buildString {
+                // Host + scheme are identity: the same path on another CDN
+                // is different bytes and must never resume as identical.
+                uri.scheme?.let { append(it).append("://") }
+                uri.host?.let { append(it) }
+                if (uri.port != -1) {
+                    append(':').append(uri.port)
+                }
                 append(uri.rawPath ?: "")
                 stableQuery(uri.rawQuery)?.let { append('?').append(it) }
             }
         } catch (error: Exception) {
-            withoutCookie.substringBefore('#').substringBefore('?')
+            // Fallback keeps the host (unlike the old path-only form) so a
+            // CDN switch still invalidates the fingerprint.
+            withoutCookie.substringBefore('#')
         }
     }
 
@@ -910,6 +935,9 @@ class HlsSegmentFileTransferEngine(
         // Per-segment in-memory ceiling (parallel workers each buffer one
         // whole segment): fail closed instead of risking OOM.
         const val MAX_SEGMENT_BYTES = 256L * 1024L * 1024L
+        // AES-128 keys are 16 bytes; anything beyond this from a key URL is
+        // not a key.
+        const val MAX_KEY_BYTES = 64
         // Aggregate retained ceiling: out-of-order completions wait for the
         // in-order prefix, so cap their sum and let submission stall until
         // the prefix drains instead of retaining ~parallelism x segment.
