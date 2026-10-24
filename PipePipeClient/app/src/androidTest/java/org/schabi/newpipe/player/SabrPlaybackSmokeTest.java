@@ -136,7 +136,7 @@ public final class SabrPlaybackSmokeTest {
     public void extractorToSabrFetchesAudioAfter65Seconds() throws Exception {
         final Context context = InstrumentationRegistry.getInstrumentation()
                 .getTargetContext().getApplicationContext();
-        assertTrue("The target process must use PipePipe's App initialization",
+        assertTrue("The target process must use NanoPipe's App initialization",
                 context instanceof App);
 
         final Bundle arguments = InstrumentationRegistry.getArguments();
@@ -241,7 +241,7 @@ public final class SabrPlaybackSmokeTest {
 
         final Context context = InstrumentationRegistry.getInstrumentation()
                 .getTargetContext().getApplicationContext();
-        assertTrue("The target process must use PipePipe's App initialization",
+        assertTrue("The target process must use NanoPipe's App initialization",
                 context instanceof App);
         final int videoCount = Integer.parseInt(arguments.getString(
                 "anonymousVideoCount", "10"));
@@ -1230,7 +1230,7 @@ public final class SabrPlaybackSmokeTest {
     private static void runSmokeCase(final SmokeCase smokeCase) throws Exception {
         final Context context = InstrumentationRegistry.getInstrumentation()
                 .getTargetContext().getApplicationContext();
-        assertTrue("The target process must use PipePipe's App initialization",
+        assertTrue("The target process must use NanoPipe's App initialization",
                 context instanceof App);
 
         final Bundle arguments = InstrumentationRegistry.getArguments();

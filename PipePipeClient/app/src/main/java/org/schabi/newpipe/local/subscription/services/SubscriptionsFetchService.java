@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 PipePipe contributors
+ * Copyright 2026 NanoPipe contributors
  *
  * License: GPL-3.0+
  * This program is free software: you can redistribute it and/or modify

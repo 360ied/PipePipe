@@ -85,7 +85,7 @@ android {
             // providers.exec-based versionName above, and that API is
             // configuration-cache safe.
             applicationIdSuffix ".debug"
-            resValue "string", "app_name", "pipepipefork Debug"
+            resValue "string", "app_name", "NanoPipe Debug"
         }
 
         release {
@@ -94,9 +94,9 @@ android {
             }
             if (System.properties.containsKey('packageSuffix')) {
                 applicationIdSuffix System.getProperty('packageSuffix')
-                resValue "string", "app_name", "pipepipefork " + System.getProperty('packageSuffix')
+                resValue "string", "app_name", "NanoPipe " + System.getProperty('packageSuffix')
             } else {
-                resValue "string", "app_name", "pipepipefork"
+                resValue "string", "app_name", "NanoPipe"
             }
             minifyEnabled true
             shrinkResources false // disabled to fix F-Droid's reproducible build
@@ -159,7 +159,7 @@ androidComponents.onVariants(androidComponents.selector().all()) { variant ->
     variant.outputs.each { output ->
         output.versionCode.set(universalVersionCode)
         output.outputFileName.set(
-                "PipePipe_${appVersionName}-${variant.name}.apk")
+                "NanoPipe_${appVersionName}-${variant.name}.apk")
     }
 }
 

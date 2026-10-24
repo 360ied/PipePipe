@@ -84,7 +84,7 @@ Always use the Gradle wrapper (`./gradlew`); never a system `gradle`.
   (e.g. `git tag -a v5.5.0-beta4 -m "Release v5.5.0-beta4"`).
   Debug builds append `-debug` via `versionNameSuffix`.
 - **APK filename** interpolates the raw tag
-  (`PipePipe_<tag>-<variant>.apk`), not the runtime `versionName`, so
+  (`NanoPipe_<tag>-<variant>.apk`), not the runtime `versionName`, so
   it never carries `-debug`/`-dirty`; the variant name already
   disambiguates.
 - **versionCode**: frozen at `100 * baseVersionCode` (stays above the

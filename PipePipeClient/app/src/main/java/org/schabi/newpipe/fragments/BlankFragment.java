@@ -15,13 +15,13 @@ public class BlankFragment extends BaseFragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, @Nullable final ViewGroup container,
                              final Bundle savedInstanceState) {
-        setTitle("PipePipe");
+        setTitle("NanoPipe");
         return inflater.inflate(R.layout.fragment_blank, container, false);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        setTitle("PipePipe");
+        setTitle("NanoPipe");
     }
 }

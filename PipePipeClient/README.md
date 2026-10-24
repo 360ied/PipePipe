@@ -1,3 +1,3 @@
 ## README
 
-The client of [PipePipe](https://codeberg.org/NullPointerException/PipePipe).
+The client of [NanoPipe](https://codeberg.org/NullPointerException/PipePipe).

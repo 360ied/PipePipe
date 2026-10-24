@@ -3,7 +3,7 @@ package org.schabi.newpipe.player;
 import java.util.Objects;
 
 /**
- * PipePipe's playback parameters (speed and pitch).
+ * NanoPipe's playback parameters (speed and pitch).
  *
  * Replaces ExoPlayer's {@code PlaybackParameters} on the player API, so that consumers no longer
  * have to import ExoPlayer to read the current speed or pitch. The values still originate from

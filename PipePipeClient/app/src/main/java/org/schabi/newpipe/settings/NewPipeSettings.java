@@ -120,7 +120,7 @@ public final class NewPipeSettings {
     }
 
     private static String getNewPipeChildFolderPathForDir(final File dir) {
-        return new File(dir, "PipePipe").toURI().toString();
+        return new File(dir, "NanoPipe").toURI().toString();
     }
 
     public static boolean useStorageAccessFramework(final Context context) {
