@@ -8,7 +8,7 @@ YouTube-only, and how to implement it without touching downloads.
   sorting/selection, external-player dialog, download dialog) +
   `PipePipeExtractor/.../services/youtube` (resolution vocabulary:
   `ItagItem`, `YoutubeStreamExtractor`).
-- Audited: 2026-10-24, `main` at `0a73160`.
+- Audited: 2026-10-24, `main` at `dcd305e` (doc commits `527f7bf`, `febe228`, `dcd305e`; revalidate refs at implementation time).
 - All paths below are relative to the repository root.
 - Status: **design only, not implemented.** No code changes accompany
   this doc.
@@ -48,7 +48,7 @@ and delete the multi-service branches this exposes as dead
   menuItemIndex` and calls `setSelectedStream(availableStreams[idx])`.
 - dismiss (`:475`) resets the button to codec-less `it.resolution` —
   so the button reads `1080p` while the menu row that produced it read
-  `AVP9 1080p` or similar.
+  `VP9 1080p` or similar.
 
 ### 2.2 Backing list keeps one stream per codec+resolution
 
@@ -61,9 +61,10 @@ own entry.
 
 ### 2.3 Selection already thinks in buckets
 
-`VideoPlaybackResolver.java:135-142,261-263` stores the picked stream's
-`resolution + codec` and re-resolves per video via
-`getResolutionAndCodecIndex()` (`VideoStreamSelector.java:67-140`):
+`VideoPlaybackResolver.java:261-263` stores the picked stream's
+`resolution + codec` (`setSelectedStream`), consumed per video at
+`:135-142` via `getResolutionAndCodecIndex()`
+(`VideoStreamSelector.java:67-140`):
 exact-variant match → same-codec same-normalized-resolution →
 best-in-bucket → closest-lower. A deduped menu slots into this
 unchanged: picking the bucket's representative stream stores its
@@ -131,10 +132,14 @@ the vocabulary in section 3:
   but is indirect; AV1 gate keyed off `av01` codec prefix is the live
   one.)
 - `VIDEO_FORMAT_QUALITY_RANKING:22` + container tiebreak
-  (`:500-501`) — redundant given codec priority. For YouTube the
-  container is determined by codec (VP9→WEBM, else MPEG_4; v3GPP only
-  for itags 17/36), so the format rank never decides anything the codec
-  rank didn't.
+  (`:500-501`) — *candidate* for removal, not proven dead. It decides
+  same-codec-family/same-height ties with equal bitrate (e.g. itag 17
+  `v3GPP 144p` vs itag 160 `MPEG_4 144p`), and HLS AV1 leaves
+  `MediaFormat` unset (only `avc/mp4a`/`vp9` set it in
+  `YoutubeStreamExtractor.java:1677-1684`), so `indexOf(null) == -1`
+  participates. Keep the tiebreak or prove equal-bitrate ties
+  impossible for same-codec/same-height pairs; either way handle
+  `null` format explicitly.
 - Audio-side, for awareness: `StreamFilters.filterUnsupportedFormats`
   `flac` branch is non-YouTube (YouTube audio is opus/mp4a, plus ec-3
   for 5.1 where the EC-3 toggle still applies). Not in the dedup path;
@@ -157,16 +162,27 @@ the vocabulary in section 3:
    maps back to the representative stream and calls the existing
    `setSelectedStream()` — resolver, persistence, and sticky-codec
    behavior unchanged.
-3. `showExternalPlaybackDialog()` uses the same helper (fixes the
-   identical-label bug); its `selectedVideoStreamIndex` becomes a
-   bucket comparison, not a raw index.
+3. `showExternalPlaybackDialog()` uses the same bucket helper on its
+   own input list (fixes the identical-label bug) — note that list
+   differs from the player's: the fragment builds with
+   `preferVideoOnlyStreams=false` and no blacklist/audio-track
+   filtering (`VideoDetailFragment.java:1956-1963`), while the
+   resolver uses `preferVideoOnlyStreams=true` + blacklist +
+   inline audio-track filtering (`VideoPlaybackResolver.java:101-127`).
+   Specify the dialog's dedup input (fragment `sortedVideoStreams`)
+   and map its pre-selection by bucket, not by raw index, across the
+   two lists.
 4. Explicitly unchanged: `getSortedStreamVideosList()` ordering and
    filtering, `DownloadDialog`/`StreamItemAdapter` rows,
    `VideoPlaybackResolver` protocol, live/HLS adaptive menu
    (`POPUP_MENU_ID_LIVE_QUALITY` path).
-5. `PlayerLayoutController.kt:278` button visibility (`size > 1`) must
-   key off distinct-bucket count, not raw stream count — 3×1080p in
-   different codecs is one bucket and should not offer a one-item menu.
+5. VOD button visibility must key off distinct-bucket count, not raw
+   stream count — 3×1080p in different codecs is one bucket and should
+   not offer a one-item menu. Note `:278` (`size > 1`) is the
+   live-only branch; the VOD branch (`VIDEO_STREAM, POST_LIVE_STREAM`,
+   ~`PlayerLayoutController.kt:291-298`) currently shows the button
+   whenever streams are non-empty with no count check — that branch is
+   the one that needs the `distinctBuckets.size <= 1` hide rule.
 
 ## 6. Edge cases and trade-offs
 
@@ -188,30 +204,52 @@ the vocabulary in section 3:
   prefers the *lower* bitrate — reads like a sign bug, flip it with
   a named comment + unit test. Note the tiebreak now also decides
   fps: fix `calculateResolution` so `HFR` scores above plain `1080p`
-  (today `1080p60 → 10801` outranks `1080p` but `1080p HFR → 1080`
+  (today `1080p60 → 1081` outranks `1080p` but `1080p HFR → 1080`
   ties it, leaving the fps outcome to codec/bitrate accident).
-- **Multi-audio HLS.** `getSortedStreamVideosList` output is already
-  pre-filtered by preferred audio track (`VideoPlaybackResolver`
-  audio-track block; `StreamFilters.filterVideoStreamsByPreferredLanguage`
-  + `collapseAudioTrackVariants`). Dedup must run *after* that filter,
-  on the `videos` list the menu actually receives, or dubbed-audio
-  variants collapse incorrectly.
+- **Multi-audio HLS.** The player list is pre-filtered by the
+  resolver's inline `audioTrack`/`defaultTrackId` block
+  (`VideoPlaybackResolver.java:101-127`) — *not* by
+  `StreamFilters.filterVideoStreamsByPreferredLanguage` /
+  `collapseAudioTrackVariants`, which run only on the download path.
+  Dedup must run *after* that inline filter, on the `videos` list the
+  menu actually receives. Key buckets as `height + audioTrackId`
+  (null-safe) so dubbed-audio variants can't collapse across tracks
+  when the filter leaves more than one track in play.
 - **Live streams unaffected.** `buildLiveQualityMenu()` (manifest
   variants + Adaptive row) is a separate path and keeps its rows.
 - **Empty/unknown resolutions.** `RESOLUTION_UNKNOWN ("")` must still
   yield exactly one fallback row, never zero; keep the existing
   closest-lower-then-lowest fallback in `getDefaultResolutionIndex()`
-  for buckets with no match.
+  for buckets with no match. Hardening required: the default-index
+  path calls `normalize…(stream.getResolution())` directly
+  (`VideoStreamSelector.java:264,273,296,302`) with no null guard
+  (unlike `getResolutionAndCodecIndex`'s `Objects.toString`), and
+  `""` throws inside `calculateResolution`, caught as `return 1`
+  (first-is-greater) — so unknown currently sorts as *greatest* and
+  `Collections.max` can crown it. Null-guard the helper inputs and
+  rank unknown below every numeric height.
+- **Null/empty codec labels.** The doc's "always `CODEC + resolution`"
+  overstates: HLS leaves `codec` unset for some variants
+  (`YoutubeStreamExtractor.java:1677-1684` only sets it for
+  `avc/mp4a`/`vp9`), flowing through Java platform-type `getCodec()`
+  into `codec.uppercase()` (`PlayerMenuController.kt:117-119,189-198`)
+  and `getCodec().split(...)` (`VideoStreamSelector.java:341`).
+  In practice the builder falls back to `""` (label `" 1080p"`),
+  but the dedup helper and plain-height labels must be explicitly
+  null/empty-safe for both `codec` and `resolution`.
 
 ## 7. Cleanup bundled with the change
 
 Delete `HIGH_RESOLUTION_LIST`; replace `calculateResolution`'s
 non-YouTube branches with the section-3 height parser and score `60` /
-`HFR` above plain height so the in-bucket winner prefers HFR;
-collapse the bucket/variant key to height only (`normalizeResolutionKey`
-semantics); remove the HEVC branch + gate (or the whole
-`VIDEO_FORMAT_QUALITY_RANKING` tiebreak if review agrees it is dead);
-flip the bitrate-tiebreak sign with a named comment + unit test.
+`HFR` above plain height so the in-bucket winner prefers HFR
+(`1080p60 → 1081` today; give `1080p HFR` the same rank instead of
+tying `1080`); collapse the bucket/variant key to height only
+(`normalizeResolutionKey` semantics); remove the HEVC branch + gate;
+keep the `VIDEO_FORMAT_QUALITY_RANKING` tiebreak unless equal-bitrate
+ties are proven impossible (handle `null` format explicitly either
+way); flip the bitrate-tiebreak sign with a named comment + unit test;
+null-guard helper inputs and rank unknown below numeric heights.
 Each is independently revertable but they all touch the same comparator,
 so one pass avoids three re-reviews of `compareVideoStreamResolution`.
 
@@ -234,18 +272,19 @@ external-player dialog shows no duplicate labels; check downloads
 ## References
 
 - Menu + click/dismiss:
-  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:178-200,439-451,475`,
-  button gating:
-  `.../player/PlayerLayoutController.kt:278`.
+  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:178-200,439-451,475`
+  (null/empty-codec hazard at `:117-119,189-198`),
+  button gating: live `:278`, VOD `.../player/PlayerLayoutController.kt:291-298`
+  (the branch needing the hide rule).
 - Sorting/selection:
   `.../util/VideoStreamSelector.java:22-26,67-140,144-170,180-212,243-310,324-360,419-501`.
-- Resolver: `.../player/resolver/VideoPlaybackResolver.java:135-142,261-263`,
+- Resolver: `.../player/resolver/VideoPlaybackResolver.java:101-127` (inline audio-track filter), `:135-142` (consume), `:261-263` (store),
   `.../player/resolver/PlayerQualityResolver.kt:20-34`.
 - External dialog:
   `.../fragments/detail/VideoDetailFragment.java:1956-1963,2441-2462`.
 - Downloads (out of scope):
-  `.../download/DownloadDialog.java:130-180`,
-  `.../util/StreamItemAdapter.java`.
+  `.../download/DownloadDialog.java:160-180` (`newInstance(context, info)`),
+  `.../util/StreamItemAdapter.java` (codec + resolution + size rows).
 - Vocabulary: `PipePipeExtractor/extractor/src/main/java/org/schabi/newpipe/extractor/services/youtube/ItagItem.java:31-108,150-182`,
   `.../extractors/YoutubeStreamExtractor.java:940-1075,1585-1602,1660-1740`.
 
