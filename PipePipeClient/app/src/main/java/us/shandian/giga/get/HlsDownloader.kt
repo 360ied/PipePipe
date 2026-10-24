@@ -148,10 +148,14 @@ internal class HlsDownloader(
         val previous = mission.hlsCheckpoint?.resources?.firstOrNull { it.resourceIndex == index }
         val previousFile = previous?.tempFilePath?.let { File(it) }
         if (previous != null && previousFile?.exists() == true && previous.bytesWritten > 0) {
+            // Fingerprint-guard like the HLS path: a stale HLS-typed
+            // checkpoint for the same index must not validate a companion
+            // slot (delivery-method flips reuse the URL).
             if (previousFile.absolutePath == targetFile.absolutePath &&
                 previousFile.length() == previous.bytesWritten &&
                 previous.nextSegmentIndex == 1 &&
-                previous.manifestUrl == mission.urls[index]
+                previous.manifestUrl == mission.urls[index] &&
+                previous.playlistFingerprint == "direct-companion"
             ) {
                 return
             }

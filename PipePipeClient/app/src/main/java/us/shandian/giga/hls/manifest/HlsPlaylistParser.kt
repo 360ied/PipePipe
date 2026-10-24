@@ -145,12 +145,13 @@ internal class HlsPlaylistParser {
     }
 
     private fun resolveUrl(sourceUrl: String, reference: String): String {
-        // URI throws unchecked IllegalArgumentException on malformed
-        // input; wrap as deterministic playlist failure so the IOException
-        // contract and retry exclusions hold.
+        // URI throws unchecked IllegalArgumentException AND checked
+        // URISyntaxException on malformed input; wrap both as deterministic
+        // playlist failure so the IOException contract and retry
+        // exclusions hold.
         return try {
             URI(sourceUrl).resolve(reference).toString()
-        } catch (error: IllegalArgumentException) {
+        } catch (error: Exception) {
             throw UnsupportedHlsPlaylistException("Invalid HLS playlist URL: ${error.message.orEmpty()}")
         }
     }

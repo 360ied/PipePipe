@@ -425,6 +425,11 @@ internal class HlsSegmentFileTransferEngine(
         if (!playlist.isEndList) {
             throw UnsupportedHlsPlaylistException("Live HLS playlists are not supported yet")
         }
+        // Fail here with an accurate bucket, not later in remux with
+        // "missing input": a 0-segment VOD playlist has nothing to mux.
+        if (playlist.segments.isEmpty()) {
+            throw UnsupportedHlsPlaylistException("Empty HLS playlist")
+        }
         if (playlist.hasUnsupportedEncryption) {
             throw UnsupportedHlsPlaylistException("Only AES-128 HLS encryption is supported")
         }
