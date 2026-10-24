@@ -226,7 +226,8 @@ internal class HlsDownloader(
             // psState for any failure so the mission never sticks at 1.
             // Keep the old message shape (detail appended) so error buckets
             // don't churn, without double-prefixing framework detail.
-            val detail = if (error is IOException) error.message.orEmpty() else "${error::class.simpleName}: ${error.message.orEmpty()}"
+            val rawDetail = if (error is IOException) error.message.orEmpty() else "${error::class.simpleName}: ${error.message.orEmpty()}"
+            val detail = rawDetail.ifBlank { error::class.simpleName.orEmpty() }
             val message = if (detail.startsWith("HLS framework remux failed")) detail else "HLS framework remux failed: $detail"
             throw IOException(message, error)
         }
@@ -321,8 +322,10 @@ internal class HlsDownloader(
     }
 
     private fun restoredProgress(): Long {
+        // SabrDownloader parity: ignore truncated temp files whose length
+        // trails the checkpoint, instead of zero-padding them on resume.
         return mission.hlsCheckpoint?.resources
-            ?.filter { File(it.tempFilePath).exists() }
+            ?.filter { File(it.tempFilePath).let { file -> file.exists() && file.length() >= it.bytesWritten } }
             ?.sumOf { it.bytesWritten }
             ?: 0L
     }
@@ -363,7 +366,7 @@ internal class HlsDownloader(
             val missionId = if (mission.timestamp > 0) {
                 mission.timestamp.toString()
             } else {
-                mission.storage.name.hashCode().toString()
+                (mission.storage.name?.hashCode() ?: 0).toString()
             }
             return File(base, "hls-downloader/$missionId")
         }

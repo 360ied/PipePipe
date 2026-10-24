@@ -80,6 +80,28 @@ internal object HlsFrameworkMuxer {
             inspected.forEach { it.releaseQuietly() }
             throw IOException("HLS framework remux failed: no audio/video tracks found")
         }
+        // First video across inputs wins: two video-bearing resources (e.g. a
+        // muxed video variant mirrored in both) must not yield two simultaneous
+        // video tracks the way per-input `-map i:v?` would.
+        var videoKept = false
+        inspected.forEachIndexed { index, info ->
+            val videos = info.selected.filter { it.mime.startsWith("video/") }
+            val drop = if (videos.isEmpty()) {
+                emptyList()
+            } else if (!videoKept) {
+                videoKept = true
+                videos.drop(1)
+            } else {
+                videos
+            }
+            if (drop.isNotEmpty()) {
+                inspected[index] = InspectedInput(info.extractor, info.selected - drop.toSet())
+            }
+        }
+        if (inspected.sumOf { it.selected.size } == 0) {
+            inspected.forEach { it.releaseQuietly() }
+            throw IOException("HLS framework remux failed: no audio/video tracks found")
+        }
         logDebug("inputs=${inputs.size} tracks=${inspected.map { it.selected.map { s -> s.mime } }}")
 
         // MP3 fast path: remuxing MP3->MP4 via MediaMuxer is unsupported and
@@ -142,11 +164,11 @@ internal object HlsFrameworkMuxer {
                 }
                 muxerTrackFor.add(mapping)
             }
-            if (lastPts.isEmpty()) {
-                throw IOException("HLS framework remux failed: no tracks added")
+            try {
+                muxer.start()
+            } catch (error: Exception) {
+                throw IOException("HLS framework remux failed: muxer start (${error.message.orEmpty()})", error)
             }
-
-            muxer.start()
             var corrections = 0
             var samples = 0
             // Phase 3: drain each input in order, preserving file-order
@@ -186,6 +208,7 @@ internal object HlsFrameworkMuxer {
                     if (sampleSize > buffer.capacity().toLong()) {
                         buffer = ByteBuffer.allocate(sampleSize.toInt())
                     }
+                    buffer.clear()
                     bufferInfo.offset = 0
                     bufferInfo.size = try {
                         info.extractor.readSampleData(buffer, 0)
@@ -390,7 +413,15 @@ internal object HlsFrameworkMuxer {
                 ) {
                     return true
                 }
-                header[0] == 0xFF.toByte() && (header[1].toInt() and 0xE0) == 0xE0
+                // MPEG frame sync plus valid version/layer bits: rejects
+                // reserved combos and ADTS (layer 00), which the bare sync
+                // mask would otherwise over-accept.
+                if (header[0] != 0xFF.toByte() || (header[1].toInt() and 0xE0) != 0xE0) {
+                    return false
+                }
+                val versionBits = (header[1].toInt() ushr 3) and 0x03
+                val layerBits = (header[1].toInt() ushr 1) and 0x03
+                return versionBits != 0x01 && layerBits != 0x00
             }
         } catch (ignored: Exception) {
             false
@@ -431,9 +462,22 @@ internal object HlsFrameworkMuxer {
             }
         }
         try {
+            val chunk = ByteArray(64 * 1024)
             output.outputStream().use { out ->
                 inputs.forEach { input ->
-                    input.inputStream().use { it.copyTo(out) }
+                    if (Thread.currentThread().isInterrupted) {
+                        Thread.currentThread().interrupt()
+                        throw TransferInterruptedException()
+                    }
+                    input.inputStream().use { source ->
+                        while (true) {
+                            val read = source.read(chunk)
+                            if (read == -1) {
+                                break
+                            }
+                            out.write(chunk, 0, read)
+                        }
+                    }
                 }
             }
         } catch (error: IOException) {

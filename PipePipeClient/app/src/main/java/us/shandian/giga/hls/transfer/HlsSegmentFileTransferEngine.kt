@@ -56,10 +56,13 @@ class HlsSegmentFileTransferEngine(
             throw IOException("Cannot create HLS target parent: $parent")
         }
 
+        // SabrDownloader parity: a truncated temp file must restart, never
+        // zero-pad up to a stale byte count.
         val canResume = checkpoint != null &&
             checkpoint.playlistFingerprint == fingerprint &&
             checkpoint.tempFilePath == target.absolutePath &&
-            target.exists()
+            target.exists() &&
+            target.length() >= checkpoint.bytesWritten
 
         val startedAt = System.currentTimeMillis()
         var outputPosition = if (canResume) checkpoint!!.bytesWritten else 0L
