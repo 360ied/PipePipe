@@ -26,7 +26,9 @@ class HttpTransferConnectionFactory(
         connection.readTimeout = config.readTimeoutMillis
         connection.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT)
         connection.setRequestProperty("Accept", "*/*")
-        connection.setRequestProperty("Accept-Encoding", if (rangeStart == null) "identity" else "*")
+        // Identity always: a compressed partial response would pass the 206
+        // check yet fail byte-range accounting or corrupt the concat input.
+        connection.setRequestProperty("Accept-Encoding", "identity")
         if (cookie != null) {
             connection.setRequestProperty("Cookie", cookie)
         }

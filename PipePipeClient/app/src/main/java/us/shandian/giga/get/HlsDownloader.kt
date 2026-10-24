@@ -158,10 +158,22 @@ internal class HlsDownloader(
             throw IOException("Cannot reset HLS companion target: $targetFile")
         }
 
+        // Each retry restarts from byte 0 into a fresh file: reusing the
+        // same stream would append a full re-download behind a partial prefix
+        // and double-count progress. Roll back notified progress first.
         var written = 0L
-        targetFile.outputStream().use { output ->
-            // Same retry parity as every other network path in the engine.
-            retryPolicy.withRetries {
+        var notified = 0L
+        retryPolicy.withRetries {
+            if (notified > 0) {
+                mission.notifyProgress(-notified)
+                notified = 0
+            }
+            written = 0
+            if (targetFile.exists() && !targetFile.delete()) {
+                throw IOException("Cannot reset HLS companion target: $targetFile")
+            }
+            targetFile.outputStream().use { output ->
+                // Same retry parity as every other network path in the engine.
                 connectionFactory.open(mission.urls[index], "GET", null, null).useTransferConnection { connection ->
                     val statusCode = connection.responseCode
                     if (statusCode < 200 || statusCode > 299) {
@@ -174,6 +186,7 @@ internal class HlsDownloader(
                     connection.inputStream.use { input ->
                         copyDirectCompanion(input, output) { delta ->
                             written += delta
+                            notified += delta
                             mission.notifyProgress(delta)
                         }
                     }
@@ -322,12 +335,28 @@ internal class HlsDownloader(
         if (output.extension.lowercase(Locale.ROOT) != outputExtension().lowercase(Locale.ROOT)) {
             return null
         }
+        // A retarget between remux and copy must re-remux, not copy a stale
+        // container from different playlists.
+        if (checkpoint.remuxFingerprint != currentResourcesFingerprint()) {
+            return null
+        }
         return output
+    }
+
+    private fun currentResourcesFingerprint(): String {
+        return mission.hlsCheckpoint?.resources
+            ?.sortedBy { it.resourceIndex }
+            ?.joinToString("|") { "${it.mediaPlaylistUrl}@${it.playlistFingerprint}" }
+            .orEmpty()
     }
 
     private fun markRemuxOutput(output: File) {
         val current = mission.hlsCheckpoint ?: HlsDownloadCheckpoint()
-        mission.hlsCheckpoint = current.copy(remuxStarted = true, remuxOutputPath = output.absolutePath)
+        mission.hlsCheckpoint = current.copy(
+            remuxStarted = true,
+            remuxOutputPath = output.absolutePath,
+            remuxFingerprint = currentResourcesFingerprint(),
+        )
         mission.writeThisToFile()
     }
 

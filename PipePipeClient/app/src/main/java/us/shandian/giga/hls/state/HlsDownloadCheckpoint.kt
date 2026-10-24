@@ -7,6 +7,10 @@ data class HlsDownloadCheckpoint(
     val resources: List<HlsResourceCheckpoint> = emptyList(),
     val remuxStarted: Boolean = false,
     val remuxOutputPath: String? = null,
+    // Playlist identity at remux time: a retarget between remux and copy
+    // must re-remux instead of copying a stale container. Null (including
+    // pre-upgrade checkpoints) never matches, failing safe toward remux.
+    val remuxFingerprint: String? = null,
 ) : Serializable {
     companion object {
         private const val serialVersionUID = 1L

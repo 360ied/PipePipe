@@ -1,6 +1,7 @@
 package us.shandian.giga.hls.transfer
 
 import android.util.Log
+import org.schabi.newpipe.BuildConfig
 import us.shandian.giga.hls.manifest.HlsManifestResolver
 import us.shandian.giga.hls.manifest.HlsMasterPlaylist
 import us.shandian.giga.hls.manifest.HlsMediaPlaylist
@@ -71,12 +72,14 @@ class HlsSegmentFileTransferEngine(
         } else {
             0
         }
-        Log.d(
-            TAG,
-            "resourceIndex=$resourceIndex segments=${playlist.segments.size} " +
-                "init=${playlist.initSegment != null} byteranges=${playlist.segments.count { it.byteRange != null }} " +
-                "resume=$canResume startSegment=$startSegmentIndex parallelism=${config.parallelism}"
-        )
+        if (BuildConfig.DEBUG) {
+            Log.d(
+                TAG,
+                "resourceIndex=$resourceIndex segments=${playlist.segments.size} " +
+                    "init=${playlist.initSegment != null} byteranges=${playlist.segments.count { it.byteRange != null }} " +
+                    "resume=$canResume startSegment=$startSegmentIndex parallelism=${config.parallelism}"
+            )
+        }
         if (!canResume && checkpoint != null) {
             onRestart()
             onCheckpoint(
@@ -178,11 +181,13 @@ class HlsSegmentFileTransferEngine(
             output.fd.sync()
         }
 
-        Log.d(
-            TAG,
-            "resourceIndex=$resourceIndex bytes=$outputPosition segments=${playlist.segments.size} " +
-                "status=$lastStatusCode elapsedMs=${System.currentTimeMillis() - startedAt}"
-        )
+        if (BuildConfig.DEBUG) {
+            Log.d(
+                TAG,
+                "resourceIndex=$resourceIndex bytes=$outputPosition segments=${playlist.segments.size} " +
+                    "status=$lastStatusCode elapsedMs=${System.currentTimeMillis() - startedAt}"
+            )
+        }
         return TransferResult(
             bytesWritten = outputPosition,
             expectedBytes = -1,
@@ -315,7 +320,9 @@ class HlsSegmentFileTransferEngine(
                     )
                 }
 
-                while (nextToSubmit < playlist.segments.size && submitted - completed < parallelism) {
+                while (nextToSubmit < playlist.segments.size && submitted - completed < parallelism &&
+                    retainedBytes(downloadedSegments) < MAX_RETAINED_BYTES
+                ) {
                     submitNextSegment()
                 }
             }
@@ -736,6 +743,8 @@ class HlsSegmentFileTransferEngine(
                 Thread.currentThread().interrupt()
                 TransferInterruptedException()
             }
+            // Fatal Errors (e.g. OOM) must never masquerade as retryable I/O.
+            is Error -> throw cause
             else -> IOException(cause)
         }
     }
@@ -822,12 +831,15 @@ class HlsSegmentFileTransferEngine(
             return null
         }
 
+        // Normalize case and order: `?itag=1&sq=2` and `?sq=2&ITAG=1` are the
+        // same playlist and must not force a needless full restart.
         return rawQuery.split('&')
             .mapNotNull { part ->
-                val key = part.substringBefore('=').lowercase()
-                part.takeIf { key in STABLE_URL_QUERY_KEYS }
+                val normalized = part.lowercase()
+                normalized.takeIf { normalized.substringBefore('=') in STABLE_URL_QUERY_KEYS }
             }
             .takeIf { it.isNotEmpty() }
+            ?.sorted()
             ?.joinToString("&")
     }
 
@@ -889,11 +901,19 @@ class HlsSegmentFileTransferEngine(
         }
     }
 
+    private fun retainedBytes(buffered: Map<Int, DownloadedSegment>): Long {
+        return buffered.values.sumOf { it.bytes.size.toLong() }
+    }
+
     private companion object {
         const val TAG = "HlsSegmentFileTransferEngine"
         // Per-segment in-memory ceiling (parallel workers each buffer one
         // whole segment): fail closed instead of risking OOM.
         const val MAX_SEGMENT_BYTES = 256L * 1024L * 1024L
+        // Aggregate retained ceiling: out-of-order completions wait for the
+        // in-order prefix, so cap their sum and let submission stall until
+        // the prefix drains instead of retaining ~parallelism x segment.
+        const val MAX_RETAINED_BYTES = 512L * 1024L * 1024L
         const val MAX_INITIAL_MEMORY_BUFFER_BYTES = 16L * 1024L * 1024L
         const val AES_128_KEY_BYTES = 16
         const val AES_128_IV_BYTES = 16

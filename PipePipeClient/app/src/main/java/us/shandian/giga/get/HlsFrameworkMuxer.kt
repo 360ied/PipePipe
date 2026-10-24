@@ -195,9 +195,9 @@ internal object HlsFrameworkMuxer {
                         ?: throw IOException("HLS framework remux failed: unexpected track $extractorTrack")
                     // Fail closed instead of truncating: an undersized buffer
                     // would write a corrupt sample as if valid. 8 MiB covers
-                    // normal keyframes (documented ceiling, not a tunable);
-                    // anything larger is rejected rather than silently
-                    // clipped. A failed size query must throw, never -1,
+                    // even large 4K keyframes (ceiling picked with headroom,
+                    // not a tunable); anything larger is rejected rather
+                    // than silently clipped. A failed size query must throw, never -1,
                     // or every guard below would accept a truncation.
                     val sampleSize: Long = try {
                         info.extractor.sampleSize
@@ -221,15 +221,19 @@ internal object HlsFrameworkMuxer {
                         break
                     }
                     // Guard against a misreporting extractor: a full buffer
-                    // with a smaller reported size may hide a truncation.
-                    if (bufferInfo.size >= buffer.capacity() && sampleSize in 0 until bufferInfo.size) {
-                        if (sampleSize > MAX_BUFFER_SIZE.toLong()) {
-                            throw IOException("HLS framework remux failed: sample too large ($sampleSize)")
+                    // may hide a truncation. Grow past both the observed
+                    // size and the prior capacity and re-read once; a second
+                    // full buffer means the stream is not converging.
+                    if (bufferInfo.size >= buffer.capacity()) {
+                        val grown = minOf(
+                            maxOf(bufferInfo.size.toLong() + 1, buffer.capacity().toLong() * 2),
+                            MAX_BUFFER_SIZE.toLong(),
+                        ).toInt()
+                        if (grown <= buffer.capacity()) {
+                            throw IOException("HLS framework remux failed: sample too large (truncated read)")
                         }
-                        buffer.clear()
-                        if (sampleSize > buffer.capacity().toLong()) {
-                            buffer = ByteBuffer.allocate(sampleSize.toInt())
-                        }
+                        buffer = ByteBuffer.allocate(grown)
+                        bufferInfo.offset = 0
                         bufferInfo.size = try {
                             info.extractor.readSampleData(buffer, 0)
                         } catch (error: Exception) {
@@ -237,6 +241,9 @@ internal object HlsFrameworkMuxer {
                         }
                         if (bufferInfo.size < 0) {
                             break
+                        }
+                        if (bufferInfo.size >= buffer.capacity()) {
+                            throw IOException("HLS framework remux failed: sample too large (truncated read)")
                         }
                     }
                     val rawPts = try {
@@ -247,21 +254,22 @@ internal object HlsFrameworkMuxer {
                     if (rawPts < 0) {
                         throw IOException("HLS framework remux failed: negative timestamp")
                     }
-                    bufferInfo.presentationTimeUs = rewritePts(lastPts, ptsOffset, muxerTrack, rawPts).also {
-                        if (it != rawPts) {
-                            corrections++
-                        }
-                    }
                     bufferInfo.flags = try {
                         info.extractor.sampleFlags
                     } catch (error: Exception) {
                         throw IOException("HLS framework remux failed: sampleFlags", error)
                     }
-                    // CSD is carried in MediaFormat; skip codec-config samples.
+                    // CSD is carried in MediaFormat: drop codec-config samples
+                    // before the PTS rewrite so they never shift track timing.
                     if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
                         bufferInfo.size = 0
                     }
                     if (bufferInfo.size > 0) {
+                        bufferInfo.presentationTimeUs = rewritePts(lastPts, ptsOffset, muxerTrack, rawPts).also {
+                            if (it != rawPts) {
+                                corrections++
+                            }
+                        }
                         try {
                             muxer.writeSampleData(muxerTrack, buffer, bufferInfo)
                         } catch (error: Exception) {

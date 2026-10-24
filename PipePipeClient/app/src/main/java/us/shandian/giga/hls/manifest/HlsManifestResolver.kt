@@ -34,7 +34,7 @@ class HlsManifestResolver(
                     }
                     total += read
                     if (total > MAX_MANIFEST_BYTES) {
-                        throw IOException("HLS manifest is too large")
+                        throw HlsManifestTooLargeException("HLS manifest is too large")
                     }
                     output.write(buffer, 0, read)
                 }
