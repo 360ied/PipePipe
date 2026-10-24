@@ -158,11 +158,12 @@ private fun rememberPicassoBitmap(
     key: Any?,
     request: () -> RequestCreator
 ): Bitmap? {
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var bitmap by remember(key) { mutableStateOf<Bitmap?>(null) }
 
-    DisposableEffect(key) {
-        bitmap = null
-        val target = object : Target {
+    // Picasso holds Target with a weak reference, so the Target must be strongly
+    // held for the request lifetime or onBitmapLoaded may never fire (gray box).
+    val target = remember(key) {
+        object : Target {
             override fun onBitmapLoaded(loadedBitmap: Bitmap, from: Picasso.LoadedFrom) {
                 bitmap = loadedBitmap
             }
@@ -174,8 +175,12 @@ private fun rememberPicassoBitmap(
             override fun onPrepareLoad(placeHolderDrawable: android.graphics.drawable.Drawable?) {
             }
         }
+    }
+
+    DisposableEffect(key, target) {
         request().into(target)
         onDispose {
+            Picasso.get().cancelRequest(target)
         }
     }
 
