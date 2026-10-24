@@ -27,9 +27,10 @@ internal class TransferRetryPolicy(
     private fun canRetry(error: IOException): Boolean {
         return when (error) {
             is TransferInterruptedException -> false
-            // Deterministic playlist errors never heal on retry.
+            // Deterministic playlist and validation errors never heal.
             is UnsupportedHlsPlaylistException -> false
             is HlsManifestTooLargeException -> false
+            is NonRetryableTransferException -> false
             is TransferHttpException -> error.statusCode == 408 || error.statusCode == 429 ||
                 error.statusCode >= 500
             else -> true

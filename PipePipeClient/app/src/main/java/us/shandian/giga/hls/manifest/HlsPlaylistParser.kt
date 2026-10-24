@@ -45,9 +45,14 @@ internal class HlsPlaylistParser {
         // mid-list would join later segments to the wrong init (remux
         // failure or corrupt output), so reject instead of collapsing.
         // Checked here rather than validatePlaylist, which only sees the
-        // collapsed model.
-        val distinctInitUrls = segments.mapNotNull { it.initializationSegment?.url }.toSet()
-        if (distinctInitUrls.size > 1) {
+        // collapsed model. Keyed on (url, byteRange): same-URL range
+        // rotation is a different init too.
+        val distinctInits = segments.mapNotNull { segment ->
+            segment.initializationSegment?.let { init ->
+                Triple(init.url, init.byteRangeLength, init.byteRangeOffset)
+            }
+        }.toSet()
+        if (distinctInits.size > 1) {
             throw UnsupportedHlsPlaylistException("Multiple HLS init segments are not supported")
         }
         val initSegment = segments

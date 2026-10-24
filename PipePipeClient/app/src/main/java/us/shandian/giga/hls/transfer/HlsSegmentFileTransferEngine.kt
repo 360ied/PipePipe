@@ -386,7 +386,7 @@ internal class HlsSegmentFileTransferEngine(
             )
         }
         if (result.bytes.size.toLong() > MAX_SEGMENT_BYTES) {
-            throw IOException("HLS segment too large: ${result.bytes.size}")
+            throw NonRetryableTransferException("HLS segment too large: ${result.bytes.size}")
         }
         val bytes = decryptHlsBytes(
             encrypted = result.bytes,
@@ -492,7 +492,7 @@ internal class HlsSegmentFileTransferEngine(
                     // A 200 here means the server ignored Range: surfacing
                     // it as "HTTP 200" would look like success while the
                     // byte accounting below is necessarily wrong.
-                    throw IOException("HLS server ignored Range request for $url (got 200, expected 206)")
+                    throw NonRetryableTransferException("HLS server ignored Range request for $url (got 200, expected 206)")
                 }
 
                 val expectedBytes = expectedBytes(byteRange, connection.contentLengthLong)
@@ -538,7 +538,7 @@ internal class HlsSegmentFileTransferEngine(
                 if (byteRange != null && statusCode != java.net.HttpURLConnection.HTTP_PARTIAL) {
                     // Same Range-ignored diagnosis as the disk path: a 200
                     // with a byte range can never satisfy truncation checks.
-                    throw IOException("HLS server ignored Range request for $url (got 200, expected 206)")
+                    throw NonRetryableTransferException("HLS server ignored Range request for $url (got 200, expected 206)")
                 }
 
                 val bytes = connection.inputStream.use { input ->
@@ -588,7 +588,7 @@ internal class HlsSegmentFileTransferEngine(
             total += read
             // A playlist-controlled URL must not fill disk beyond the cap.
             if (total > maxTotalBytes) {
-                throw IOException("HLS segment too large")
+                throw NonRetryableTransferException("HLS segment too large")
             }
             listener?.onProgress(
                     TransferProgress(
@@ -624,7 +624,7 @@ internal class HlsSegmentFileTransferEngine(
             // In-loop ceiling: the post-hoc size check cannot save a process
             // that already OOMed while buffering a lying stream.
             if (total > maxTotalBytes) {
-                throw IOException("HLS segment too large")
+                throw NonRetryableTransferException("HLS segment too large")
             }
         }
     }
@@ -717,7 +717,7 @@ internal class HlsSegmentFileTransferEngine(
             cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"), IvParameterSpec(iv))
             cipher.doFinal(encrypted)
         } catch (error: Exception) {
-            throw IOException("HLS AES-128 decrypt failed", error)
+            throw NonRetryableTransferException("HLS AES-128 decrypt failed", error)
         }
     }
 
@@ -742,7 +742,7 @@ internal class HlsSegmentFileTransferEngine(
                         }
                         total += read
                         if (total > MAX_KEY_BYTES) {
-                            throw IOException("HLS AES-128 key too large")
+                            throw NonRetryableTransferException("HLS AES-128 key too large")
                         }
                     }
                     buffer.copyOf(total)
@@ -750,7 +750,7 @@ internal class HlsSegmentFileTransferEngine(
             }
         }
         if (key.size != AES_128_KEY_BYTES) {
-            throw IOException("Invalid HLS AES-128 key size: ${key.size}")
+            throw NonRetryableTransferException("Invalid HLS AES-128 key size: ${key.size}")
         }
         return key
     }
@@ -759,7 +759,7 @@ internal class HlsSegmentFileTransferEngine(
     private fun parseIv(value: String): ByteArray {
         val hex = value.removePrefix("0x").removePrefix("0X")
         if (hex.length > AES_128_IV_BYTES * 2) {
-            throw IOException("HLS IV is too large")
+            throw NonRetryableTransferException("HLS IV is too large")
         }
         val padded = hex.padStart(AES_128_IV_BYTES * 2, '0')
         return try {
@@ -767,7 +767,7 @@ internal class HlsSegmentFileTransferEngine(
                 padded.substring(index * 2, index * 2 + 2).toInt(16).toByte()
             }
         } catch (error: NumberFormatException) {
-            throw IOException("Invalid HLS IV", error)
+            throw NonRetryableTransferException("Invalid HLS IV", error)
         }
     }
 
