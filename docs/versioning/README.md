@@ -64,7 +64,8 @@ fallback to `0.0.0-unknown` — see the build file for the final form.
 
 Everything downstream keeps working unchanged: `versionName
 appVersionName`, the APK filename
-(`NanoPipe_${appVersionName}-${variant.name}.apk`), and all
+(`NanoPipe_${gitDescribeRaw}-${variant.name}.apk`, raw tag with the `v`
+prefix), and all
 `BuildConfig.VERSION_NAME` readers (About screen, crash reports,
 subscription-export JSON).
 
@@ -113,9 +114,8 @@ process becomes tag plus build. Builds from a tag yield an exact
 Also included (decided, not optional): mumla's `versionNameSuffix
 "-debug"` in the `debug` block. One line, and it makes
 About-screen identification airtight for dev builds. It does not
-affect the APK filename (which interpolates the raw variable, not
-the suffixed name) unless that line is touched too — leave the
-filename as-is.
+affect the APK filename (which interpolates the raw describe variable, not
+the suffixed name).
 
 ### 3. `AGENTS.md` "Versioning" section
 
