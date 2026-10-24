@@ -3,6 +3,7 @@ package org.schabi.newpipe.util;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
@@ -130,6 +131,30 @@ public class VideoStreamSelectorTest {
         assertEquals(false, result.get(0).isVideoOnly());
         assertEquals("720p", result.get(0).getResolution());
         assertEquals("2160p", result.get(1).getResolution());
+    }
+
+    @Test
+    public void bare4k8kLabelsKeepHistoricalRanking() {
+        // Non-YouTube services may emit bare "4K"/"8K": they must outrank FHD,
+        // never sink below 144p.
+        final VideoStream uhd = stream("4K", "avc1.640028", 15000000);
+        final VideoStream fhd = stream("1080p", "avc1.640028", 8000000);
+        assertEquals(0, VideoStreamSelector.getDefaultResolutionIndex(
+                "Best", "Best", Arrays.asList(uhd, fhd)));
+    }
+
+    @Test
+    public void dedupKeepsBestCopyOnCollision() {
+        // Same codec, resolution and track with different bitrates: the survivor
+        // must be the comparator-best, not iteration luck.
+        final List<VideoStream> sorted = VideoStreamSelector.getSortedStreamVideosList(
+                new HashSet<>(),
+                Arrays.asList(
+                        stream("1080p", "avc1.640028", 3000000),
+                        stream("1080p", "avc1.640028", 8000000)),
+                null, true, false);
+        assertEquals(1, sorted.size());
+        assertEquals(8000000, sorted.get(0).getBitrate());
     }
 
     @Test

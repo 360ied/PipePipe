@@ -10,8 +10,10 @@ YouTube-only, and how to implement it without touching downloads.
   `ItagItem`, `YoutubeStreamExtractor`).
 - Audited: 2026-10-24, `main` at `dcd305e` (doc commits `527f7bf`, `febe228`, `dcd305e`; revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **design only, not implemented.** No code changes accompany
-  this doc.
+- Status: **implemented** on branch `one-pick-per-resolution` (commits
+  `26b9101` + review follow-ups; revalidate refs against that branch).
+  Rows carry `height + fps-class + codec family` (`qualityLabelOf`),
+  the quality button stays height-only.
 
 ## 1. Summary
 
@@ -157,9 +159,10 @@ the vocabulary in section 3:
    sorted list so menu order (descending) is unchanged.
 2. `PlayerMenuController.buildQualityMenu()` builds from the deduped
    list; keep a `dedupedList ↔ stream` map because `itemId` can no
-   longer double as the `sortedVideoStreams` index. Label rows with the
-   plain height (`1080p`), matching the button. Click
-   maps back to the representative stream and calls the existing
+   longer double as the `sortedVideoStreams` index. Label rows with
+   `qualityLabelOf()` (`720p60 · AVC`: height + fps-class + codec
+   family of the representative); the quality button stays height-only.
+   Click maps back to the representative stream and calls the existing
    `setSelectedStream()` — resolver, persistence, and sticky-codec
    behavior unchanged.
 3. `showExternalPlaybackDialog()` uses the same bucket helper on its
@@ -173,7 +176,9 @@ the vocabulary in section 3:
    (`StreamFilters.filterVideoStreamsByPreferredLanguage`, as in
    downloads), drops video-only streams shadowed by a muxed stream at
    the same height (`dropVideoOnlyWhenMuxedExists` — external players
-   need audio), then dedups; map its pre-selection by bucket, not by
+   need audio), then dedups; rows use `qualityLabelOf()` too (same-codec
+   pairs always collapse to one, so the codec suffix disambiguates every
+   surviving same-height pair); map its pre-selection by bucket, not by
    raw index, across the two lists.
 4. Explicitly unchanged: `getSortedStreamVideosList()` ordering and
    filtering, `DownloadDialog`/`StreamItemAdapter` rows,
@@ -282,12 +287,10 @@ external-player dialog shows no duplicate labels; check downloads
 ## References
 
 - Menu + click/dismiss:
-  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:178-200,439-451,475`
-  (null/empty-codec hazard at `:117-119,189-198`),
-  button gating: live `:278`, VOD `.../player/PlayerLayoutController.kt:291-298`
-  (the branch needing the hide rule).
+  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:177-204,433-479,481-494`,
+  button gating: live `:279-299`, VOD `.../player/PlayerLayoutController.kt:300-317`.
 - Sorting/selection:
-  `.../util/VideoStreamSelector.java:22-26,67-140,144-170,180-212,243-310,324-360,419-501`.
+  `.../util/VideoStreamSelector.java:25-33,148-180,198-240,246-320,343-395,421-560,580-640`.
 - Resolver: `.../player/resolver/VideoPlaybackResolver.java:101-127` (inline audio-track filter), `:135-142` (consume), `:261-263` (store),
   `.../player/resolver/PlayerQualityResolver.kt:20-34`.
 - External dialog:

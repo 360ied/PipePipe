@@ -12,6 +12,7 @@ import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -339,7 +340,8 @@ public final class VideoStreamSelector {
      * @return the sorted list
      */
     @NonNull
-    private static List<VideoStream> getSortedStreamVideosList(
+    // Package-private for tests.
+    static List<VideoStream> getSortedStreamVideosList(
             final Set<String> advancedFormats,
             @Nullable final List<VideoStream> videoStreams,
             @Nullable final List<VideoStream> videoOnlyStreams,
@@ -359,7 +361,8 @@ public final class VideoStreamSelector {
                 // Ignore lists that are null
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
-                // Filter out higher resolutions (or not if high resolutions should always be shown)
+                // Keep only streams whose container/codec survives the user's
+                // advanced-format toggles.
                 .filter(stream -> {
                     try {
                         final String codec = Objects.toString(stream.getCodec(), "");
@@ -378,14 +381,21 @@ public final class VideoStreamSelector {
                 })
                 .collect(Collectors.toList());
 
-        // Return the sorted list
+        // Return the sorted list. On key collision (same codec, resolution and track)
+        // keep the comparator-best copy so a higher-bitrate/HFR duplicate is never lost
+        // to iteration luck before bucketing.
         final HashMap<String, VideoStream> hashMap = new HashMap<>();
         for (final VideoStream videoStream : allInitialStreams) {
             final String trackSuffix = videoStream.getAudioTrackId() != null
                     ? "|" + videoStream.getAudioTrackId() : "";
-            hashMap.put(Objects.toString(videoStream.getCodec(), "").split("\\.")[0]
+            final String key = Objects.toString(videoStream.getCodec(), "").split("\\.")[0]
                     + Objects.toString(videoStream.getResolution(), "")
-                    + trackSuffix, videoStream);
+                    + trackSuffix;
+            final VideoStream incumbent = hashMap.get(key);
+            if (incumbent == null
+                    || compareVideoStreamResolution(videoStream, incumbent) > 0) {
+                hashMap.put(key, videoStream);
+            }
         }
 
         return sortStreamList(new ArrayList<>(hashMap.values()), ascendingOrder);
@@ -461,7 +471,7 @@ public final class VideoStreamSelector {
      * Whether a resolution string denotes the HFR fps class ({@code 60}, {@code HFR}).
      */
     private static boolean isHfrResolution(@NonNull final String resolution) {
-        final java.util.regex.Matcher matcher = NUMERIC_HEIGHT_PATTERN.matcher(resolution);
+        final Matcher matcher = NUMERIC_HEIGHT_PATTERN.matcher(resolution);
         if (!matcher.find()) {
             return false;
         }
@@ -486,9 +496,9 @@ public final class VideoStreamSelector {
 
     /**
      * Collapse an already-sorted stream list to one representative per resolution bucket
-     * (see {@link #bucketKeyOf}). Insertion order follows the input list, so descending
-     * menu order is preserved. Empty only if the input is empty or holds no non-null
-     * streams.
+     * (see {@link #bucketKeyOf}). Input order is preserved, so pass a pre-sorted list
+     * to keep descending menu order. Empty only if the input is empty or holds no
+     * non-null streams.
      *
      * @param streams sorted stream list (e.g. from {@link #getSortedStreamVideosList})
      * @return one best stream per bucket, in input order
@@ -515,7 +525,9 @@ public final class VideoStreamSelector {
      * For external playback (which needs audio in the stream itself), drop video-only
      * streams at heights that also offer a muxed (non-video-only) stream — otherwise the
      * dialog would show a silent-video row under an identical height label. Heights with
-     * only video-only streams are kept untouched.
+     * only video-only streams are kept untouched. Track-blind by design: a dubbed muxed
+     * stream shadows a trackless video-only one, since the caller filters by preferred
+     * language first.
      *
      * @param streams language-filtered stream list
      * @return the input minus shadowed video-only streams, in input order
@@ -567,7 +579,15 @@ public final class VideoStreamSelector {
      * so {@code Collections.max()} can never crown them as "best".
      */
     private static int calculateResolution(final String x) {
-        final java.util.regex.Matcher matcher = NUMERIC_HEIGHT_PATTERN.matcher(x);
+        // Bare 4K/8K labels from non-YouTube services (YouTube itself always yields
+        // numeric heights); keep their historical ranking so they never score below 144p.
+        if (x.equalsIgnoreCase("8K")) {
+            return 4320;
+        }
+        if (x.equalsIgnoreCase("4K")) {
+            return 2160;
+        }
+        final Matcher matcher = NUMERIC_HEIGHT_PATTERN.matcher(x);
         if (!matcher.find()) {
             return -1;
         }

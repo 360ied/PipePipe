@@ -2439,13 +2439,15 @@ public final class VideoDetailFragment
     }
 
     private void showExternalPlaybackDialog() {
-        if (sortedVideoStreams == null) {
+        if (sortedVideoStreams == null || currentInfo == null || activity == null) {
             return;
         }
         // One row per resolution bucket, after preferred-language filtering (mirrors the
         // download path): this list is built with preferVideoOnlyStreams=false and no
         // audio-track filtering (unlike the player's), so dubbed-track variants would
-        // otherwise render as identical height-only rows. Video-only streams shadowed by
+        // otherwise render as identical height-only rows. Rows therefore carry the
+        // fps class and codec family (same-codec pairs always collapse to one, so the
+        // suffix disambiguates every surviving pair). Video-only streams shadowed by
         // a muxed stream at the same height are dropped (external players need audio).
         final List<VideoStream> languageFiltered =
                 StreamFilters.filterVideoStreamsByPreferredLanguage(
@@ -2457,7 +2459,7 @@ public final class VideoDetailFragment
         final CharSequence[] resolutions = new CharSequence[distinctStreams.size()];
         for (int i = 0; i < distinctStreams.size(); i++) {
             resolutions[i] =
-                    VideoStreamSelector.heightLabelOf(distinctStreams.get(i).getResolution());
+                    VideoStreamSelector.qualityLabelOf(distinctStreams.get(i));
         }
         // Map the raw-list pre-selection across to its bucket: the two lists differ.
         int checkedIndex = -1;
