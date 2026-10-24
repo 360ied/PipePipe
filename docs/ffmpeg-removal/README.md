@@ -26,7 +26,9 @@ Both jobs can be done without native code:
 - **SABR → reuse the in-repo pure-Java muxers** (`Mp4FromDashWriter`,
   `WebMWriter`) that already handle all classic DASH downloads.
 - **HLS → framework `MediaExtractor` + `MediaMuxer`** (zero new
-  dependencies; handles TS/fMP4/WebM/MP3 input, writes MP4/WebM).
+  dependencies; handles TS/fMP4/WebM input and writes MP4/WebM —
+  MP3 via a concat fast path, since remuxing MP3→MP4 is unsupported,
+  see 5.2).
 
 Removal deletes ~48 MB of binaries from git, ~15–19 MB of native libraries
 per ABI from the APK (11–14% of APK content), and the last hand-maintained
@@ -137,12 +139,7 @@ FFmpeg is replaceable.
   consistent with an NDK r27+ rebuild (the workflow pins NDK 28.2). So
   "the app will crash on 16 KB devices" is **not** a live argument — the
   urgency is maintenance/security debt, not an active crash.
-- **The rebuild workflow could not reproduce the committed AAR as committed (with default options).** A non-empty `extra_options` input is appended to `BUILD_OPTIONS` and could explain outputs (e.g. `armeabi-v7a`/`x86`) the fixed flags would exclude; no recorded run documents which options produced the committed AAR.
-  `.github/workflows/build-ffmpeg.yml` passed `--disable-arm-v7a`, yet the
-  committed `.aar` contained `armeabi-v7a` and `x86` outputs. Either the AAR
-  was built with different options or by a different run; neither was
-  recorded. The AAR was provenance-unknown even though a build script
-  existed (the AARs, module, and workflow are all deleted by this branch).
+- **The rebuild workflow could not reproduce the committed AAR as committed (with default options):** `.github/workflows/build-ffmpeg.yml` passed `--disable-arm-v7a`, yet the committed `.aar` contained `armeabi-v7a` and `x86` outputs, and the manual `extra_options` input (appended to `BUILD_OPTIONS`) could explain outputs the fixed flags would exclude — but no recorded run documents which options produced the committed AAR, leaving it provenance-unknown (the AARs, module, and workflow are all deleted by this branch).
 - **ffmpeg is more forgiving than its replacements.** `-c copy` tolerates
   timestamp gaps/overlaps and odd brand combos that `MediaMuxer` (strictly
   increasing PTS per track) and `Mp4FromDashWriter` (requires ≥ 8 samples
