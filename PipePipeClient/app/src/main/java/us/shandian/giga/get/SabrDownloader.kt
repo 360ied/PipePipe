@@ -42,6 +42,10 @@ internal class SabrDownloader(
             runSessionAttempt(info, recoveries, attestationRetryHandler)
         } catch (error: InterruptedException) {
             Thread.currentThread().interrupt()
+        } catch (error: SocketTimeoutException) {
+            // Timeouts are retried to exhaustion in requestWithNetworkRetry;
+            // a timeout surfacing here is a genuine failure, not a pause.
+            notifyErrorAndCleanup(error)
         } catch (error: InterruptedIOException) {
             Thread.currentThread().interrupt()
         } catch (error: SabrProtocolException) {
@@ -268,24 +272,16 @@ internal class SabrDownloader(
             }
 
             val playerTimeMs = downloadPlayerTimeMs(targets)
-            val audio = targets.firstOrNull { it.format.isAudio }
-            val video = targets.firstOrNull { it.format.isVideo }
-            val tracks = listOfNotNull(
-                audio?.let {
-                    YoutubeSabrRequest.Track.of(
-                        it.format,
-                        it.timeline,
-                        it.nextWriteSequence - 1,
-                    )
-                },
-                video?.let {
-                    YoutubeSabrRequest.Track.of(
-                        it.format,
-                        it.timeline,
-                        it.nextWriteSequence - 1,
-                    )
-                },
-            )
+            // One request track per download target: first-only selection
+            // would starve same-kind extras (e.g. two audio tracks) into a
+            // guaranteed STALLED loop.
+            val tracks = targets.map { target ->
+                YoutubeSabrRequest.Track.of(
+                    target.format,
+                    requireTimeline(target),
+                    target.nextWriteSequence - 1,
+                )
+            }
             val sequencesBeforeRequest = targets.map { it.nextWriteSequence }
             requestWithNetworkRetry(
                 requestCoordinator,
@@ -382,8 +378,17 @@ internal class SabrDownloader(
                 0L
             } else {
                 // Fail fast on corrupt state (missing/negative timeline end)
-                // instead of requesting playback at a negative time.
-                requireTimeline(target).getEndMs(target.nextWriteSequence - 1).coerceAtLeast(0L)
+                // instead of coercing -1 to 0 and re-requesting playback at
+                // 0 until the stall timeout.
+                val endMs = requireTimeline(target).getEndMs(target.nextWriteSequence - 1)
+                if (endMs < 0) {
+                    throw SabrDownloadException(
+                        SabrDownloadException.Reason.FORMAT,
+                        "SABR download failed: missing timeline entry for itag " +
+                            "${target.format.itag} sequence ${target.nextWriteSequence - 1}",
+                    )
+                }
+                endMs
             }
         }
     }
@@ -405,10 +410,14 @@ internal class SabrDownloader(
     }
 
     private fun completeMission(finalBytes: Long) {
-        if (finalBytes > 0) {
-            mission.done = finalBytes
-            mission.length = finalBytes
+        if (finalBytes <= 0) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.MUXING,
+                "SABR download failed: empty final file",
+            )
         }
+        mission.done = finalBytes
+        mission.length = finalBytes
         mission.current = mission.urls.size
         mission.psState = 2
         mission.sabrCheckpoint = null

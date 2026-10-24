@@ -9,6 +9,7 @@ import org.schabi.newpipe.streams.WebMWriter
 import us.shandian.giga.io.FileStream
 import java.io.File
 import java.io.IOException
+import java.io.InterruptedIOException
 
 /**
  * Pure-Java SABR remuxer (replaces the retired ffmpeg-kit wrapper).
@@ -46,7 +47,16 @@ internal class SabrJavaMuxer(
         }
         if (canCopySingleInputDirectly(inputs, targets)) {
             logDebug("copySingleInputDirectly input=${inputs.first().length()}")
-            return copyOutputToStorage(inputs.first())
+            try {
+                return copyOutputToStorage(inputs.first())
+            } catch (error: InterruptedException) {
+                mission.psState = 0
+                throw error
+            } catch (error: IOException) {
+                mission.psState = 0
+                mission.writeThisToFile()
+                throw error
+            }
         }
         val output = File(workDir, "output.${downloadOutputExtension(mission.storage.name)}")
         remux(inputs, targets, output)
@@ -101,7 +111,8 @@ internal class SabrJavaMuxer(
                 "SABR download failed: java mux failed (inputs=${inputs.size} targets=${targets.size})",
             )
         }
-        // Existence already validated in remuxAndCopy.
+        // Pre-conditions validated in remuxAndCopy and re-checked here so a
+        // future direct caller of this private entry still fails closed.
         // Same case-sensitive contains rules as YoutubeSabrFormatTimeline.parse.
         val containers = targets.map { target ->
             val mime = target.format.mimeType.orEmpty()
@@ -257,7 +268,25 @@ internal class SabrJavaMuxer(
             }
             out = FileStream(output)
             out.setLength(0)
-            muxer.build(out)
+            try {
+                muxer.build(out)
+            } catch (error: InterruptedException) {
+                throw error
+            } catch (error: Exception) {
+                // Same single-input verbatim argument as the MP4 path:
+                // concatenated WebM clusters are already playable.
+                if (sources.size != 1) {
+                    throw error
+                }
+                logDebug("single-input WebM mux failed, verbatim fallback: ${error.message.orEmpty()}")
+                try {
+                    out.close()
+                } catch (ignored: Exception) {
+                }
+                out = null
+                deleteQuietly(output)
+                copyVerbatim(inputs.first(), output)
+            }
             completed = true
         } finally {
             try {
@@ -282,21 +311,28 @@ internal class SabrJavaMuxer(
 
     @Throws(IOException::class)
     private fun openSources(inputs: List<File>): List<FileStream> {
+        // Opened streams are tracked incrementally so a throwing Nth
+        // constructor still cleans up streams 0..N-1.
         val opened = mutableListOf<FileStream>()
         try {
             inputs.forEach { input ->
                 opened.add(FileStream(input))
             }
+        } catch (error: InterruptedException) {
+            opened.forEach { closeQuietly(it) }
+            throw error
         } catch (error: Exception) {
-            opened.forEach {
-                try {
-                    it.close()
-                } catch (ignored: Exception) {
-                }
-            }
+            opened.forEach { closeQuietly(it) }
             throw error
         }
         return opened
+    }
+
+    private fun closeQuietly(stream: FileStream) {
+        try {
+            stream.close()
+        } catch (ignored: Exception) {
+        }
     }
 
     @Throws(IOException::class, InterruptedException::class)
@@ -396,6 +432,11 @@ internal class SabrJavaMuxer(
                     }
                 }
             }
+        } catch (error: InterruptedException) {
+            throw error
+        } catch (error: InterruptedIOException) {
+            // Cancellation via interruptible I/O is a pause, not an error.
+            throw InterruptedException(error.message)
         } catch (error: IOException) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.STORAGE,
@@ -449,6 +490,8 @@ internal class SabrJavaMuxer(
         private const val TAG = "SabrJavaMuxer"
         private const val M4A_BRAND = 0x4D344120
         private val MP4_FAMILY_EXTENSIONS = setOf("mp4", "m4a", "m4v", "mov")
-        private val WEBM_FAMILY_EXTENSIONS = setOf("webm", "weba", "opus", "mkv", "mka")
+        // weba/mkv/mka carry WebM-compatible bytes; .opus is excluded on
+        // purpose (conventionally Ogg-Opus, which strict players reject).
+        private val WEBM_FAMILY_EXTENSIONS = setOf("webm", "weba", "mkv", "mka")
     }
 }
