@@ -142,7 +142,7 @@ FFmpeg is replaceable.
   committed `.aar` contained `armeabi-v7a` and `x86` outputs. Either the AAR
   was built with different options or by a different run; neither was
   recorded. The AAR was provenance-unknown even though a build script
-  existed (both deleted by this branch).
+  existed (the AARs, module, and workflow are all deleted by this branch).
 - **ffmpeg is more forgiving than its replacements.** `-c copy` tolerates
   timestamp gaps/overlaps and odd brand combos that `MediaMuxer` (strictly
   increasing PTS per track) and `Mp4FromDashWriter` (requires ≥ 8 samples
@@ -268,19 +268,21 @@ Container decisions:
   `2` = done, `0` = failed) and the `DownloadMission.ERROR_*` buckets;
   map every new failure mode onto the existing `SabrDownloadException.Reason`
   / `IOException` shapes rather than inventing codes.
-- Keep the user-visible strings stable ("…ffmpeg remux failed" wording
-  should change to name the new muxer, but keep the `session.returnCode`-style
-  detail — append the underlying exception message instead).
+- Rename the user-visible prefix from "…ffmpeg remux failed" to
+  "…framework remux failed" (SABR: "…java mux failed") and append the
+  underlying exception message. There is no return code anymore — the old
+  ffmpeg-kit `session.returnCode` no longer exists; the `IOException` +
+  message is the whole diagnostic.
 
 ### 5.4 Deletion checklist (execute last, section 9.4)
 
-- [x] Delete `PipePipeClient/ffmpeg/` (AAR, `.bk`, `build.gradle.kts`,
-      empty `build/`).
+- [x] Delete `PipePipeClient/ffmpeg/` (AAR, `.bk`, `build.gradle.kts`;
+      untracked `build/` output needs no commit).
 - [x] `PipePipeClient/settings.gradle`: remove `include ':ffmpeg'`.
 - [x] `PipePipeClient/app/build.gradle`: remove commented Maven line +
       `project(':ffmpeg')` + `smart-exception-java`.
-- [x] Delete or repurpose `.github/workflows/build-ffmpeg.yml` (it builds
-      something nothing consumes afterward).
+- [x] Delete `.github/workflows/build-ffmpeg.yml` (it built something
+      nothing consumes afterward; repurposing was rejected).
 - [x] Remove the two `com.arthenica.ffmpegkit` imports and both
       `remuxWithFfmpeg` methods (replaced by `SabrJavaMuxer` +
       `HlsFrameworkMuxer`; verified no source references remain).
@@ -443,4 +445,5 @@ SABR (`SabrFfmpegMuxer.kt`, argv via `executeWithArguments`):
 A rebuild path existed (`.github/workflows/build-ffmpeg.yml` → fork
 `InfinityLoop1308/ffmpeg-kit`, NDK 28.2) but **as committed it could not
 reproduce the committed AAR**: the workflow passed `--disable-arm-v7a`
-while the AAR shipped `armeabi-v7a` + `x86` (both deleted by this branch).
+while the AAR shipped `armeabi-v7a` + `x86` (the AARs, module, and
+workflow are all deleted by this branch).
