@@ -19,7 +19,9 @@ class HlsPlaylistParser {
         return when (val playlist = ExoHlsPlaylistParser().parse(Uri.parse(sourceUrl), input)) {
             is ExoHlsMediaPlaylist -> playlist.toInternalMediaPlaylist(sourceUrl)
             is ExoHlsMultivariantPlaylist -> playlist.toInternalMasterPlaylist(sourceUrl)
-            else -> throw IOException("Unsupported HLS playlist type: ${playlist.javaClass.name}")
+            // Deterministic: retrying an unparseable playlist is pointless
+            // (TransferRetryPolicy excludes this type).
+            else -> throw UnsupportedHlsPlaylistException("Unsupported HLS playlist type: ${playlist.javaClass.name}")
         }
     }
 

@@ -3,6 +3,7 @@ package us.shandian.giga.hls.manifest
 import us.shandian.giga.hls.transfer.HttpTransferConfig
 import us.shandian.giga.hls.transfer.HttpTransferConnectionFactory
 import us.shandian.giga.hls.transfer.TransferHttpException
+import us.shandian.giga.hls.transfer.TransferInterruptedException
 import us.shandian.giga.hls.transfer.useTransferConnection
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -28,6 +29,12 @@ internal class HlsManifestResolver(
                 var total = 0
 
                 while (true) {
+                    // A blocked read is uninterruptible, but poll between
+                    // chunks so pause does not wait out the full body on a
+                    // slow playlist response.
+                    if (Thread.currentThread().isInterrupted) {
+                        throw TransferInterruptedException()
+                    }
                     val read = input.read(buffer)
                     if (read == -1) {
                         break

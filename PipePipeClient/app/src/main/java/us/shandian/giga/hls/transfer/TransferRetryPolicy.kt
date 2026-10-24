@@ -38,8 +38,11 @@ internal class TransferRetryPolicy(
 
     @Throws(TransferInterruptedException::class)
     private fun sleepBeforeRetry(attempt: Int) {
+        // Jitter so parallel workers failing together do not retry in
+        // lockstep and hammer the server as one.
+        val backoff = min(attempt * 500L, 2_000L) + (Math.random() * 500).toLong()
         try {
-            Thread.sleep(min(attempt * 500L, 2_000L))
+            Thread.sleep(backoff)
         } catch (error: InterruptedException) {
             Thread.currentThread().interrupt()
             throw TransferInterruptedException()

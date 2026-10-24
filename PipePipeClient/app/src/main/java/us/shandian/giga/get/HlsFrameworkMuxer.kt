@@ -84,19 +84,18 @@ internal object HlsFrameworkMuxer {
         // First video across inputs wins: two video-bearing resources (e.g. a
         // muxed video variant mirrored in both) must not yield two simultaneous
         // video tracks the way per-input `-map i:v?` would.
+        // inspectInput already caps each input at one video, so the first
+        // video-bearing input keeps its track and every later video goes.
         var videoKept = false
         inspected.forEachIndexed { index, info ->
             val videos = info.selected.filter { it.mime.startsWith("video/") }
-            val drop = if (videos.isEmpty()) {
-                emptyList()
-            } else if (!videoKept) {
-                videoKept = true
-                videos.drop(1)
-            } else {
-                videos
+            if (videos.isEmpty()) {
+                return@forEachIndexed
             }
-            if (drop.isNotEmpty()) {
-                inspected[index] = InspectedInput(info.extractor, info.selected - drop.toSet())
+            if (!videoKept) {
+                videoKept = true
+            } else {
+                inspected[index] = InspectedInput(info.extractor, info.selected - videos.toSet())
             }
         }
         // The pre-dedup check above already guaranteed non-empty, and dedup
@@ -121,7 +120,9 @@ internal object HlsFrameworkMuxer {
             } finally {
                 inspected.forEach { it.releaseQuietly() }
             }
-            throw IOException("HLS framework remux failed: non-MP3 tracks for .mp3 output")
+            // Fires when a track is not audio/mpeg or the bytes are not a
+            // raw MP3 container (TS/fMP4-wrapped MP3 must not concatenate).
+            throw IOException("HLS framework remux failed: not raw MP3 for .mp3 output")
         }
 
         if (output.exists() && !output.delete()) {
@@ -129,7 +130,9 @@ internal object HlsFrameworkMuxer {
             throw IOException("HLS framework remux failed: cannot reset output")
         }
         output.parentFile?.let { parent ->
-            if (!parent.exists() && !parent.mkdirs()) {
+            // Triple-check like the work-dir paths: mkdirs() false covers
+            // both real failure and a lost creation race.
+            if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
                 inspected.forEach { it.releaseQuietly() }
                 throw IOException("HLS framework remux failed: cannot create output dir")
             }
@@ -497,7 +500,9 @@ internal object HlsFrameworkMuxer {
             throw IOException("HLS framework remux failed: cannot reset output")
         }
         output.parentFile?.let { parent ->
-            if (!parent.exists() && !parent.mkdirs()) {
+            // Triple-check like the work-dir paths: mkdirs() false covers
+            // both real failure and a lost creation race.
+            if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
                 throw IOException("HLS framework remux failed: cannot create output dir")
             }
         }
@@ -533,9 +538,16 @@ internal object HlsFrameworkMuxer {
             }
             throw error
         } catch (error: IOException) {
+            // Log the ignored result: a failed delete leaves a stale
+            // partial, which the next run still rejects via the reset check.
             try {
-                output.delete()
+                if (!output.delete() && BuildConfig.DEBUG) {
+                    Log.w(TAG, "delete stale MP3 concat output failed")
+                }
             } catch (ignored: Exception) {
+                if (BuildConfig.DEBUG) {
+                    Log.w(TAG, "delete stale MP3 concat output failed: ${ignored.message.orEmpty()}")
+                }
             }
             throw IOException("HLS framework remux failed: concat (${error.message.orEmpty()})", error)
         }

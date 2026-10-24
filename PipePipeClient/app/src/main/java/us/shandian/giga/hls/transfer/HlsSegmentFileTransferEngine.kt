@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -66,12 +67,10 @@ internal class HlsSegmentFileTransferEngine(
             target.length() >= checkpoint.bytesWritten
 
         val startedAt = System.currentTimeMillis()
-        var outputPosition = if (canResume) checkpoint!!.bytesWritten else 0L
-        var startSegmentIndex = if (canResume) {
-            checkpoint!!.nextSegmentIndex.coerceIn(0, playlist.segments.size)
-        } else {
-            0
-        }
+        // canResume implies a non-null checkpoint; bind once instead of !!.
+        val resumeCheckpoint = if (canResume) requireNotNull(checkpoint) else null
+        var outputPosition = resumeCheckpoint?.bytesWritten ?: 0L
+        var startSegmentIndex = resumeCheckpoint?.nextSegmentIndex?.coerceIn(0, playlist.segments.size) ?: 0
         if (BuildConfig.DEBUG) {
             Log.d(
                 TAG,
@@ -117,6 +116,9 @@ internal class HlsSegmentFileTransferEngine(
                             output = output,
                             outputPosition = outputPosition,
                             listener = listener,
+                            // Inits are moov boxes (KBs); a playlist-controlled
+                            // init URL must not fill disk unboundedly.
+                            maxTotalBytes = MAX_INIT_SEGMENT_BYTES,
                         )
                     }
                 } else {
@@ -225,6 +227,12 @@ internal class HlsSegmentFileTransferEngine(
         val executor = Executors.newFixedThreadPool(parallelism)
         val completion = ExecutorCompletionService<DownloadedSegment>(executor)
         val downloadedSegments = mutableMapOf<Int, DownloadedSegment>()
+        // In-flight ledger: workers buffer whole segments before they land
+        // in downloadedSegments, so gate submission on retained + in-flight
+        // or worst case is ~parallelism x 256 MiB off-ledger. A worker
+        // failure aborts the whole transfer, so no decrement is needed on
+        // the error path — only success moves bytes to the retained ledger.
+        val inFlightBytes = AtomicLong(0)
         var nextToSubmit = startSegmentIndex
         var nextToAppend = startSegmentIndex
         var submitted = 0
@@ -238,6 +246,7 @@ internal class HlsSegmentFileTransferEngine(
             val segment = playlist.segments[segmentIndex]
             completion.submit(Callable {
                 downloadSegmentToMemory(
+                    onBuffered = { delta -> inFlightBytes.addAndGet(delta) },
                     segmentIndex = segmentIndex,
                     segment = segment,
                     rawMediaPlaylistUrl = rawMediaPlaylistUrl,
@@ -290,6 +299,9 @@ internal class HlsSegmentFileTransferEngine(
                 }
 
                 completed++
+                // Move from the in-flight ledger to the retained ledger
+                // (decrypt output size matches input modulo padding).
+                inFlightBytes.addAndGet(-downloaded.bytes.size.toLong())
                 expectedSegmentBytes[downloaded.segmentIndex] = downloaded.expectedBytes
                 downloadedSegments[downloaded.segmentIndex] = downloaded
 
@@ -321,7 +333,7 @@ internal class HlsSegmentFileTransferEngine(
                 }
 
                 while (nextToSubmit < playlist.segments.size && submitted - completed < parallelism &&
-                    retainedBytes(downloadedSegments) < MAX_RETAINED_BYTES
+                    retainedBytes(downloadedSegments) + inFlightBytes.get() < MAX_RETAINED_BYTES
                 ) {
                     submitNextSegment()
                 }
@@ -351,6 +363,7 @@ internal class HlsSegmentFileTransferEngine(
         mediaSequence: Long,
         keyCache: MutableMap<String, ByteArray>,
         defaultByteRangeStart: Long,
+        onBuffered: (Long) -> Unit = {},
     ): DownloadedSegment {
         ensureRunning()
         val result = retryPolicy.withRetries {
@@ -358,6 +371,7 @@ internal class HlsSegmentFileTransferEngine(
                 url = withManifestCookie(segment.url, rawMediaPlaylistUrl),
                 byteRange = segment.byteRange,
                 defaultByteRangeStart = defaultByteRangeStart,
+                onBuffered = onBuffered,
             )
         }
         if (result.bytes.size.toLong() > MAX_SEGMENT_BYTES) {
@@ -412,16 +426,16 @@ internal class HlsSegmentFileTransferEngine(
         if (playlist.hasUnsupportedEncryption) {
             throw UnsupportedHlsPlaylistException("Only AES-128 HLS encryption is supported")
         }
-        if (initEncryptionKey?.url == null && initEncryptionKey != null) {
+        if (initEncryptionKey != null && initEncryptionKey.url == null) {
             throw UnsupportedHlsPlaylistException("HLS init encryption key URI is missing")
         }
-        if (initEncryptionKey != null && initEncryptionKey.iv == null) {
-            throw UnsupportedHlsPlaylistException("Encrypted HLS init segments require an explicit IV")
-        }
+        // No explicit-IV requirement for init: decryptHlsBytes falls back
+        // to the sequence-derived IV (mediaSequence for the init) exactly
+        // like media segments, per the EXT-X-KEY default-IV rule.
         if (initEncryptionKey != null && initSegment.byteRange != null) {
             throw UnsupportedHlsPlaylistException("Encrypted HLS init byte ranges are not supported yet")
         }
-        if (playlist.segments.any { it.encryptionKey?.url == null && it.encryptionKey != null }) {
+        if (playlist.segments.any { it.encryptionKey != null && it.encryptionKey.url == null }) {
             throw UnsupportedHlsPlaylistException("HLS encryption key URI is missing")
         }
         if (playlist.segments.any { it.encryptionKey != null && it.byteRange != null }) {
@@ -433,8 +447,10 @@ internal class HlsSegmentFileTransferEngine(
         byteRange: HlsByteRange?,
         defaultByteRangeStart: Long,
     ): Pair<Long?, Long?> {
-        val rangeStart = byteRange?.offset ?: if (byteRange == null) null else defaultByteRangeStart
-        val rangeEnd = byteRange?.let { rangeStart!! + it.length - 1 }
+        val rangeStart = byteRange?.offset ?: byteRange?.let { defaultByteRangeStart }
+        val rangeEnd = byteRange?.let { range ->
+            (range.offset ?: defaultByteRangeStart) + range.length - 1
+        }
         return rangeStart to rangeEnd
     }
 
@@ -446,6 +462,7 @@ internal class HlsSegmentFileTransferEngine(
         output: RandomAccessFile,
         outputPosition: Long,
         listener: TransferProgressListener?,
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
     ): TransferResult {
         val (rangeStart, rangeEnd) = rangeWindow(byteRange, defaultByteRangeStart)
 
@@ -456,7 +473,10 @@ internal class HlsSegmentFileTransferEngine(
                     throw TransferHttpException(statusCode)
                 }
                 if (byteRange != null && statusCode != java.net.HttpURLConnection.HTTP_PARTIAL) {
-                    throw TransferHttpException(statusCode)
+                    // A 200 here means the server ignored Range: surfacing
+                    // it as "HTTP 200" would look like success while the
+                    // byte accounting below is necessarily wrong.
+                    throw IOException("HLS server ignored Range request for $url (got 200, expected 206)")
                 }
 
                 val expectedBytes = expectedBytes(byteRange, connection.contentLengthLong)
@@ -468,6 +488,7 @@ internal class HlsSegmentFileTransferEngine(
                         expectedOutputBytes = expectedBytes.takeIf { it > 0 }?.let { outputPosition + it } ?: -1,
                         listener = listener,
                         resourceUrl = url,
+                        maxTotalBytes = maxTotalBytes,
                     )
                 }
                 if (expectedBytes > 0 && bytesWritten != expectedBytes) {
@@ -488,6 +509,7 @@ internal class HlsSegmentFileTransferEngine(
         url: String,
         byteRange: HlsByteRange?,
         defaultByteRangeStart: Long,
+        onBuffered: (Long) -> Unit = {},
     ): MemoryTransferResult {
         val (rangeStart, rangeEnd) = rangeWindow(byteRange, defaultByteRangeStart)
         connectionFactory.open(url, "GET", rangeStart, rangeEnd)
@@ -497,11 +519,13 @@ internal class HlsSegmentFileTransferEngine(
                     throw TransferHttpException(statusCode)
                 }
                 if (byteRange != null && statusCode != java.net.HttpURLConnection.HTTP_PARTIAL) {
-                    throw TransferHttpException(statusCode)
+                    // Same Range-ignored diagnosis as the disk path: a 200
+                    // with a byte range can never satisfy truncation checks.
+                    throw IOException("HLS server ignored Range request for $url (got 200, expected 206)")
                 }
 
                 val bytes = connection.inputStream.use { input ->
-                    copyPartToMemory(input, initialMemoryBufferCapacity(connection.contentLengthLong))
+                    copyPartToMemory(input, initialMemoryBufferCapacity(connection.contentLengthLong), onBuffered)
                 }
                 val expected = expectedBytes(byteRange, connection.contentLengthLong)
                 if (expected > 0 && bytes.size.toLong() != expected) {
@@ -525,6 +549,7 @@ internal class HlsSegmentFileTransferEngine(
         expectedOutputBytes: Long,
         listener: TransferProgressListener?,
         resourceUrl: String,
+        maxTotalBytes: Long = MAX_SEGMENT_BYTES,
     ): Long {
         val buffer = ByteArray(config.bufferSize)
         var total = 0L
@@ -539,6 +564,10 @@ internal class HlsSegmentFileTransferEngine(
 
             output.write(buffer, 0, read)
             total += read
+            // A playlist-controlled URL must not fill disk beyond the cap.
+            if (total > maxTotalBytes) {
+                throw IOException("HLS segment too large")
+            }
             listener?.onProgress(
                     TransferProgress(
                         bytesWritten = outputPosition + total,
@@ -550,7 +579,11 @@ internal class HlsSegmentFileTransferEngine(
     }
 
     @Throws(IOException::class)
-    private fun copyPartToMemory(input: InputStream, initialCapacity: Int = config.bufferSize): ByteArray {
+    private fun copyPartToMemory(
+        input: InputStream,
+        initialCapacity: Int = config.bufferSize,
+        onBuffered: (Long) -> Unit = {},
+    ): ByteArray {
         val buffer = ByteArray(config.bufferSize)
         val output = ByteArrayOutputStream(initialCapacity)
         var total = 0L
@@ -564,6 +597,7 @@ internal class HlsSegmentFileTransferEngine(
 
             output.write(buffer, 0, read)
             total += read
+            onBuffered(read.toLong())
             // In-loop ceiling: the post-hoc size check cannot save a process
             // that already OOMed while buffering a lying stream.
             if (total > MAX_SEGMENT_BYTES) {
@@ -761,7 +795,12 @@ internal class HlsSegmentFileTransferEngine(
             }
             // Fatal Errors (e.g. OOM) must never masquerade as retryable I/O.
             is Error -> throw cause
-            // Name the unexpected cause instead of a messageless wrapper.
+            // Deterministic worker bugs (NPE, IAE) must fail fast, not
+            // burn retries: withRetries only catches IOException, so an
+            // unwrapped RuntimeException propagates straight to notifyError.
+            is RuntimeException -> throw cause
+            // Name the unexpected checked cause instead of a messageless
+            // wrapper.
             else -> IOException("HLS segment failed: ${cause?.javaClass?.simpleName}", cause)
         }
     }
@@ -936,6 +975,9 @@ internal class HlsSegmentFileTransferEngine(
         // Per-segment in-memory ceiling (parallel workers each buffer one
         // whole segment): fail closed instead of risking OOM.
         const val MAX_SEGMENT_BYTES = 256L * 1024L * 1024L
+        // Init segments are moov boxes, not media: cap them two orders of
+        // magnitude below segments (16 MiB still covers extreme cases).
+        const val MAX_INIT_SEGMENT_BYTES = 16L * 1024L * 1024L
         // AES-128 keys are 16 bytes; anything beyond this from a key URL is
         // not a key.
         const val MAX_KEY_BYTES = 64

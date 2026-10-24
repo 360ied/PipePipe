@@ -41,6 +41,11 @@ internal class HlsDownloader(
     override fun run() {
         try {
             ensureRunning()
+            // Subtitles have no downloadable media: fail before any network
+            // I/O instead of after all resources transfer.
+            if (mission.kind == 's') {
+                throw IOException("Subtitle downloads are not supported via HLS")
+            }
             if (mission.hlsCheckpoint == null) {
                 mission.hlsCheckpoint = HlsDownloadCheckpoint()
             }
@@ -85,7 +90,10 @@ internal class HlsDownloader(
             if (shouldRecover(error.statusCode)) {
                 mission.doRecover(error.statusCode)
             } else {
-                mission.notifyError(error)
+                // Surface the real HTTP status (404, 416, 5xx) instead of
+                // collapsing to ERROR_UNKNOWN_EXCEPTION: HttpError is the
+                // established status-carrying channel in notifyError.
+                mission.notifyError(DownloadMission.HttpError(error.statusCode))
             }
         } catch (error: Exception) {
             if (mission.running) {
@@ -342,8 +350,10 @@ internal class HlsDownloader(
         if (!checkpoint.remuxStarted) {
             return null
         }
-        val output = checkpoint.remuxOutputPath?.let { File(it) }?.absoluteFile ?: return null
-        if (!output.absolutePath.startsWith(workDir.absolutePath + File.separator) || !output.exists() || output.length() <= 0) {
+        val output = checkpoint.remuxOutputPath?.let { File(it) }?.canonicalFile ?: return null
+        // Canonicalize both sides: a `..`-containing path from a tampered
+        // checkpoint could otherwise prefix-match yet escape the work dir.
+        if (!output.path.startsWith(workDir.canonicalFile.path + File.separator) || !output.exists() || output.length() <= 0) {
             return null
         }
         // A storage rename changes the container; never copy a stale remux
@@ -388,6 +398,9 @@ internal class HlsDownloader(
         }
         mission.done = finalBytes
         mission.length = finalBytes
+        // SABR parity: clear the estimate ceiling so a finished mission
+        // never reports length > done via getLength().
+        mission.nearLength = finalBytes
         mission.current = mission.urls.size
         mission.psState = 2
         mission.hlsCheckpoint = null
