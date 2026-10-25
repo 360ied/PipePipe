@@ -305,10 +305,11 @@ Deviations from §4, recorded so the design stays truthful:
   `Single`/`Completable` on `Schedulers.io()`, project
   convention).
 - **Dialog rows are plain text, no ✓/⚠ glyphs.** Rows read
-  e.g. `VP9: hardware decoding, tested 2160p30` /
-  `AV1: software decoding only, left off (tested 2160p30)` /
-  `…: no decoder, left off`. Same three tiers and EC-3
-  preservation as §4.3, translator-friendly wording.
+  e.g. `VP9: hardware decoding, tested 2160p60` (60-capable) or
+  `VP9: hardware decoding, tested 2160p30 (4K60 may stutter)`
+  (30-only) / `AV1: software decoding only, left off
+  (tested 2160p30)` / `…: no decoder, left off`. Same three tiers
+  and EC-3 preservation as §4.3, translator-friendly wording.
 - **Dialog `Apply` retires the seed.** An explicit `Apply` sets
   `codec_seed_done` alongside the format write, so a late probe can
   never overwrite the user's choice; the reverse order is already
@@ -332,6 +333,8 @@ Gate on 30, report 60 as advisory:
 - Mapping unchanged: `SUPPORTED_HW` at 2160p30 checks the box. When
   the same decoder fails 2160p60, suffix the HW dialog row, e.g.
   `AV1: hardware decoding, tested 2160p30 (4K60 may stutter)`.
+  When it passes 2160p60, the row states the higher rate, e.g.
+  `VP9: hardware decoding, tested 2160p60`.
 - Phrasing stays a hint, never a verdict: declared caps are
   conservative on some SoCs and optimistic on lying ones, and
   bitrate/10-bit/HDR can still break a blessed stream. Never a
