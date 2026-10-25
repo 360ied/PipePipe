@@ -1269,12 +1269,10 @@
     <string-array name="advanced_formats_values">
         <item>VP9</item>
         <item>AV01</item>
-        <item>HEVC</item>
         <item>EC-3</item>
     </string-array>
     <string-array name="default_advanced_formats_values">
         <item>VP9</item>
-        <item>HEVC</item>
     </string-array>
     <string-array name="audio_langs">
         <item>@string/sort_origin</item>

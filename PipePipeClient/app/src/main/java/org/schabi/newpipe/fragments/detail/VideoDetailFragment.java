@@ -1526,10 +1526,10 @@ public final class VideoDetailFragment
     private void startOnExternalPlayer(@NonNull final Context context,
                                        @NonNull final StreamInfo info,
                                        @NonNull final Stream selectedStream) {
-        NavigationHelper.playOnExternalPlayer(context, currentInfo.getName(),
-                currentInfo.getSubChannelName(), selectedStream);
+        NavigationHelper.playOnExternalPlayer(context, info.getName(),
+                info.getSubChannelName(), selectedStream);
 
-        final HistoryRecordManager recordManager = new HistoryRecordManager(requireContext());
+        final HistoryRecordManager recordManager = new HistoryRecordManager(context);
         disposables.add(recordManager.onViewed(info).onErrorComplete()
                 .subscribe(
                         ignored -> { /* successful */ },
@@ -2439,23 +2439,60 @@ public final class VideoDetailFragment
     }
 
     private void showExternalPlaybackDialog() {
-        if (sortedVideoStreams == null) {
+        if (sortedVideoStreams == null || currentInfo == null || activity == null) {
             return;
         }
-        final CharSequence[] resolutions = new CharSequence[sortedVideoStreams.size()];
-        for (int i = 0; i < sortedVideoStreams.size(); i++) {
-            resolutions[i] = sortedVideoStreams.get(i).getResolution();
+        // Null-checked above; snapshotted for the dialog lambdas below, since the
+        // fragment may detach or navigate between show() and the click
+        // (requireActivity()/requireContext() would then throw, and live fields
+        // would mix the old dialog's streams with the new video's info).
+        final Activity dialogActivity = activity;
+        final StreamInfo dialogInfo = currentInfo;
+        final String dialogUrl = url;
+        // One row per resolution bucket, after preferred-language filtering (mirrors the
+        // download path): this list is built with preferVideoOnlyStreams=false and no
+        // audio-track filtering (unlike the player's), so dubbed-track variants would
+        // otherwise render as identical height-only rows. Rows therefore carry the
+        // fps class and codec family (same-codec pairs always collapse to one, so the
+        // suffix disambiguates every surviving pair). Video-only streams shadowed by
+        // a muxed stream at the same height are dropped (external players need audio).
+        final List<VideoStream> languageFiltered =
+                StreamFilters.filterVideoStreamsByPreferredLanguage(
+                        dialogActivity, sortedVideoStreams, currentInfo.getAudioStreams());
+        final List<VideoStream> distinctStreams =
+                VideoStreamSelector.getDistinctResolutionStreams(
+                        VideoStreamSelector.dropVideoOnlyWhenMuxedExists(
+                                languageFiltered));
+        final CharSequence[] resolutions = new CharSequence[distinctStreams.size()];
+        for (int i = 0; i < distinctStreams.size(); i++) {
+            resolutions[i] =
+                    VideoStreamSelector.qualityLabelOf(distinctStreams.get(i));
         }
-        final AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+        // Map the raw-list pre-selection across to its bucket: the two lists differ.
+        int checkedIndex = -1;
+        if (selectedVideoStreamIndex >= 0
+                && selectedVideoStreamIndex < sortedVideoStreams.size()) {
+            final String selectedBucket = VideoStreamSelector.bucketKeyOf(
+                    sortedVideoStreams.get(selectedVideoStreamIndex));
+            for (int i = 0; i < distinctStreams.size(); i++) {
+                if (VideoStreamSelector.bucketKeyOf(distinctStreams.get(i))
+                        .equals(selectedBucket)) {
+                    checkedIndex = i;
+                    break;
+                }
+            }
+        }
+        final AlertDialog.Builder builder = new AlertDialog.Builder(dialogActivity)
                 .setNegativeButton(R.string.cancel, null)
                 .setNeutralButton(R.string.open_in_browser, (dialog, i) ->
-                        ShareUtils.openUrlInBrowser(requireActivity(), url)
+                        ShareUtils.openUrlInBrowser(dialogActivity, dialogUrl)
                 );
         // Maybe there are no video streams available, show just `open in browser` button
         if (resolutions.length > 0) {
-            builder.setSingleChoiceItems(resolutions, selectedVideoStreamIndex, (dialog, i) -> {
+            builder.setSingleChoiceItems(resolutions, checkedIndex, (dialog, i) -> {
                         dialog.dismiss();
-                        startOnExternalPlayer(activity, currentInfo, sortedVideoStreams.get(i));
+                        startOnExternalPlayer(dialogActivity, dialogInfo,
+                                distinctStreams.get(i));
                     }
             );
         }

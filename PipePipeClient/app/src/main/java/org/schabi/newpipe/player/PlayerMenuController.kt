@@ -20,7 +20,7 @@ import org.schabi.newpipe.extractor.stream.VideoStream
 import org.schabi.newpipe.player.helper.PlaybackParameterDialog
 import org.schabi.newpipe.player.helper.PlayerHelper
 import org.schabi.newpipe.player.mediaitem.MediaItemQuality
-import java.util.Locale
+import org.schabi.newpipe.util.VideoStreamSelector
 
 /**
  * Owns the player's popup menus: quality, playback speed, captions, audio track and display mode.
@@ -86,6 +86,14 @@ class PlayerMenuController(
     val selectedVideoStream: VideoStream?
         get() = quality?.selectedVideoStream
 
+    /**
+     * Deduped bucket list behind the open quality menu, with the quality that built it.
+     * The click handler consumes this instead of rebuilding, so an item change while
+     * the popup is open cannot silently remap the tapped index into another video.
+     */
+    private var qualityMenuStreams: List<VideoStream> = emptyList()
+    private var qualityMenuSource: MediaItemQuality? = null
+
     init {
         val binding = player.binding
         val themeWrapper = ContextThemeWrapper(player.context, R.style.DarkPopupMenu)
@@ -115,8 +123,7 @@ class PlayerMenuController(
 
         selectedVideoStream?.let { videoStream ->
             player.binding.qualityTextView.text =
-                videoStream.codec.uppercase(Locale.getDefault())
-                    .split("\\.".toRegex()).toTypedArray()[0] + " " + videoStream.resolution
+                VideoStreamSelector.qualityLabelOf(videoStream)
         }
 
         player.saveWasPlaying()
@@ -185,17 +192,28 @@ class PlayerMenuController(
             return
         }
 
-        val availableStreams = quality?.sortedVideoStreams ?: return
-        for (i in availableStreams.indices) {
-            val videoStream = availableStreams[i]
+        // One row per resolution bucket; itemId indexes the deduped list, not the raw
+        // sorted list. The built list is retained so the click handler maps the item
+        // back to the same representative even if the underlying streams change.
+        val currentQuality = quality
+        val distinctStreams =
+            VideoStreamSelector.getDistinctResolutionStreams(
+                currentQuality?.sortedVideoStreams ?: run {
+                    qualityMenuStreams = emptyList()
+                    qualityMenuSource = null
+                    return
+                })
+        qualityMenuStreams = distinctStreams
+        qualityMenuSource = currentQuality
+        for (i in distinctStreams.indices) {
             qualityPopupMenu.menu.add(
                 POPUP_MENU_ID_QUALITY, i, Menu.NONE,
-                videoStream.codec.uppercase(Locale.getDefault()).split(Regex("\\."))[0]
-                    + " " + videoStream.resolution
+                VideoStreamSelector.qualityLabelOf(distinctStreams[i])
             )
         }
         selectedVideoStream?.let {
-            player.binding.qualityTextView.text = it.resolution
+            player.binding.qualityTextView.text =
+                VideoStreamSelector.heightLabelOf(it.resolution)
         }
         qualityPopupMenu.setOnMenuItemClickListener(this)
         qualityPopupMenu.setOnDismissListener(this)
@@ -438,23 +456,42 @@ class PlayerMenuController(
 
         if (menuItem.groupId == POPUP_MENU_ID_QUALITY) {
             val menuItemIndex = menuItem.itemId
-            val selectedQuality = quality ?: return true
-            val availableStreams = selectedQuality.sortedVideoStreams
-            if (selectedQuality.selectedVideoStreamIndex == menuItemIndex
-                || availableStreams.size <= menuItemIndex
-            ) {
+            // Prefer the list captured at build time; rebuild only when the source
+            // moved on (item change while open), with the same bounds check.
+            val currentQuality = quality
+            var distinctStreams = qualityMenuStreams
+            if (currentQuality !== qualityMenuSource || distinctStreams.isEmpty()) {
+                distinctStreams = VideoStreamSelector.getDistinctResolutionStreams(
+                    currentQuality?.sortedVideoStreams ?: return true)
+                qualityMenuStreams = distinctStreams
+                qualityMenuSource = currentQuality
+            }
+            if (menuItemIndex < 0 || distinctStreams.size <= menuItemIndex) {
+                return true
+            }
+            // Tapping the already-playing bucket is a no-op: the representative may
+            // differ in codec from the stored stream, so compare buckets, not streams.
+            val currentBucket = selectedVideoStream?.let {
+                VideoStreamSelector.bucketKeyOf(it)
+            }
+            if (currentBucket != null
+                && currentBucket == VideoStreamSelector.bucketKeyOf(
+                    distinctStreams[menuItemIndex])) {
                 return true
             }
 
-            player.saveStreamProgressState() //TODO added, check if good
+            player.saveStreamProgressState()
             player.setRecovery()
-            player.setSelectedStream(availableStreams[menuItemIndex])
+            player.setSelectedStream(distinctStreams[menuItemIndex])
             player.reloadPlayQueueManager()
 
             player.binding.qualityTextView.text = menuItem.title
             return true
         } else if (menuItem.groupId == POPUP_MENU_ID_PLAYBACK_SPEED) {
             val speedIndex = menuItem.itemId
+            if (speedIndex < 0 || speedIndex >= PLAYBACK_SPEEDS.size) {
+                return true
+            }
             val speed = PLAYBACK_SPEEDS[speedIndex]
 
             player.setPlaybackSpeed(speed)
@@ -473,7 +510,8 @@ class PlayerMenuController(
         }
         isSomePopupMenuVisible = false
         selectedVideoStream?.let {
-            player.binding.qualityTextView.text = it.resolution
+            player.binding.qualityTextView.text =
+                VideoStreamSelector.heightLabelOf(it.resolution)
         }
         if (player.isPlaying) {
             player.hideControls(Player.DEFAULT_CONTROLS_DURATION.toLong(), 0L)
@@ -481,10 +519,23 @@ class PlayerMenuController(
         }
     }
 
+    /**
+     * Drops all quality-menu rows and forgets the retained bucket list, e.g. when the
+     * new item offers a single bucket or no quality at all: without this the popup
+     * would keep showing the previous item's labels.
+     */
+    fun clearQualityMenu() {
+        qualityPopupMenu.menu.removeGroup(POPUP_MENU_ID_QUALITY)
+        qualityPopupMenu.menu.removeGroup(POPUP_MENU_ID_LIVE_QUALITY)
+        qualityMenuStreams = emptyList()
+        qualityMenuSource = null
+    }
+
     fun closeAllPopupMenus() {
         qualityPopupMenu.dismiss()
         playbackSpeedPopupMenu.dismiss()
         captionPopupMenu.dismiss()
+        audioTrackPopupMenu.dismiss()
         displayModePopupMenu.dismiss()
         isSomePopupMenuVisible = false
     }

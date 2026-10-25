@@ -21,6 +21,7 @@ import org.schabi.newpipe.extractor.stream.StreamType
 import org.schabi.newpipe.ktx.animate
 import org.schabi.newpipe.ktx.animateRotation
 import org.schabi.newpipe.player.helper.PlayerHelper
+import org.schabi.newpipe.util.VideoStreamSelector
 import org.schabi.newpipe.util.external_communication.KoreUtils
 
 /**
@@ -257,14 +258,21 @@ class PlayerLayoutController(private val player: Player) {
         binding.playbackEndTime.visibility = View.GONE
         binding.playbackLiveSync.visibility = View.GONE
 
+        // Defaults every branch can rely on and override: without these, branches that
+        // bail out early (e.g. VOD with no quality) leak the previous item's views.
+        binding.surfaceView.visibility = View.VISIBLE
+        binding.endScreen.visibility = View.GONE
+
         when (info.streamType) {
             StreamType.AUDIO_STREAM -> {
+                player.menuController.clearQualityMenu()
                 binding.surfaceView.visibility = View.GONE
                 binding.endScreen.visibility = View.VISIBLE
                 binding.playbackEndTime.visibility = View.VISIBLE
             }
 
             StreamType.AUDIO_LIVE_STREAM -> {
+                player.menuController.clearQualityMenu()
                 binding.surfaceView.visibility = View.GONE
                 binding.endScreen.visibility = View.VISIBLE
                 binding.playbackLiveSync.visibility = View.VISIBLE
@@ -275,7 +283,10 @@ class PlayerLayoutController(private val player: Player) {
                 binding.endScreen.visibility = View.GONE
                 binding.playbackLiveSync.visibility = View.VISIBLE
                 val quality = player.currentMetadata?.maybeQuality?.orElse(null)
-                if (quality != null && quality.sortedVideoStreams.size > 1) {
+                val distinctBucketCount = quality?.sortedVideoStreams?.let {
+                    VideoStreamSelector.getDistinctResolutionStreams(it).size
+                } ?: 0
+                if (quality != null && distinctBucketCount > 1) {
                     // a live stream played per-stream (e.g. a round-play room) offers
                     // its qualities through the regular video-on-demand selection pipeline
                     player.menuController.buildQualityMenu()
@@ -284,6 +295,7 @@ class PlayerLayoutController(private val player: Player) {
                     // an adaptive-manifest live stream (YouTube): the variants only
                     // exist once ExoPlayer has parsed the manifest, so the resolution button is
                     // owned by the live quality controller
+                    player.menuController.clearQualityMenu()
                     player.liveQualityController.onItemLoaded()
                 }
             }
@@ -293,13 +305,25 @@ class PlayerLayoutController(private val player: Player) {
                 if (quality != null
                     && (info.videoStreams.isNotEmpty() || info.videoOnlyStreams.isNotEmpty())
                 ) {
-                    player.menuController.buildQualityMenu()
+                    // One bucket can hold every codec's copy of a height, so a one-bucket
+                    // video must not offer a one-item menu: gate only the menu+button on
+                    // distinct buckets. Surface/end-screen/duration always follow the VOD
+                    // branch, or a previous item's views leak through.
+                    val distinctBucketCount = VideoStreamSelector
+                        .getDistinctResolutionStreams(quality.sortedVideoStreams).size
+                    if (distinctBucketCount > 1) {
+                        player.menuController.buildQualityMenu()
+                        binding.qualityTextView.visibility = View.VISIBLE
+                    } else {
+                        player.menuController.clearQualityMenu()
+                    }
 
-                    binding.qualityTextView.visibility = View.VISIBLE
                     binding.surfaceView.visibility = View.VISIBLE
                     // The original switch fell through to the default branch from here on.
                     binding.endScreen.visibility = View.GONE
                     binding.playbackEndTime.visibility = View.VISIBLE
+                } else {
+                    player.menuController.clearQualityMenu()
                 }
                 // Without a quality to offer, the original switch broke out of the whole
                 // statement here, leaving the end screen and the duration hidden.

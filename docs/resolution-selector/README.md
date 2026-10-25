@@ -10,8 +10,11 @@ YouTube-only, and how to implement it without touching downloads.
   `ItagItem`, `YoutubeStreamExtractor`).
 - Audited: 2026-10-24, `main` at `dcd305e` (doc commits `527f7bf`, `febe228`, `dcd305e`; revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **design only, not implemented.** No code changes accompany
-  this doc.
+- Status: **implemented** on branch `one-pick-per-resolution`
+  (see branch history; revalidate refs against that branch).
+  Rows carry `height + fps-class + codec family` (`qualityLabelOf`,
+  e.g. `720p60 AVC`); the button stays height-only except while the
+  selector is open, when it shows the current stream's full label.
 
 ## 1. Summary
 
@@ -120,9 +123,11 @@ All in `VideoStreamSelector.java` unless noted; all unreachable with
 the vocabulary in section 3:
 
 - `HIGH_RESOLUTION_LIST:26` — defined, zero references. Delete.
-- `calculateResolution():419-440` — `8K / 4K / 高帧率 / 高码率 / HDR /
-  杜比 / 低画質` branches never match a YouTube string. Replace with a
-  `(\d+)p` parser (+ fps-class suffix) instead of extending it.
+- `calculateResolution():419-440` — `高帧率 / 高码率 / HDR /
+  杜比 / 低画質` branches never match a YouTube string. Replaced with a
+  `(\d+)p` parser (+ fps-class suffix); bare `4K`/`8K` kept as an
+  explicit exception with their historical ranks (2160/4320) so a
+  non-YouTube label can never sink below `144p`.
 - `normalizeResolutionKey:180` HDR handling and comment (`1440p HDR →
   1440p`) — no YouTube stream emits an HDR suffix in `resolution`.
 - `codecFamilyOf():193-212` `hev1/hvc1 → hevc` branch, `getCodecPriority
@@ -157,11 +162,15 @@ the vocabulary in section 3:
    sorted list so menu order (descending) is unchanged.
 2. `PlayerMenuController.buildQualityMenu()` builds from the deduped
    list; keep a `dedupedList ↔ stream` map because `itemId` can no
-   longer double as the `sortedVideoStreams` index. Label rows with the
-   plain height (`1080p`), matching the button. Click
-   maps back to the representative stream and calls the existing
+   longer double as the `sortedVideoStreams` index. Label rows with
+   `qualityLabelOf()` (`720p60 AVC`: height + fps-class + codec
+   family of the representative); while the selector is open the button
+   shows the current stream's full label, height-only otherwise.
+   Click maps back to the representative stream and calls the existing
    `setSelectedStream()` — resolver, persistence, and sticky-codec
-   behavior unchanged.
+   behavior unchanged. Tapping the already-playing bucket is a no-op
+   (`bucketKeyOf` equality, not stream identity, since the
+   representative may differ in codec).
 3. `showExternalPlaybackDialog()` uses the same bucket helper on its
    own input list (fixes the identical-label bug) — note that list
    differs from the player's: the fragment builds with
@@ -169,20 +178,34 @@ the vocabulary in section 3:
    filtering (`VideoDetailFragment.java:1956-1963`), while the
    resolver uses `preferVideoOnlyStreams=true` + blacklist +
    inline audio-track filtering (`VideoPlaybackResolver.java:101-127`).
-   Specify the dialog's dedup input (fragment `sortedVideoStreams`)
-   and map its pre-selection by bucket, not by raw index, across the
-   two lists.
+   The dialog therefore filters by preferred audio language first
+   (`StreamFilters.filterVideoStreamsByPreferredLanguage`, as in
+   downloads), drops video-only streams shadowed by a muxed stream at
+   the same height (`dropVideoOnlyWhenMuxedExists` — external players
+   need audio), then dedups; rows use `qualityLabelOf()` too (same-codec
+   pairs always collapse to one, so the codec suffix disambiguates every
+   surviving same-height pair); map its pre-selection by bucket, not by
+   raw index, across the two lists.
 4. Explicitly unchanged: `getSortedStreamVideosList()` ordering and
    filtering, `DownloadDialog`/`StreamItemAdapter` rows,
    `VideoPlaybackResolver` protocol, live/HLS adaptive menu
-   (`POPUP_MENU_ID_LIVE_QUALITY` path).
-5. VOD button visibility must key off distinct-bucket count, not raw
-   stream count — 3×1080p in different codecs is one bucket and should
-   not offer a one-item menu. Note `:278` (`size > 1`) is the
-   live-only branch; the VOD branch (`VIDEO_STREAM, POST_LIVE_STREAM`,
-   ~`PlayerLayoutController.kt:291-298`) currently shows the button
-   whenever streams are non-empty with no count check — that branch is
-   the one that needs the `distinctBuckets.size <= 1` hide rule.
+   (`POPUP_MENU_ID_LIVE_QUALITY` path). One deliberate change inside
+   the sorter: on dedup-key collision the comparator-best copy wins
+   instead of iteration luck, so a higher-bitrate/HFR duplicate is
+   never lost before bucketing.
+5. VOD button visibility keys off distinct-bucket count, not raw
+   stream count — 3×1080p in different codecs is one bucket and must
+   not offer a one-item menu. Only the menu + button are gated; the
+   surface, end-screen, and duration follow the VOD branch
+   unconditionally (with safe defaults when quality is null) so a
+   single-bucket video never leaks the previous item's views. The
+   live per-stream branch applies the same distinct-count gate before
+   falling back to the adaptive menu.
+6. Preference migration: the removed HEVC toggle is purged from
+   stored `advanced_formats` sets by `MIGRATION_8_9` (preferences version 8 →
+   9, i.e. `PipePipeMigrations.VERSION` keyed by
+   `last_used_pipepipe_preferences_version`); stale `HEVC`/`H265` tokens
+   would otherwise linger forever.
 
 ## 6. Edge cases and trade-offs
 
@@ -214,7 +237,15 @@ the vocabulary in section 3:
   Dedup must run *after* that inline filter, on the `videos` list the
   menu actually receives. Key buckets as `height + audioTrackId`
   (null-safe) so dubbed-audio variants can't collapse across tracks
-  when the filter leaves more than one track in play.
+  when the filter leaves more than one track in play. The external
+  dialog has no resolver filter, so it filters by preferred language
+  first and additionally drops video-only streams shadowed by a muxed
+  stream at the same height (identical labels, and silent video, otherwise).
+- **Plain default targets resolve fps-blind.** Settings offer plain heights only
+  (`720p`, …), so a fresh-start default must match by resolution, not by variant —
+  otherwise variant-first matching leaves only the 30fps streams in the bucket and
+  autoplay picks 30fps while the row itself plays the HFR encode. Explicit variant
+  targets (sticky `1080p60`) keep variant-first matching.
 - **Live streams unaffected.** `buildLiveQualityMenu()` (manifest
   variants + Adaptive row) is a separate path and keeps its rows.
 - **Empty/unknown resolutions.** `RESOLUTION_UNKNOWN ("")` must still
@@ -228,20 +259,21 @@ the vocabulary in section 3:
   (first-is-greater) — so unknown currently sorts as *greatest* and
   `Collections.max` can crown it. Null-guard the helper inputs and
   rank unknown below every numeric height.
-- **Null/empty codec labels.** The doc's "always `CODEC + resolution`"
-  overstates: HLS leaves `codec` unset for some variants
+- **Null/empty codec labels.** HLS leaves `codec` unset for some variants
   (`YoutubeStreamExtractor.java:1677-1684` only sets it for
-  `avc/mp4a`/`vp9`), flowing through Java platform-type `getCodec()`
-  into `codec.uppercase()` (`PlayerMenuController.kt:117-119,189-198`)
-  and `getCodec().split(...)` (`VideoStreamSelector.java:341`).
-  In practice the builder falls back to `""` (label `" 1080p"`),
-  but the dedup helper and plain-height labels must be explicitly
-  null/empty-safe for both `codec` and `resolution`.
+  `avc/mp4a`/`vp9`). Row labels therefore go through
+  `qualityLabelOf()`: `height + fps-class + codec family`
+  (e.g. `720p60 AVC`, `1080p VP9`), falling back to the raw string
+  for unknown resolutions and omitting the codec when it is missing —
+  never a blank or `" 1080p"`-style label. Popup rows always use the
+  full label; the button uses it only while the selector is open
+  (dismiss restores height-only).
 
 ## 7. Cleanup bundled with the change
 
 Delete `HIGH_RESOLUTION_LIST`; replace `calculateResolution`'s
-non-YouTube branches with the section-3 height parser and score `60` /
+non-YouTube branches with the section-3 height parser (keeping bare
+`4K`/`8K` as an explicit ranked exception) and score `60` /
 `HFR` above plain height so the in-bucket winner prefers HFR
 (`1080p60 → 1081` today; give `1080p HFR` the same rank instead of
 tying `1080`); collapse the bucket/variant key to height only
@@ -259,7 +291,10 @@ so one pass avoids three re-reviews of `compareVideoStreamResolution`.
   set (`1080p` AVC + `1080p` VP9 + `1080p HFR` AV1 + `1080p HFR High`
   AV1 + `1080p60` AVC + `1080p60` VP9 + `720p` AVC → `{1080p: 1 row,
   HFR High AV1 wins}`, `{720p: 1 row}`); unknown-resolution fallback;
-  sticky-codec re-resolution via `getResolutionAndCodecIndex` unchanged.
+  sticky-codec re-resolution via `getResolutionAndCodecIndex` unchanged;
+  plain default target prefers HFR in-bucket, sticky variant keeps
+  variant-first; bare `4K` outranks FHD; dedup collision keeps the best
+  copy; `qualityLabelOf` height+fps+codec rendering.
 - Manual: open a video with VP9 + AV1 enabled and check the menu shows
   each height exactly once (no `60` twins); picking `1080p` plays the
   HFR encode; disable AV1/VP9 in `advanced_formats` and confirm the
@@ -271,17 +306,15 @@ external-player dialog shows no duplicate labels; check downloads
 
 ## References
 
-- Menu + click/dismiss:
-  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:178-200,439-451,475`
-  (null/empty-codec hazard at `:117-119,189-198`),
-  button gating: live `:278`, VOD `.../player/PlayerLayoutController.kt:291-298`
-  (the branch needing the hide rule).
+- Menu + click/dismiss/clear:
+  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:185-217,448-505,507-525,527-533`,
+  button gating: live `.../player/PlayerLayoutController.kt:281-301`, VOD `.../player/PlayerLayoutController.kt:303-335`.
 - Sorting/selection:
-  `.../util/VideoStreamSelector.java:22-26,67-140,144-170,180-212,243-310,324-360,419-501`.
+  `.../util/VideoStreamSelector.java:25-33,148-180,198-240,246-320,343-395,421-560,580-640`.
 - Resolver: `.../player/resolver/VideoPlaybackResolver.java:101-127` (inline audio-track filter), `:135-142` (consume), `:261-263` (store),
   `.../player/resolver/PlayerQualityResolver.kt:20-34`.
 - External dialog:
-  `.../fragments/detail/VideoDetailFragment.java:1956-1963,2441-2462`.
+  `.../fragments/detail/VideoDetailFragment.java:1956-1963,2441-2500` (snapshotted activity/info/url).
 - Downloads (out of scope):
   `.../download/DownloadDialog.java:160-180` (`newInstance(context, info)`),
   `.../util/StreamItemAdapter.java` (codec + resolution + size rows).
@@ -293,8 +326,9 @@ external-player dialog shows no duplicate labels; check downloads
 - Bitrate tiebreak: **prefer higher bitrate** inside a bucket.
   The current `return -A + B` reads inverted (lower wins); flip the
   sign with a named comment + unit test (`HFR` vs `HFR High`).
-- HEVC cleanup: **remove fully** — `useH265` gate, `hevc` codec
+- HEVC cleanup: **remove fully on the VOD path** — `useH265` gate, `hevc` codec
   branch, and the HEVC toggle entry. YouTube serves no HEVC, so the
-  preference is dead.
+  preference is dead. `LiveQualityController` keeps an HEVC fallback
+  label/rank for exotic live manifests; that path is out of scope.
 - Fps merge: **height-only buckets** — `1080p / 1080p60 / 1080p HFR /
   1080p HFR High` collapse to one row, winner preferably HFR.
