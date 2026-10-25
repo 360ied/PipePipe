@@ -109,6 +109,30 @@ android {
         abortOnError false
     }
 
+    packaging {
+        dex {
+            // APK size report §6 #1: compress classes.dex with zlib
+            // (AGP 9 default stores it uncompressed for page-aligned mmap).
+            // Measured saving on v0.2.0 DEX: ~5.35 MB download; trade-off is
+            // install-time extraction instead of direct mmap.
+            useLegacyPackaging = true
+        }
+        resources {
+            excludes += [
+                    // APK size report §6 #2: legacy Picnic PQC matrices —
+                    // dead weight, nothing instantiates Picnic keys.
+                    'org/bouncycastle/pqc/**',
+                    '**/CertPathReviewerMessages*.properties',
+                    // APK size report §6 #5: pure metadata, never loaded
+                    // at runtime.
+                    'META-INF/**/LICENSE.txt',
+                    'META-INF/**/LICENSE',
+                    'google/protobuf/**',
+                    '**/*.kotlin_builtins'
+            ]
+        }
+    }
+
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
