@@ -293,3 +293,25 @@ The NanoPipe v0.2.0 release package at **14.3 MiB** has a fundamentally differen
 ```
 
 The bytecode itself is well-shaken (10,176 input classes → 9,259 definitions, single DEX) — the headline waste is **packaging geometry, not code**: the DEX is stored uncompressed (a ~5.35 MB deflatable premium, the same AGP-9 default mumla-oled measured and reverted in 0.26.1), the resource table is unpruned and unshrunk, and 1.2 MB of post-quantum Picnic matrices leak from an otherwise tightly-shaken BouncyCastle. The three trivial/low-risk packaging fixes alone (#1–#3, plus #2's excludes) recover up to **~7 MB — nearly half the download** — without touching a line of product code, though only #1 and #2 are measured; #3–#7 are estimates, not committed savings. The structural watch-item is DEX method-reference headroom: at 88.2% of the 64K limit, the next large dependency forces multidex, so ExoPlayer keep-rule refinement (#4) doubles as headroom insurance.
+
+---
+
+## 8. Addendum: Implemented Optimizations (post-v0.2.0)
+
+This report is a frozen v0.2.0 baseline; the follow-up work below is recorded here so the report's recommendations stay traceable. F-Droid publication was dropped as a project goal, which unlocked the resource-shrinking half of the matrix (`shrinkResources` had been held off solely for F-Droid reproducible builds).
+
+| Report item | Implementation | Measured effect (unsigned release APK) |
+| :--- | :--- | :--- |
+| #1 Deflated DEX | `packaging.dex.useLegacyPackaging = true` | `classes.dex` 9,678,680 B STORED → 4,288,273 B DEFLATED |
+| #2 Picnic exclusion | `org/bouncycastle/pqc/legacy/picnic/**` + `**/CertPathReviewerMessages*.properties` (narrowed to the only pqc data files in bcprov 1.85) | `org/` leaks → 0 files |
+| #5 License/proto/builtins | `META-INF/**/LICENSE[.txt]`, `google/protobuf/*.proto` (all 12 top-level, verified in the jar), `**/*.kotlin_builtins` | → 0 files (only `META-INF/LICENSE.md`, 1 KB, remains) |
+| #3 Resource shrinking (partial, no locale pruning) | `shrinkResources true` + `android.nonFinalResIds=true` (required by R8 optimized shrinking; safe — the sole Java resource-`switch` uses framework `android.R`) | `resources.arsc` 2.68 → 1.62 MB; `res/` 1,559 → 1,089 entries |
+
+**Result: 14.29 MiB (v0.2.0) → 6.67 MiB (−53%)**, verified by `aapt2 dump resources` on the rebuilt release APK.
+
+Two empirically-verified gotchas for future size work:
+
+1. **Dotted style names defeat exact-name keeps.** `ThemeHelper` resolves service themes (`LightTheme.YouTube`, …) via `Resources.getIdentifier()` with runtime-built names. Both `@style/LightTheme.YouTube` and `@style/LightTheme_YouTube` in keep rules matched nothing (all six themes stripped, silent fallback to the base theme). Per-base wildcards (`@style/LightTheme.*`, … in `res/raw/keep.xml`) are verified working and cover future service suffixes on these bases.
+2. **Optimized shrinking hard-fails on final R IDs.** `shrinkResources true` with `android.nonFinalResIds=false` breaks `minifyReleaseWithR8`; the error message names the two remedies (non-final IDs vs. `android.r8.optimizedResourceShrinking=false`).
+
+Not implemented: locale pruning (#3 remainder — a product decision about shipped languages, not taken), ExoPlayer keep refinement (#4), PNG migration (#6), Compose audit (#7).

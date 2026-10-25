@@ -122,8 +122,10 @@ android {
         resources {
             excludes += [
                     // APK size report §6 #2: legacy Picnic PQC matrices —
-                    // dead weight, nothing instantiates Picnic keys.
-                    'org/bouncycastle/pqc/**',
+                    // dead weight, nothing instantiates Picnic keys. Narrowed
+                    // to legacy/picnic (verified: the only pqc data files in
+                    // bcprov 1.85) so future PQC data files fail visible.
+                    'org/bouncycastle/pqc/legacy/picnic/**',
                     '**/CertPathReviewerMessages*.properties',
                     // APK size report §6 #5: data-only files observed in the
                     // v0.2.0 APK, never loaded at runtime (no kotlin-reflect;
