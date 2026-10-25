@@ -18,7 +18,7 @@ why it carries a performance disclaimer, and when it dates from.
   (`use_experimental_new_ui`, default `false` = opt-in).
 - Declaration (this fork): `PipePipeClient/app/src/main/res/xml/advanced_settings.xml:143-145`
   (upstream added it to `appearance_settings.xml` instead).
-- `PipePipeClient/app/src/main/java/org/schabi/newpipe/settings/AdvancedSettingsFragment.java:46-52`:
+- `PipePipeClient/app/src/main/java/org/schabi/newpipe/settings/AdvancedSettingsFragment.java:46-56`:
   writes the pref with `commit()` and calls `NavigationHelper.restartApp()`.
 - Gate: `PipePipeClient/app/src/main/java/org/schabi/newpipe/util/ThemeHelper.java:336-339`
   `shouldUseExperimentalNewUi()` reads the pref (default `false`).
@@ -33,10 +33,10 @@ from XML `View` holders to Compose holders. Nothing else changes.
   `getItemViewType()` returns `COMPOSE_HOLDER_TYPE` (2) and
   `onCreateViewHolder()` returns `ComposeInfoItemHolder` instead of the
   stream/channel/playlist list/grid/card/mini holders.
-- `PipePipeClient/app/src/main/java/org/schabi/newpipe/local/LocalItemListAdapter.java:355,425`:
+- `PipePipeClient/app/src/main/java/org/schabi/newpipe/local/LocalItemListAdapter.java:355-356,424-426`:
   if enabled, unconditionally returns `COMPOSE_HOLDER_TYPE` and creates
   `ComposeLocalItemHolder` for all local items (bookmarks, history,
-  local/remote playlists, playlist streams, statistics), bypassing ~12 legacy holders.
+  local/remote playlists, playlist streams, statistics), bypassing ~16 legacy holders.
 - Refresh: `BaseListFragment.java:860` and `BaseLocalListFragment.java:471` watch the key
   and set `LIST_MODE_UPDATE_FLAG` so lists rebind.
 - Holders:
@@ -50,12 +50,16 @@ from XML `View` holders to Compose holders. Nothing else changes.
   (`ChannelListItem` / `ChannelGridItem` vs `StreamOrPlaylistListItem` / `GridItem`),
   `ThumbnailBox`, `OverlayBadge`, `DragHandle`, `RemoteImage`, `rememberPicassoBitmap`.
 
-Not gated by the switch: `.../fragments/list/search/SearchFilterDialog.kt` is always Compose.
+Not gated by this switch: `.../fragments/list/search/SearchFilterDialog.kt` is always Compose
+(it has its own separate `use_old_search_filter` gate in `SearchFragment.java:300`).
 
 ## 3. Explicit limits
 
 - Comments are excluded: `InfoListAdapter` keeps `CommentsInfoItemHolder` /
   `CommentsMiniInfoItemHolder` even when the pref is on.
+- `STAFF` items are not handled: the gate is `!= COMMENT`, so `STAFF` also routes to
+  `COMPOSE_HOLDER_TYPE`, but `buildInfoItemState()` has no `STAFF` branch (`else -> null`)
+  and `ComposeInfoItemHolder` bails via `?: return`, leaving an empty row.
 - Only list rows are recomposed. Fragments, player, settings, app chrome stay `View`/XML.
   "New UI" = new list-item renderer, not a full Compose rewrite.
 - Grid/list/card and drag-handle modes are still honored via
@@ -83,7 +87,7 @@ no benchmark is checked in. It is honest for three structural reasons:
    now compounds with composition cost during fast scroll.
 4. **Binary cost.** Per `docs/apk-size-analysis/README.md`, `androidx.compose.*` is
    1,827 input classes / 99,308 method entries (largest per-package total) plus
-   `libandroidx.graphics.path.so` (~10 KB per ABI). Enabling the rows does not add
+   `libandroidx.graphics.path.so` (~7-11 KB per ABI, 37,392 B total). Enabling the rows does not add
    the dependency (it ships either way), but it is the reason the disclaimer and the
    size audit point at the same subsystem.
 
@@ -106,10 +110,10 @@ Practical read: parity is functional, not tuned. Leave the switch off for smooth
 ## References
 
 - Switch + gate: `values/strings.xml:906-907`, `values/settings_keys.xml:1407`,
-  `xml/advanced_settings.xml:143-145`, `settings/AdvancedSettingsFragment.java:46-52`,
+  `xml/advanced_settings.xml:143-145`, `settings/AdvancedSettingsFragment.java:46-56`,
   `util/ThemeHelper.java:336-339`.
 - Adapters: `info_list/InfoListAdapter.java:374-376,432-433`,
-  `local/LocalItemListAdapter.java:355,425`,
+  `local/LocalItemListAdapter.java:355-356,424-426`,
   `fragments/list/BaseListFragment.java:860`, `local/BaseLocalListFragment.java:471`.
 - Compose: `info_list/ComposeItemUiHelper.kt`, `info_list/holder/ComposeInfoItemHolder.kt`,
   `local/holder/ComposeLocalItemHolder.kt`.
