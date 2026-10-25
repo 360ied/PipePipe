@@ -99,7 +99,9 @@ android {
                 resValue "string", "app_name", "NanoPipe"
             }
             minifyEnabled true
-            shrinkResources false // disabled to fix F-Droid's reproducible build
+            // No F-Droid publication: resource shrinking is safe to keep on.
+            // (It was previously off for F-Droid reproducible builds.)
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
