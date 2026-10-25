@@ -260,3 +260,38 @@ high resolutions only as VP9/AV1), so the gate is
 - **Button-only vs. first-run auto-seed: both.** Button for
   re-detection plus a one-time seed on first run (guarded so
   manual choices are never overwritten afterwards).
+
+## 9. Implementation notes (`feat/codec-detect`)
+
+Deviations from §4, recorded so the design stays truthful:
+
+- **Seed launch guard is a pristine-set check, not the
+  `isFirstRun` flag.** `maybeSeedCodecSupport` probes only when
+  the stored set still equals the static default (fresh installs
+  after seeding, or untouched upgrades holding the same default);
+  anything else is marked done without probing. A pure
+  `isFirstRun` guard would clobber an upgraded install's
+  customized set on the kill-retry path from §4.3(c), where
+  `isFirstRun` is already false but the flag is still absent.
+  The completion guard and `codec_seed_done` durability are as
+  specified.
+- **Detector API is fixed to the two video toggles.** Implemented
+  as `detectSync()` / `detectSync(exoQuerier, frameworkQuerier)`
+  rather than `detect(Set<String> mimes)`: only VP9/AV01 exist
+  and EC-3 is out of scope, so a mime parameter buys generality
+  with no caller. The `DecoderQuerier` functional interface is
+  the inject-a-fake-codec-list seam from §3; the detector itself
+  is synchronous, threading lives at the call sites (RxJava
+  `Single`/`Completable` on `Schedulers.io()`, project
+  convention).
+- **Dialog rows are plain text, no ✓/⚠ glyphs.** Rows read
+  e.g. `VP9: hardware decoding, tested 2160p30` /
+  `AV1: software decoding only, left off (tested 2160p30)` /
+  `…: no decoder, left off`. Same three tiers and EC-3
+  preservation as §4.3, translator-friendly wording.
+- **Verification status.** Unit tests, `lintDebug`, and
+  `assembleDebug` pass (`./scripts/check.sh --full` from the
+  worktree, 7/7 new tests green). The §6 manual matrix
+  (VP9-only vs. AV1 device dialogs, fresh-install seed) has not
+  been run — no device in this environment — and should precede
+  merge.
