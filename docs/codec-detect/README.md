@@ -39,7 +39,7 @@ only the stored set changes. EC-3 is left exactly as-is.
   `advanced_formats_values = [VP9, AV01, EC-3]`,
   `default_advanced_formats_values = [VP9]`.
 - Preference,
-  `PipePipeClient/app/src/main/res/xml/video_audio_settings.xml:36-43`:
+  `PipePipeClient/app/src/main/res/xml/video_audio_settings.xml:36-44`:
   `MultiSelectListPreference`, `defaultValue =
   @array/default_advanced_formats_values`.
 - Defaults seeding,
@@ -78,20 +78,29 @@ Out of scope: `EC-3` (`audio/eac3`) — the detector never reads nor
 writes it; the toggle keeps its static default and manual behavior
 (decided, see 8).
 
-Two query layers, in priority order:
+Query vocabulary, verified against the exoplayer-core 2.18.7 AAR
+in the Gradle cache — note the field-vs-method split:
 
-1. **ExoPlayer `MediaCodecUtil` / `MediaCodecSelector.DEFAULT`** —
-   answers "what would the actual renderer pick", consistent with
-   `CustomRenderersFactory`. Decided source of truth (see 8).
-2. **Framework `android.media.MediaCodecList.getCodecInfos()`** —
-   filter `!isEncoder()`, check `getSupportedTypes()`. Fallback and
-   unit-test seam (inject a fake codec list; no device needed).
+1. **ExoPlayer (primary, decided — see 8).**
+   `MediaCodecUtil.getDecoderInfos(mimeType, requiresSecureDecoder,
+   requiresTunnelingDecoder)` — or the same-signature
+   `MediaCodecSelector.DEFAULT.getDecoderInfos(...)` — throwing
+   `DecoderQueryException`. Answers "what would the actual renderer
+   pick", consistent with `CustomRenderersFactory`. Its
+   `MediaCodecInfo` carries `hardwareAccelerated` / `softwareOnly`
+   as **fields** (not methods), plus
+   `isVideoSizeAndRateSupportedV21(w, h, fps)` and
+   `isFormatSupported(Format)`.
+2. **Framework (fallback + unit-test seam).**
+   `MediaCodecList.getCodecInfos()`, filter `!isEncoder()`, check
+   `getSupportedTypes()`; per-codec
+   `android.media.MediaCodecInfo.isHardwareAccelerated()` (a method,
+   API 29+) and
+   `getCapabilitiesForType(mime).getVideoCapabilities().areSizeAndRateSupported(...)`
+   (API 21+). Inject a fake codec list for tests; no device needed.
 
-Useful discriminators on `MediaCodecInfo` (all available at
-`minSdk 30`): `isHardwareAccelerated()`,
-`getCapabilitiesForType(mime).getVideoCapabilities().areSizeAndRateSupported(w, h, fps)`.
-No `Build.VERSION` guards needed for these; keep one for any
-future `MediaCapabilities` use.
+All of the above is available at `minSdk 30` without version
+guards; keep one for any future `MediaCapabilities` use.
 
 ## 4. Proposal
 
@@ -121,15 +130,23 @@ future `MediaCapabilities` use.
    off (battery) or on (knows better than the probe) keeps their
    choice until they press `Apply`.
 4. **First-run auto-seed (decided, see 8).** On first run
-   (`NewPipeSettings` init, `isFirstRun` path, after the
+   (`NewPipeSettings.initSettings`, `isFirstRun` path, after the
    `setDefaultValues` seeding), run the detector once off the UI
    thread and write its VP9/AV01 result over the static `[VP9]`
-   default, preserving any EC-3 value. Guard: only when the user
-   has never touched the preference (first run implies this; a
-   defensive `prefs.contains(advanced_formats_key)` check costs
-   nothing). Later runs never re-seed — manual choices win
-   forever after. Until the async probe completes, readers see the
-   static default, which is the safe subset anyway.
+   default, preserving any EC-3 value. Three guards, all required:
+   (a) the launch guard is the `isFirstRun` local
+   (`NewPipeSettings.java:47-60`, derived from prefs-emptiness
+   before seeding — a post-seed `prefs.contains(...)` check would
+   be vacuous, since `setDefaultValues` guarantees the key exists);
+   (b) a completion guard re-checks at write time and aborts if
+   the value changed since launch, so a user fast enough to toggle
+   during the probe window is never clobbered; (c) durability via
+   an explicit `codec_seed_done` boolean written only on seed
+   completion — the migration version stamps persist before the
+   async probe returns, so a kill in between would otherwise lose
+   the one-time seed forever; retry whenever the flag is absent,
+   even when `isFirstRun` is false. Until the probe completes,
+   readers see the static default, which is the safe subset anyway.
 5. **Explicitly unchanged:** the `contains()` gates in
    `VideoStreamSelector` / `StreamFilters` (including the EC-3
 audio gate), the `[VP9]` XML default, and the `MIGRATION_8_9`
@@ -158,6 +175,17 @@ high resolutions only as VP9/AV1), so the gate is
   a passthrough-vs-decode ambiguity (a phone may lack an
   `audio/eac3` decoder yet pass the bitstream to a TV/soundbar)
   is not worth probing.
+- **Accepted limitations (stated, not solved).** The 2160p30 gate
+  probes size/rate only — 60 fps, 10-bit/VP9-P2/AV1-Main10
+  profiles, and HDR are not probed, matching the current
+  family-level gate granularity; a decoder passing 2160p30 SDR is
+  assumed good enough. `allowBackup="true"`
+  (`AndroidManifest.xml:53`) means a cloud restore suppresses the
+  seed on a new device and can carry a stale set — accepted, the
+  Detect button is the remedy. New button/dialog strings need
+  locale resources like any other string. Mid-session, early
+  readers see the static default until the seed lands; playback
+  menus rebuild per video, so the window is self-healing.
 - **Lying/broken decoders.** The app already carries MediaCodec
   workarounds (`CustomMediaCodecVideoRenderer` forces the
   setOutputSurface workaround; ExoPlayer async-queueing toggle in
@@ -168,14 +196,16 @@ high resolutions only as VP9/AV1), so the gate is
   take hundreds of ms; run on a background thread with a small
   progress indicator on the preference row, cache nothing
   (decoders don't change without an OS update; re-probe per tap).
-- **First-run seed ordering.** It runs after `setDefaultValues`
-  in the `isFirstRun` path, overwriting the static `[VP9]` default
-  it just seeded — guarded to first run only, so the
-  `readAgain=true` backfill on later runs can never clobber a
-  manual choice. The probe is async; streams code reading the key
-  meanwhile sees the safe static default. No new
-  `PipePipeMigrations` entry needed (first-run path, not a
-  versioned migration).
+- **First-run seed ordering and races.** The seed launches in the
+  `isFirstRun` path after `setDefaultValues`, overwriting the
+  static `[VP9]` default it just seeded — guarded to first run
+  only, so the `readAgain=true` backfill on later runs can never
+  clobber a manual choice. Two races are handled, not hoped away:
+  a toggle made during the async probe window aborts the write
+  (completion guard, see 4b), and a kill before the write leaves
+  `codec_seed_done` unset so the next launch retries (see 4c).
+  No new `PipePipeMigrations` entry needed: the flag is a plain
+  pref key on the first-run path, not a versioned migration.
 
 ## 6. Verification
 
@@ -185,7 +215,8 @@ high resolutions only as VP9/AV1), so the gate is
   EC-3 preserved; ExoPlayer-vs-framework disagreement prefers
   ExoPlayer.
 - Manual: on a VP9-only device, tap `Detect` → dialog proposes
-  `[VP9]` only → `Apply` → stored set equals proposal; on an AV1
+  `[VP9]` only → `Apply` → stored VP9/AV01 entries equal the
+  proposal and EC-3 is unchanged; on an AV1
   device → proposes `[VP9, AV01]`; re-run after manually toggling
   does not change the stored set until `Apply`; fresh install on
   an AV1 device seeds `[VP9, AV01]` without opening settings;
@@ -193,11 +224,13 @@ high resolutions only as VP9/AV1), so the gate is
 - Gate: `./scripts/check.sh` fast gate from the feature worktree
   (this doc itself is standalone `docs/` and needs no gate).
 
-## References
+## 7. References
 
 - Toggles + default: `.../res/values/settings_keys.xml:1269-1276`,
-  `.../res/xml/video_audio_settings.xml:36-43`.
-- Seeding: `.../settings/NewPipeSettings.java:62-84`.
+  `.../res/xml/video_audio_settings.xml:36-44`.
+- Seeding + first-run derivation:
+  `.../settings/NewPipeSettings.java:45-60,74-84`
+  (`isFirstRun` from prefs-emptiness; `setDefaultValues` seeding).
 - Gates: `.../util/VideoStreamSelector.java:424-461`,
   `.../util/StreamFilters.java:103-127`.
 - Renderer (no bundled AV1 extension):
