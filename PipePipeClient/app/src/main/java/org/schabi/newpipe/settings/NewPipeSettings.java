@@ -188,8 +188,10 @@ public final class NewPipeSettings {
 
     /**
      * Pure launch decision for {@link #maybeSeedCodecSupport}: probe only from a stored
-     * set equal to the static default. A {@code null} stored set (absent key) defers
-     * without marking done. Package-visible for JVM tests.
+     * set equal to the static default. A {@code null} stored set returns
+     * {@code false}; absent-key deferral (retry without marking done) is owned by
+     * the {@code contains} early-returns in the callers, which never pass
+     * {@code null} here. Package-visible for JVM tests.
      */
     static boolean shouldStartProbe(@Nullable final Set<String> stored,
                                     final Set<String> staticDefault) {
@@ -198,7 +200,8 @@ public final class NewPipeSettings {
 
     /**
      * Pure write decision for {@link #seedCodecSupportSync}: write only when the
-     * current set still equals the launch snapshot. Package-visible for JVM tests.
+     * current set still equals the launch snapshot. A {@code null} current set
+     * returns {@code false}. Package-visible for JVM tests.
      */
     static boolean shouldWriteSeed(@Nullable final Set<String> current,
                                    final Set<String> launchSnapshot) {

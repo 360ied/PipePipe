@@ -75,12 +75,13 @@ public final class CodecSupportDetector {
      * Kept free of Android/ExoPlayer types so the mapping is JVM-testable.
      */
     public static final class DecoderInfo {
+        @Nullable
         public final String name;
         public final boolean hardwareAccelerated;
         public final boolean softwareOnly;
         public final boolean supports2160p;
 
-        public DecoderInfo(final String name,
+        public DecoderInfo(@Nullable final String name,
                            final boolean hardwareAccelerated,
                            final boolean softwareOnly,
                            final boolean supports2160p) {
@@ -109,6 +110,7 @@ public final class CodecSupportDetector {
             this.testedFrameRate = PROBE_FPS;
         }
 
+        @NonNull
         public Support getSupport() {
             return support;
         }
@@ -134,10 +136,12 @@ public final class CodecSupportDetector {
     /**
      * Source of decoder descriptions for one MIME type.
      * Production instances wrap ExoPlayer / the framework list; tests inject fakes.
+     * Contract is non-null in and out; {@code detectOne} additionally tolerates
+     * null or empty lists from non-conforming sources by falling back.
      */
     public interface DecoderQuerier {
         @NonNull
-        List<DecoderInfo> queryInfos(String mime) throws Exception;
+        List<DecoderInfo> queryInfos(@NonNull String mime) throws Exception;
     }
 
     private CodecSupportDetector() {
@@ -173,7 +177,7 @@ public final class CodecSupportDetector {
     }
 
     @Nullable
-    private static String firstDecoderName(final List<DecoderInfo> decoders) {
+    private static String firstDecoderName(@NonNull final List<DecoderInfo> decoders) {
         for (final DecoderInfo decoder : decoders) {
             if (decoder != null && decoder.name != null) {
                 return decoder.name;
@@ -265,7 +269,7 @@ public final class CodecSupportDetector {
      * Queries ExoPlayer's decoder selector, answering "what would the renderer pick".
      */
     @NonNull
-    static List<DecoderInfo> queryExoPlayer(final String mime)
+    private static List<DecoderInfo> queryExoPlayer(@NonNull final String mime)
             throws MediaCodecUtil.DecoderQueryException {
         final List<MediaCodecInfo> infos =
                 MediaCodecSelector.DEFAULT.getDecoderInfos(mime, false, false);
@@ -282,7 +286,7 @@ public final class CodecSupportDetector {
      * ExoPlayer query throws or is empty.
      */
     @NonNull
-    static List<DecoderInfo> queryFramework(final String mime) {
+    private static List<DecoderInfo> queryFramework(@NonNull final String mime) {
         final List<DecoderInfo> result = new ArrayList<>();
         final MediaCodecList codecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
         for (final android.media.MediaCodecInfo info : codecList.getCodecInfos()) {
@@ -296,7 +300,7 @@ public final class CodecSupportDetector {
     }
 
     private static boolean supportsType(final android.media.MediaCodecInfo info,
-                                        final String mime) {
+                                        @NonNull final String mime) {
         for (final String type : info.getSupportedTypes()) {
             if (type.equalsIgnoreCase(mime)) {
                 return true;
@@ -306,7 +310,7 @@ public final class CodecSupportDetector {
     }
 
     private static boolean supportsSize(final android.media.MediaCodecInfo info,
-                                        final String mime) {
+                                        @NonNull final String mime) {
         try {
             return info.getCapabilitiesForType(mime).getVideoCapabilities()
                     .areSizeAndRateSupported(PROBE_WIDTH, PROBE_HEIGHT, PROBE_FPS);

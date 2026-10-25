@@ -37,7 +37,7 @@ public class NewPipeSettingsSeedTest {
     }
 
     @Test
-    public void absentKeyDefersProbe() {
+    public void absentKeyDoesNotStartProbe() {
         assertFalse(NewPipeSettings.shouldStartProbe(null, STATIC_DEFAULT));
     }
 

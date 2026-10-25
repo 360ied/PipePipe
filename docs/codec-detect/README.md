@@ -138,9 +138,10 @@ guards; keep one for any future `MediaCapabilities` use.
    default, preserving any EC-3 value. Three guards, all required:
    (a) the launch guard is a pristine-set check — the probe only
    starts when the stored set still equals the static default
-   (true for fresh installs, where the `isFirstRun` path just
-   seeded it, and harmless for untouched upgrades holding the same
-   default; a post-seed `prefs.contains(...)` check would be
+   (an explicit user choice equal to the default is indistinguishable
+   and treated as pristine; true for fresh installs, where the
+   `isFirstRun` path just seeded it, and harmless for untouched
+   upgrades holding the same default; a post-seed `prefs.contains(...)` check would be
    vacuous, since `setDefaultValues` guarantees the key exists).
    A customized set is never probed, only marked done, so the
    retry in (c) cannot clobber an upgraded install's manual choice;
@@ -206,7 +207,8 @@ high resolutions only as VP9/AV1), so the gate is
   `setDefaultValues`, overwriting the static `[VP9]` default it
   just seeded — but only from a pristine stored set, so the
   `readAgain=true` backfill on later runs and upgraded installs'
-  manual choices can never be clobbered. Two races are handled, not hoped away:
+  manual choices can never be clobbered. Two races are narrowed to a
+  single-`apply()` window (best-effort, see §9 and §4c), not hoped away:
   a toggle made during the async probe window aborts the write
   (completion guard, see 4b), and a kill before the write leaves
   `codec_seed_done` unset so the next launch retries (see 4c).
@@ -236,7 +238,8 @@ high resolutions only as VP9/AV1), so the gate is
   `.../res/xml/video_audio_settings.xml:36-44`.
 - Seeding + seed guards:
   `.../settings/NewPipeSettings.java:97` (call site),
-  `.../settings/NewPipeSettings.java:104-182` (guards + helpers)
+  `.../settings/NewPipeSettings.java:127-187` (guards),
+  `.../settings/NewPipeSettings.java:196-213` (pure helpers)
   (pristine-set launch check, not the `isFirstRun`-from-prefs-emptiness
   derivation — a post-seed `prefs.contains(...)` check would be
   vacuous, since `setDefaultValues` guarantees the key exists).
@@ -272,7 +275,9 @@ Deviations from §4, recorded so the design stays truthful:
 
 - **Seed launch guard is a pristine-set check, not the
   `isFirstRun` flag.** `maybeSeedCodecSupport` probes only when
-  the stored set still equals the static default (fresh installs
+  the stored set still equals the static default — an explicit choice
+  equal to the default is indistinguishable and treated as pristine —
+  (fresh installs
   after seeding, or untouched upgrades holding the same default);
   anything else is marked done without probing. A pure
   `isFirstRun` guard would clobber an upgraded install's
