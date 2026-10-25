@@ -196,6 +196,22 @@ public class CodecSupportDetectorTest {
     }
 
     @Test
+    public void detectSyncCarries60FpsAdvisory() {
+        final Map<String, CodecSupportDetector.DetectionResult> results =
+                CodecSupportDetector.detectSync(
+                        mime -> Collections.singletonList(hwNo60("c2.vp9.dec")),
+                        mime -> {
+                            throw new AssertionError("framework must not be queried");
+                        });
+        assertTrue(CodecSupportDetector.isChecked(
+                results.get(CodecSupportDetector.TOGGLE_VP9)));
+        assertTrue(CodecSupportDetector.shows60FpsAdvisory(
+                results.get(CodecSupportDetector.TOGGLE_VP9)));
+        assertEquals("c2.vp9.dec", results.get(
+                CodecSupportDetector.TOGGLE_VP9).getDecoderName());
+    }
+
+    @Test
     public void detectionResultRecordsTestedSize() {
         final CodecSupportDetector.DetectionResult result =
                 CodecSupportDetector.evaluate(

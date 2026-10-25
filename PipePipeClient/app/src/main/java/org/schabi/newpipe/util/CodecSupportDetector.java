@@ -145,7 +145,8 @@ public final class CodecSupportDetector {
 
         /**
          * Whether the backing decoder passes the advisory 2160p60 probe.
-         * Informational only: the enable gate uses 2160p30.
+         * Meaningful only when {@code getSupport() == SUPPORTED_HW} (always
+         * {@code false} otherwise); the enable gate uses 2160p30.
          */
         public boolean getSupports2160p60() {
             return supports2160p60;
