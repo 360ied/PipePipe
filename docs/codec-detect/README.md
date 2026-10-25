@@ -2,7 +2,8 @@
 
 Why `Enable advanced formats` is manual today, what a `Detect`
 button would query, and how to add it without silently overriding
-the user's choices.
+the user's choices. Covers the VP9/AV01 video toggles only —
+EC-3 is out of scope (decided, see 8).
 
 - Scope: `PipePipeClient/app/src/main` (settings screen + a new
   detector helper + stream filtering call sites, unchanged).
@@ -22,12 +23,14 @@ can't decode and ExoPlayer fails at render time, which is exactly
 what the preference summary warns about.
 
 Proposal: add a `Detect supported formats` button directly under the
-preference. It queries device decoders (ExoPlayer's
-`MediaCodecUtil` as source of truth, framework `MediaCodecList` as
-fallback), maps the result onto the three toggles, and presents the
-outcome in a confirm dialog — the user reviews and applies, nothing
-is overwritten silently. The filtering call sites stay untouched;
-only the stored set changes.
+preference, plus a first-run auto-seed (decided, see 8). Both query
+device decoders (ExoPlayer's `MediaCodecUtil` as source of truth,
+framework `MediaCodecList` as fallback) and map the result onto the
+VP9/AV01 toggles. The button presents the outcome in a confirm
+dialog — the user reviews and applies, nothing is overwritten
+silently; the first-run seed writes once when no stored set exists
+and never touches it again. The filtering call sites stay untouched;
+only the stored set changes. EC-3 is left exactly as-is.
 
 ## 2. Current behavior (evidence)
 
@@ -70,13 +73,16 @@ without new dependencies or version guards:
 |---|---|---|
 | `VP9` | `video/x-vnd.on2.vp9` | Hardware ubiquitous since ~2016; still worth checking. |
 | `AV01` | `video/av01` | Framework software decoder exists from Android 10, hardware varies. Presence ≠ usable 4K. |
-| `EC-3` | `audio/eac3` | Dolby Digital Plus. Presence covers decode; passthrough-to-TV is a separate question (see 5.3). |
+
+Out of scope: `EC-3` (`audio/eac3`) — the detector never reads nor
+writes it; the toggle keeps its static default and manual behavior
+(decided, see 8).
 
 Two query layers, in priority order:
 
 1. **ExoPlayer `MediaCodecUtil` / `MediaCodecSelector.DEFAULT`** —
    answers "what would the actual renderer pick", consistent with
-   `CustomRenderersFactory`. Preferred source of truth.
+   `CustomRenderersFactory`. Decided source of truth (see 8).
 2. **Framework `android.media.MediaCodecList.getCodecInfos()`** —
    filter `!isEncoder()`, check `getSupportedTypes()`. Fallback and
    unit-test seam (inject a fake codec list; no device needed).
@@ -93,49 +99,65 @@ future `MediaCapabilities` use.
    testable, no Android-preference coupling:
    `detect(Set<String> mimes) -> Map<String, CodecSupport>` where
    `CodecSupport = { SUPPORTED_HW, SUPPORTED_SW_ONLY, UNSUPPORTED }`
-   plus the backing decoder name for the dialog/debug log. Video
-   entries additionally record the max tested size (1080p/2160p,
-   per the decided gate in 8). Runs off the UI thread (decoder
-   enumeration is slow on some devices); result posted back to the
-   settings fragment.
+   plus the backing decoder name for the dialog/debug log. Mapping
+   (decided, see 8): only `SUPPORTED_HW` at 2160p checks the box —
+   `SUPPORTED_SW_ONLY` is reported distinctly (⚠ row in the dialog)
+   but maps to unchecked. Video entries record the tested size,
+   fixed at 2160p30 (`areSizeAndRateSupported(3840, 2160, 30)`).
+   Runs off the UI thread (decoder enumeration is slow on some
+   devices); result posted back to the caller.
 2. **New `Preference` row** `detect_codecs_key` immediately below
    `advanced_formats_key` in `video_audio_settings.xml`
    (`title ~ "Detect supported formats"`, `summary ~ "Check which
    advanced formats this device can decode"`). Tapping it runs the
    detector and opens a confirm dialog, not a silent write.
-3. **Confirm dialog (the anti-footgun).** Shows one row per toggle
-   with detected state (`VP9 ✓ hardware`, `AV1 ⚠ software only`,
-   `EC-3 ✗ missing`, …) and checkboxes pre-set to the detected
-   recommendation. `Apply` writes the set to
-   `advanced_formats_key`; `Cancel` writes nothing. Re-running
-   detection never auto-modifies the stored set — a user who
-   manually forced AV1 off (battery) or on (knows better than the
-   probe) keeps their choice until they press `Apply`.
-4. **Explicitly unchanged:** the `contains()` gates in
-   `VideoStreamSelector` / `StreamFilters`, the `[VP9]` XML default,
-   `NewPipeSettings` seeding, and the `MIGRATION_8_9` HEVC cleanup.
-   The button only produces a better-informed stored set.
+3. **Confirm dialog (the anti-footgun).** Shows one row per video
+   toggle with detected state (`VP9 ✓ hardware`,
+   `AV1 ⚠ software only → off`, …) and checkboxes pre-set to the
+   detected recommendation. `Apply` writes the VP9/AV01 entries of
+   the set to `advanced_formats_key`, preserving any stored EC-3
+   value; `Cancel` writes nothing. Re-running detection never
+   auto-modifies the stored set — a user who manually forced AV1
+   off (battery) or on (knows better than the probe) keeps their
+   choice until they press `Apply`.
+4. **First-run auto-seed (decided, see 8).** On first run
+   (`NewPipeSettings` init, `isFirstRun` path, after the
+   `setDefaultValues` seeding), run the detector once off the UI
+   thread and write its VP9/AV01 result over the static `[VP9]`
+   default, preserving any EC-3 value. Guard: only when the user
+   has never touched the preference (first run implies this; a
+   defensive `prefs.contains(advanced_formats_key)` check costs
+   nothing). Later runs never re-seed — manual choices win
+   forever after. Until the async probe completes, readers see the
+   static default, which is the safe subset anyway.
+5. **Explicitly unchanged:** the `contains()` gates in
+   `VideoStreamSelector` / `StreamFilters` (including the EC-3
+audio gate), the `[VP9]` XML default, and the `MIGRATION_8_9`
+   HEVC cleanup. The button + seed only produce a
+   better-informed stored set.
 
 ## 5. Edge cases and trade-offs
 
 - **Software decoder ≠ usable (the big one).** Android 10+ ships a
   software AV1 decoder, so a naive presence check reports AV1
   "supported" on devices that render 4K AV1 as a slideshow. The
-  detector must tier hardware vs. software (`isHardwareAccelerated`)
-  and report `SUPPORTED_SW_ONLY` distinctly; whether SW-only maps
-  to checked or unchecked is a decision (see 8).
-- **Resolution gate for video.** `advanced_formats` exists largely to
-  unlock 2K/4K (YouTube serves high resolutions only as VP9/AV1).
-  A decoder that handles 1080p VP9 but not 2160p VP9 argues for
-  different gates per height; simplest coherent rule is one gate per
-  codec at 2160p (`areSizeAndRateSupported(3840, 2160, 30)`), with
-  1080p as the fallback question. Decide one threshold, record the
-  tested size in the result.
-- **EC-3 passthrough vs. decode.** A phone may lack an `audio/eac3`
-  decoder yet pass the bitstream to a TV/soundbar over HDMI/ARC —
-  or list a decoder that OEM-broke. Presence is the best cheap
-  signal; document that the EC-3 row means "decoder present", not
-  "surround verified end-to-end".
+  detector tiers hardware vs. software (`isHardwareAccelerated`)
+  and reports `SUPPORTED_SW_ONLY` distinctly. Decided (see 8):
+  SW-only maps to **unchecked** — enable only what plays smoothly.
+- **Resolution gate for video: 2160p (decided, see 8).**
+  `advanced_formats` exists largely to unlock 2K/4K (YouTube serves
+high resolutions only as VP9/AV1), so the gate is
+  `areSizeAndRateSupported(3840, 2160, 30)` per codec. A decoder
+  that handles 1080p but not 2160p leaves its toggle off — safe
+  direction (fewer streams offered, never a broken one). The tested
+  size is recorded in the result and shown in the dialog.
+- **EC-3 out of scope (decided, see 8).** The detector never reads
+  nor writes the `EC-3` entry: the button dialog shows video rows
+  only, and both the dialog `Apply` and the first-run seed preserve
+  whatever EC-3 value is stored. Rationale: an unused feature with
+  a passthrough-vs-decode ambiguity (a phone may lack an
+  `audio/eac3` decoder yet pass the bitstream to a TV/soundbar)
+  is not worth probing.
 - **Lying/broken decoders.** The app already carries MediaCodec
   workarounds (`CustomMediaCodecVideoRenderer` forces the
   setOutputSurface workaround; ExoPlayer async-queueing toggle in
@@ -146,22 +168,28 @@ future `MediaCapabilities` use.
   take hundreds of ms; run on a background thread with a small
   progress indicator on the preference row, cache nothing
   (decoders don't change without an OS update; re-probe per tap).
-- **No silent first-run seeding (proposed).** Tempting, but it
-  fights `setDefaultValues(readAgain=true)` ordering and removes
-  the user's chance to learn what the toggles mean. Button-only
-  keeps migration story trivial: no new `PipePipeMigrations`
-  entry, no version bump.
+- **First-run seed ordering.** It runs after `setDefaultValues`
+  in the `isFirstRun` path, overwriting the static `[VP9]` default
+  it just seeded — guarded to first run only, so the
+  `readAgain=true` backfill on later runs can never clobber a
+  manual choice. The probe is async; streams code reading the key
+  meanwhile sees the safe static default. No new
+  `PipePipeMigrations` entry needed (first-run path, not a
+  versioned migration).
 
 ## 6. Verification
 
 - Unit tests (no device): fake codec list → mapping
-  `VP9-HW + AV1-SW-only + no-EAC3` yields `{VP9: HW, AV01:
-  SW_ONLY, EC-3: UNSUPPORTED}`; empty list → all unsupported;
-  ExoPlayer-vs-framework disagreement prefers ExoPlayer.
+  `VP9-HW + AV1-SW-only` yields `{VP9: HW → checked, AV01:
+  SW_ONLY → unchecked}`; empty list → all unchecked but stored
+  EC-3 preserved; ExoPlayer-vs-framework disagreement prefers
+  ExoPlayer.
 - Manual: on a VP9-only device, tap `Detect` → dialog proposes
   `[VP9]` only → `Apply` → stored set equals proposal; on an AV1
   device → proposes `[VP9, AV01]`; re-run after manually toggling
-  does not change the stored set until `Apply`.
+  does not change the stored set until `Apply`; fresh install on
+  an AV1 device seeds `[VP9, AV01]` without opening settings;
+  fresh install preserves the EC-3 default (off) in both cases.
 - Gate: `./scripts/check.sh` fast gate from the feature worktree
   (this doc itself is standalone `docs/` and needs no gate).
 
@@ -177,21 +205,21 @@ future `MediaCapabilities` use.
 - Build constraints: `PipePipeClient/app/build.gradle:47-53,206`
   (`minSdk 30`, ExoPlayer `2.18.7`).
 
-## 8. Decisions (open)
+## 8. Decisions (resolved 2026-10-25)
 
-- **SW-only video counts as supported?** Options: (a) unchecked —
-  safe, matches "enable only what plays smoothly"; (b) checked with
-  ⚠ label — user's call. Leaning (a) for AV1 given 4K software
-  decode cost.
-- **Resolution gate height:** 1080p (lenient, more devices light up)
-  vs. 2160p (strict, matches the 2K/4K motivation). Leaning 2160p
-  for VP9/AV1 with the tested size shown in the dialog.
-- **EC-3 row semantics:** decoder presence only (cheap, honest) vs.
-  attempting passthrough detection (expensive, fragile). Leaning
-  presence-only with dialog wording to match.
-- **ExoPlayer vs. framework as primary:** leaning ExoPlayer
-  (`MediaCodecUtil`) primary, framework fallback — renderer
-  consistency wins.
-- **Button-only vs. first-run auto-seed:** leaning button-only (no
-  migration, no silent overwrite); revisit if user testing shows
-  nobody finds the button.
+- **SW-only video counts as supported? No.** SW-only maps to
+  unchecked — enable only what plays smoothly. The dialog still
+  shows the ⚠ row so the user can override manually.
+- **Resolution gate height: 2160p.**
+  `areSizeAndRateSupported(3840, 2160, 30)` per codec; tested size
+  recorded and shown in the dialog.
+- **EC-3: out of scope.** Detector never reads nor writes the
+  `EC-3` entry; dialog `Apply` and first-run seed both preserve
+  the stored value. Unused feature, not worth probing.
+- **ExoPlayer vs. framework as primary: ExoPlayer.**
+  `MediaCodecUtil` / `MediaCodecSelector.DEFAULT` primary
+  (renderer consistency), framework `MediaCodecList` fallback and
+  unit-test seam.
+- **Button-only vs. first-run auto-seed: both.** Button for
+  re-detection plus a one-time seed on first run (guarded so
+  manual choices are never overwritten afterwards).
