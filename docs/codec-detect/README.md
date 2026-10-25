@@ -9,7 +9,7 @@ EC-3 is out of scope (decided, see 8).
   detector helper + stream filtering call sites, unchanged).
 - Audited: 2026-10-25, `main` (revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **proposal** (not implemented).
+- Status: **implemented** (`feat/codec-detect`).
 
 ## 1. Summary
 
@@ -134,10 +134,14 @@ guards; keep one for any future `MediaCapabilities` use.
    `setDefaultValues` seeding), run the detector once off the UI
    thread and write its VP9/AV01 result over the static `[VP9]`
    default, preserving any EC-3 value. Three guards, all required:
-   (a) the launch guard is the `isFirstRun` local
-   (`NewPipeSettings.java:47-60`, derived from prefs-emptiness
-   before seeding — a post-seed `prefs.contains(...)` check would
-   be vacuous, since `setDefaultValues` guarantees the key exists);
+   (a) the launch guard is a pristine-set check — the probe only
+   starts when the stored set still equals the static default
+   (true for fresh installs, where the `isFirstRun` path just
+   seeded it, and harmless for untouched upgrades holding the same
+   default; a post-seed `prefs.contains(...)` check would be
+   vacuous, since `setDefaultValues` guarantees the key exists).
+   A customized set is never probed, only marked done, so the
+   retry in (c) cannot clobber an upgraded install's manual choice;
    (b) a completion guard re-checks at write time and aborts if
    the value changed since launch, so a user fast enough to toggle
    during the probe window is never clobbered; (c) durability via
@@ -196,11 +200,11 @@ high resolutions only as VP9/AV1), so the gate is
   take hundreds of ms; run on a background thread with a small
   progress indicator on the preference row, cache nothing
   (decoders don't change without an OS update; re-probe per tap).
-- **First-run seed ordering and races.** The seed launches in the
-  `isFirstRun` path after `setDefaultValues`, overwriting the
-  static `[VP9]` default it just seeded — guarded to first run
-  only, so the `readAgain=true` backfill on later runs can never
-  clobber a manual choice. Two races are handled, not hoped away:
+- **First-run seed ordering and races.** The seed launches after
+  `setDefaultValues`, overwriting the static `[VP9]` default it
+  just seeded — but only from a pristine stored set, so the
+  `readAgain=true` backfill on later runs and upgraded installs'
+  manual choices can never be clobbered. Two races are handled, not hoped away:
   a toggle made during the async probe window aborts the write
   (completion guard, see 4b), and a kill before the write leaves
   `codec_seed_done` unset so the next launch retries (see 4c).

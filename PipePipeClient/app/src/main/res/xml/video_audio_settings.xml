@@ -43,6 +43,13 @@
             app:singleLineTitle="false"
             app:iconSpaceReserved="false" />
 
+    <Preference
+            android:key="@string/detect_codecs_key"
+            android:title="@string/detect_codecs_title"
+            android:summary="@string/detect_codecs_summary"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false" />
+
     <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="@string/pin_video_to_top_key"

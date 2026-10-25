@@ -3,16 +3,25 @@ package org.schabi.newpipe.settings;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.util.CodecSupportDetector;
 import org.schabi.newpipe.util.DeviceUtils;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
 
@@ -40,6 +49,8 @@ import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
  * Helper class for global settings.
  */
 public final class NewPipeSettings {
+    private static final String TAG = "NewPipeSettings";
+
     private NewPipeSettings() { }
 
     public static void initSettings(final Context context) {
@@ -83,8 +94,80 @@ public final class NewPipeSettings {
         PreferenceManager.setDefaultValues(context, R.xml.sponsor_block_settings, true);
         PreferenceManager.setDefaultValues(context, R.xml.advanced_settings, true);
 
+        maybeSeedCodecSupport(context);
+
         saveDefaultVideoDownloadDirectory(context);
         saveDefaultAudioDownloadDirectory(context);
+    }
+
+    /**
+     * One-time seed of the {@code advanced_formats} VP9/AV01 toggles from the device's
+     * actual decoders, run off the UI thread. The static {@code [VP9]} default stays as
+     * the safe value until the probe lands; playback menus rebuild per video, so the
+     * window is self-healing.
+     *
+     * <p>Three guards protect manual choices, all required:
+     * <ol>
+     * <li>Launch guard: the probe only starts from a pristine stored set (a fresh
+     * install still holding the static default, or an untouched upgrade). A customized
+     * set is never probed; it is just marked done.</li>
+     * <li>Completion guard: at write time the current set must still equal the launch
+     * snapshot, so a toggle made during the async probe window is never clobbered.</li>
+     * <li>Durability: {@code codec_seed_done} is written only on completion. The prefs
+     * already exist by the second launch (so {@code isFirstRun} is false), therefore a
+     * kill inside the probe window retries whenever the flag is absent.</li>
+     * </ol>
+     * </p>
+     */
+    private static void maybeSeedCodecSupport(final Context context) {
+        final SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        final String seedDoneKey = context.getString(R.string.codec_seed_done_key);
+        if (prefs.getBoolean(seedDoneKey, false)) {
+            return;
+        }
+        final String formatsKey = context.getString(R.string.advanced_formats_key);
+        final Set<String> staticDefault = new HashSet<>(Arrays.asList(
+                context.getResources()
+                        .getStringArray(R.array.default_advanced_formats_values)));
+        final Set<String> launchSnapshot = copyStringSet(prefs.getStringSet(formatsKey, null));
+        if (!launchSnapshot.equals(staticDefault)) {
+            // Customized set (upgraded install, or a choice made before seeding):
+            // never overwrite it, just record that seeding is done.
+            prefs.edit().putBoolean(seedDoneKey, true).apply();
+            return;
+        }
+        final Context appContext = context.getApplicationContext();
+        Completable.fromAction(() -> seedCodecSupportSync(
+                        appContext, formatsKey, seedDoneKey, launchSnapshot))
+                .subscribeOn(Schedulers.io())
+                .subscribe(() -> {
+                }, error -> Log.w(TAG, "Codec seed failed", error));
+    }
+
+    private static void seedCodecSupportSync(final Context context,
+                                             final String formatsKey,
+                                             final String seedDoneKey,
+                                             final Set<String> launchSnapshot) {
+        final Map<String, CodecSupportDetector.DetectionResult> results =
+                CodecSupportDetector.detectSync();
+        final SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        final Set<String> current = copyStringSet(prefs.getStringSet(formatsKey, null));
+        final SharedPreferences.Editor editor = prefs.edit();
+        if (current.equals(launchSnapshot)) {
+            editor.putStringSet(formatsKey, CodecSupportDetector.applyToStoredSet(current,
+                    CodecSupportDetector.isChecked(
+                            results.get(CodecSupportDetector.TOGGLE_VP9)),
+                    CodecSupportDetector.isChecked(
+                            results.get(CodecSupportDetector.TOGGLE_AV1))));
+        }
+        editor.putBoolean(seedDoneKey, true);
+        editor.apply();
+    }
+
+    private static Set<String> copyStringSet(@Nullable final Set<String> value) {
+        return value == null ? new HashSet<>() : new HashSet<>(value);
     }
 
     static void saveDefaultVideoDownloadDirectory(final Context context) {

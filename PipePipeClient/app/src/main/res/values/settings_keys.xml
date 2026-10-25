@@ -1263,6 +1263,8 @@
     <string name="require_audio_focus_key">require_audio_focus_key</string>
 
     <string name="advanced_formats_key">advanced_formats_key</string>
+    <string name="detect_codecs_key">detect_codecs_key</string>
+    <string name="codec_seed_done_key">codec_seed_done_key</string>
     <string name="preferred_audio_language_key">preferred_audio_language_key</string>
     <string name="filter_by_keyword_key">filter_by_keyword_key</string>
     <string name="pin_video_to_top_key">pin_video_to_top_key</string>
