@@ -109,7 +109,7 @@ No `.SF` / `.MF` / `.RSA` — the APK is signed with v2/v3 signatures only (APK 
 
 ## 3. Deep Dive: Dalvik Executable Bytecode (`classes.dex`)
 
-[`classes.dex`](../../PipePipeClient/app/build/outputs/apk/release/NanoPipe_v0.2.0-release.apk) is nearly two-thirds of the package at **9.23 MiB**, stored uncompressed (zip method 0). DEX 039 is retained.
+`classes.dex` is nearly two-thirds of the package at **9.23 MiB**, stored uncompressed (zip method 0). DEX 039 is retained.
 
 ```mermaid
 pie title classes.dex Input Class Census (10,176 R8 Input Classes)
@@ -123,6 +123,8 @@ pie title classes.dex Input Class Census (10,176 R8 Input Classes)
     "Google (non-player)" : 510
     "Other" : 476
 ```
+
+Pie buckets group table rows as follows: App + Extractor + Giga = `org.schabi.*` + `us.shandian.*`; AndroidX (non-Compose) = all `androidx.*` except `compose` (703 of its classes sit in the table's Other tail); Crypto/parsing/text = BouncyCastle + jsoup + prettytime + commonmark (51 in Other); Networking & IO = RxJava + okhttp3/okio + Markwon; Google (non-player) = Material + Guava + 1 other `com.google.*` class.
 
 ### Low-Level DEX Header Metrics
 
@@ -142,7 +144,7 @@ Extracted directly from the binary DEX 039 header:
 
 ### Class Retention Census by Dependency Package
 
-R8 minification and tree shaking (`minifyEnabled = true`) records **10,176 input classes** (9,259 class definitions survive into the final DEX header) and 520,987 method-mapping entries in [`mapping.txt`](../../PipePipeClient/app/build/outputs/mapping/release/mapping.txt) (R8 9.2.14, `min_api: 30`). Method mappings are counted as indented `->` entries carrying a method signature, excluding 5,019 field entries and R8 `#` diagnostic lines. Note the build sets `-dontobfuscate` in [`proguard-rules.pro`](../../PipePipeClient/app/proguard-rules.pro), so names are kept readable — shrinking still applies, and the ~9:1 ratio of input method entries to retained references is the normal shape of a shaken commercial-size DEX:
+R8 minification and tree shaking (`minifyEnabled = true`) records **10,176 input classes** (9,259 class definitions survive into the final DEX header) and 520,987 method-mapping entries in [`mapping.txt`](../../PipePipeClient/app/build/outputs/mapping/release/mapping.txt) (build-local output, gitignored; R8 9.2.14, `min_api: 30`). Method mappings are counted as indented `->` entries carrying a method signature, excluding 5,019 field entries and R8 `#` diagnostic lines. Note the build sets `-dontobfuscate` in [`proguard-rules.pro`](../../PipePipeClient/app/proguard-rules.pro), so names are kept readable — shrinking still applies, and the ~9:1 ratio of input method entries to retained references is the normal shape of a shaken commercial-size DEX. Unlike the mumla-oled reports, whose censuses count retained classes, the pie and table here count R8 input classes (pre-shake); the retained total is 9,259 class definitions:
 
 | Package Prefix | Input Classes | Mapped Method Entries | Dominant Role / Purpose |
 | :--- | :--- | :--- | :--- |
@@ -161,7 +163,7 @@ R8 minification and tree shaking (`minifyEnabled = true`) records **10,176 input
 | `androidx.work.*` | 204 | 12,255 | Background download workers |
 | `org.jsoup.*` | 200 | 11,506 | HTML parsing for extractors |
 | `com.google.common.*` | 188 | 4,189 | Guava (ExoPlayer transitive) |
-| `okhttp3.*` + `okio.*` | 245 | 25,305 | HTTP stack (182 + 63 classes, method-dense) |
+| `okhttp3.*` + `okio.*` | 245 | 25,305 | HTTP stack (182 + 63 classes) |
 | `androidx.room.*` | 143 | 7,024 | Local database (subscriptions, history) |
 | `org.acra.*` | 117 | 6,468 | Crash reporting (ACRA 5.13.1) |
 | `androidx.fragment.*` | 113 | 8,987 | Fragment lifecycle |
@@ -180,7 +182,7 @@ The direct analogue of mumla-oled's old BouncyCastle wildcard is in [`PipePipeCl
 -keep class com.google.android.exoplayer2.** { *; }
 ```
 
-All 2,037 ExoPlayer classes (pinned at 2.18.7 in [`build.gradle`](../../PipePipeClient/app/build.gradle#L236-L237), plus `extension-mediasession`) are retained unconditionally, including renderers, extractors for formats the app never plays, and upstream track-selection machinery. ExoPlayer resolves most components statically, so this wildcard is a far better stripping candidate than BouncyCastle's reflection-driven provider ever was — see optimization #4 in §6. Secondarily, `androidx.compose` (1,827 classes, 99,308 method entries — the largest per-package entry total) arrives via six Compose artifacts (four at 1.11.3, plus material3 1.4.0 and material-icons-extended 1.7.8), and `androidx.car.app` contributes 389 low-method-count API classes that deserve a keep-rule audit of their own.
+All 2,037 ExoPlayer classes (`exoPlayerVersion = '2.18.7'` in [`build.gradle`](../../PipePipeClient/app/build.gradle#L173), consumed at [L236–L237](../../PipePipeClient/app/build.gradle#L236-L237), plus `extension-mediasession`) are retained unconditionally, including renderers, extractors for formats the app never plays, and upstream track-selection machinery. ExoPlayer resolves most components statically, so this wildcard is a far better stripping candidate than BouncyCastle's reflection-driven provider ever was — see optimization #4 in §6. Secondarily, `androidx.compose` (1,827 classes, 99,308 method entries — the largest per-package entry total) arrives via six Compose artifacts (four at 1.11.3, plus material3 1.4.0 and material-icons-extended 1.7.8), and `androidx.car.*` contributes 389 low-method-count API classes that deserve a keep-rule audit of their own.
 
 BouncyCastle, by contrast, is a model citizen here: only **312 classes** are retained (the extractor's `bcprov-jdk18on:1.85` dependency in [`PipePipeExtractor/extractor/build.gradle`](../../PipePipeExtractor/extractor/build.gradle#L22), shaken normally with no wildcard keep). Its cost moved off-DEX into leaked data files — see §6.
 
@@ -223,7 +225,7 @@ There is **no app or extractor native code left**: per [`docs/ffmpeg-removal/REA
 ### Compiled Resource Table (`resources.arsc`)
 
 - **Size**: `2,680,776 bytes` (2.56 MiB), stored uncompressed (17.89% of total APK) — the **second-largest single entry** in the package.
-- Two compounding build choices inflate it: `shrinkResources false` ([`build.gradle`](../../PipePipeClient/app/build.gradle#L102), kept off to fix F-Droid's reproducible build) and **no `resourceConfigurations` language pruning**, so every upstream dependency's full string pool ships — AndroidX (AppCompat, Material, car-app, Work, Room), ExoPlayer (player-view strings in all locales), and ACRA each contribute hundreds of unreferenced localized strings. Mumla-oled's identical pruning (`["en", "fr", "zh-rCN"]`) is credited with an estimated 450–600 KB saving against the same dependency pool.
+- Two compounding build choices inflate it: `shrinkResources false` ([`build.gradle`](../../PipePipeClient/app/build.gradle#L102), kept off to fix F-Droid's reproducible build) and **no `resourceConfigurations` language pruning**, so every upstream dependency's full string pool ships — AndroidX (AppCompat, Material, car-app, Work, Room), ExoPlayer (player-view strings in all locales), and ACRA each contribute hundreds of unreferenced localized strings. Mumla-oled's identical pruning (`["en", "fr", "zh-rCN"]`) is credited with an estimated 450–600 KB saving against mumla-oled's dependency pool; the NanoPipe pool differs (ExoPlayer/Compose/car-app vs. humla/RNNoise), so the local saving is unmeasured — the same pruning pattern is proposed as #3 below.
 
 ### Application Resource Files (`res/`)
 
@@ -263,7 +265,7 @@ Non-code files from upstream Java dependencies leak into the APK root, totaling 
 2. **BouncyCastle localization bundles** (`13,513 B` comp, ~96 KB uncomp): `CertPathReviewerMessages[.de].properties` — the exact files mumla-oled flagged, still present here.
 3. **Protobuf descriptor sources** (`39,963 B` comp, ~120 KB uncomp): 12 `google/protobuf/*.proto` files (`descriptor.proto` alone is 15,951 B comp / 58,877 B uncomp) shipped by protobuf-java.
 4. **Kotlin reflection metadata** (`12,350 B` comp, ~53 KB uncomp): 8 `kotlin/*.kotlin_builtins` files.
-5. **License & misc trivia**: 7 AndroidX `LICENSE.txt` files (`24,941 B` comp / ~71 KB uncomp), `META-INF/jsoup/LICENSE` (661 B), `org/commonmark/.../entities.properties` (10,865 B), 100 AndroidX `.version` markers, `DebugProbesKt.bin`, `car-app-api.level`, `kotlin-tooling-metadata.json` (together these 4 root files are §2's Other row: `1,121 B` / `2,409 B`).
+5. **License & misc trivia**: 7 AndroidX `LICENSE.txt` files (`24,941 B` comp / ~71 KB uncomp), `META-INF/jsoup/LICENSE` (661 B), `org/commonmark/.../entities.properties` (10,865 B), 100 AndroidX `.version` markers, `DebugProbesKt.bin`, `car-app-api.level`, `kotlin-tooling-metadata.json` (together with `androidsupportmultidexversion.txt`, these 4 root files are §2's Other row: `1,121 B` / `2,409 B`).
 
 ---
 
