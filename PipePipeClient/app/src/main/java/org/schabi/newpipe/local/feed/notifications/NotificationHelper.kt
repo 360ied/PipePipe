@@ -80,7 +80,7 @@ class NotificationHelper(val context: Context) {
          * If this is the case, the app cannot create any notifications
          * and display them to the user.
          * <br>
-         * On Android 26 and above, notification channels are used by NewPipe.
+         * Notification channels are always used (minSdk 30).
          * These can be configured by the user, too.
          * The notification channel for new streams is also checked by this method.
          *

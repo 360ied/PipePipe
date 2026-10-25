@@ -18,7 +18,6 @@
 package org.schabi.newpipe.views;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -29,9 +28,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class NewPipeRecyclerView extends RecyclerView {
     private static final String TAG = "NewPipeRecyclerView";
-
-    private final Rect focusRect = new Rect();
-    private final Rect tempFocus = new Rect();
 
     private boolean allowDpadScroll = true;
 
@@ -95,18 +91,6 @@ public class NewPipeRecyclerView extends RecyclerView {
 
     @Override
     public boolean dispatchUnhandledMove(final View focused, final int direction) {
-        tempFocus.setEmpty();
-
-        // save focus rect before further manipulation (both focusSearch() and scrollBy()
-        // can mess with focused View by moving it off-screen and detaching)
-
-        if (focused != null) {
-            final View focusedItem = findContainingItemView(focused);
-            if (focusedItem != null) {
-                focusedItem.getHitRect(focusRect);
-            }
-        }
-
         // call focusSearch() to initiate layout, but disregard returned View for now
         final View adapterResult = super.focusSearch(focused, direction);
         if (adapterResult != null && !isOutside(adapterResult)) {

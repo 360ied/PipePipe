@@ -113,10 +113,7 @@ class ErrorUtil {
                     context,
                     context.getString(R.string.error_report_channel_id)
                 )
-                    .setSmallIcon(
-                        // the vector drawable icon causes crashes on KitKat devices
-                        R.drawable.ic_bug_report
-                    )
+                    .setSmallIcon(R.drawable.ic_bug_report)
                     .setContentTitle(context.getString(R.string.error_report_notification_title_new))
                     .setContentText(context.getString(errorInfo.messageStringId))
                     .setAutoCancel(true)
