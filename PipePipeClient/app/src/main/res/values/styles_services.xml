@@ -16,7 +16,7 @@
         <item name="colorAccent">@color/light_collector_accent_color</item>
     </style>
 
-    <style name="DarkTheme.Collector" parent="DarkTheme" >
+    <style name="DarkTheme.Collector" parent="DarkTheme">
         <item name="colorPrimary">@color/dark_collector_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_collector_statusbar_color</item>
         <item name="colorAccent">@color/dark_collector_accent_color</item>

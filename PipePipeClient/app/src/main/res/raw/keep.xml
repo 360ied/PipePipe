@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@style/LightTheme.*, @style/DarkTheme.*, @style/BlackTheme.*">
+    tools:keep="@style/LightTheme.*,@style/DarkTheme.*,@style/BlackTheme.*">
     <!-- Service themes resolved dynamically in ThemeHelper.getThemeStyleForService()
          via Resources.getIdentifier() with runtime-built names ("<Base>.<Service>",
          e.g. "DarkTheme.YouTube"). The resource shrinker cannot trace those strings,

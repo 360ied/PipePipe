@@ -303,9 +303,9 @@ This report is a frozen v0.2.0 baseline; the follow-up work below is recorded he
 | Report item | Implementation | Measured effect (unsigned release APK) |
 | :--- | :--- | :--- |
 | #1 Deflated DEX | `packaging.dex.useLegacyPackaging = true` | `classes.dex` 9,678,680 B STORED → 4,288,273 B DEFLATED |
-| #2 Picnic exclusion | `org/bouncycastle/pqc/legacy/picnic/**` + `**/CertPathReviewerMessages*.properties` (narrowed to the only pqc data files in bcprov 1.85) | `org/` leaks → 0 files |
+| #2 Picnic exclusion | `org/bouncycastle/pqc/legacy/picnic/**` + `**/CertPathReviewerMessages*.properties` (narrowed to the only pqc data files in bcprov 1.85) | `org/bouncycastle/` leaks → 0 files (`org/commonmark/…/entities.properties` retained — loaded by Markwon at runtime) |
 | #5 License/proto/builtins | `META-INF/**/LICENSE[.txt]`, `google/protobuf/*.proto` (all 12 top-level, verified in the jar), `**/*.kotlin_builtins` | → 0 files (only `META-INF/LICENSE.md`, 1 KB, remains) |
-| #3 Resource shrinking (partial, no locale pruning) | `shrinkResources true` + `android.nonFinalResIds=true` (required by R8 optimized shrinking; safe — the sole Java resource-`switch` uses framework `android.R`) | `resources.arsc` 2.68 → 1.62 MB; `res/` 1,559 → 1,089 entries |
+| #3 Resource shrinking (partial, no locale pruning) | `shrinkResources true` + `android.nonFinalResIds=true` (required for R8 optimized shrinking — the alternative is disabling it; safe — the sole Java `switch` with a resource-ID case label uses framework `android.R`) | `resources.arsc` 2.68 → 1.62 MB; `res/` 1,559 → 1,089 entries |
 
 **Result: 14.29 MiB (v0.2.0) → 6.67 MiB (−53%)**, verified by `aapt2 dump resources` on the rebuilt release APK.
 

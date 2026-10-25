@@ -124,12 +124,16 @@ android {
                     // APK size report §6 #2: legacy Picnic PQC matrices —
                     // dead weight, nothing instantiates Picnic keys. Narrowed
                     // to legacy/picnic (verified: the only pqc data files in
-                    // bcprov 1.85) so future PQC data files fail visible.
+                    // bcprov 1.85) so any future PQC data files stay visible
+                    // instead of silently breaking at runtime.
                     'org/bouncycastle/pqc/legacy/picnic/**',
                     '**/CertPathReviewerMessages*.properties',
                     // APK size report §6 #5: data-only files observed in the
                     // v0.2.0 APK, never loaded at runtime (no kotlin-reflect;
                     // protobuf descriptors are compiled into generated code).
+                    // The proto glob is single-level on purpose: all 12 protos
+                    // are top-level in protobuf-java 4.35.1, so a future subdir
+                    // addition stays visible in the next size audit.
                     'META-INF/**/LICENSE.txt',
                     'META-INF/**/LICENSE',
                     'google/protobuf/*.proto',
