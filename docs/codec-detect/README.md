@@ -9,7 +9,7 @@ EC-3 is out of scope (decided, see 8).
   detector helper + stream filtering call sites, unchanged).
 - Audited: 2026-10-25, `main` (revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **implementation complete** (`feat/codec-detect`; §6 manual device matrix pending).
+- Status: **implementation complete** (`feat/codec-detect`; §6 manual matrix and §10 advisory pending).
 
 ## 1. Summary
 
@@ -183,10 +183,11 @@ high resolutions only as VP9/AV1), so the gate is
   `audio/eac3` decoder yet pass the bitstream to a TV/soundbar)
   is not worth probing.
 - **Accepted limitations (stated, not solved).** The 2160p30 gate
-  probes size/rate only — 60 fps, 10-bit/VP9-P2/AV1-Main10
+  probes size/rate only — 10-bit/VP9-P2/AV1-Main10
   profiles, and HDR are not probed, matching the current
   family-level gate granularity; a decoder passing 2160p30 SDR is
-  assumed good enough. `allowBackup="true"`
+  assumed good enough. 60 fps is probed separately as an advisory
+  hint, never as a gate (see §10). `allowBackup="true"`
   (`AndroidManifest.xml:53`) means a cloud restore suppresses the
   seed on a new device and can carry a stale set — accepted, the
   Detect button is the remedy. New button/dialog strings need
@@ -258,6 +259,11 @@ high resolutions only as VP9/AV1), so the gate is
 - **Resolution gate height: 2160p.**
   `areSizeAndRateSupported(3840, 2160, 30)` per codec; tested size
   recorded and shown in the dialog.
+- **2160p60: advisory, not a gate (decided 2026-10-25).**
+  Probed alongside 2160p30 and surfaced as a dialog hint
+  (`4K60 may stutter`); the checkbox follows the 2160p30 result
+  only. Gating on 60 would hide 4K30/1080p60-capable formats that
+  play fine.
 - **EC-3: out of scope.** Detector never reads nor writes the
   `EC-3` entry; dialog `Apply` and first-run seed both preserve
   the stored value. Unused feature, not worth probing.
@@ -310,7 +316,25 @@ Deviations from §4, recorded so the design stays truthful:
   user's favor.
 - **Verification status.** Unit tests, `lintDebug`, and
   `assembleDebug` pass (`./scripts/check.sh --full` from the
-  worktree, 7/7 new tests green). The §6 manual matrix
+  worktree, 17/17 tests green). The §6 manual matrix
   (VP9-only vs. AV1 device dialogs, fresh-install seed) has not
   been run — no device in this environment — and should precede
   merge.
+
+## 10. Follow-up: 2160p60 advisory (proposed, not implemented)
+
+Gate on 30, report 60 as advisory:
+
+- Probe `areSizeAndRateSupported(3840, 2160, 60)` alongside the
+  2160p30 gate in both queriers (microseconds against
+  already-enumerated caps); carry a `supports2160p60` flag into
+  `DetectionResult`.
+- Mapping unchanged: `SUPPORTED_HW` at 2160p30 checks the box. When
+  the same decoder fails 2160p60, suffix the HW dialog row, e.g.
+  `AV1: hardware decoding, tested 2160p30 (4K60 may stutter)`.
+- Phrasing stays a hint, never a verdict: declared caps are
+  conservative on some SoCs and optimistic on lying ones, and
+  bitrate/10-bit/HDR can still break a blessed stream. Never a
+  second gate.
+- Tests: advisory flag set/unset mapping, suffix present/absent,
+  gate behavior unchanged (a 4K60-fail with 4K30 HW still enables).
