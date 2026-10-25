@@ -214,12 +214,14 @@ public final class VideoStreamSelector {
      * by {@link #normalizeResolutionVariantKey}.
      */
     private static String normalizeResolutionKey(@NonNull final String raw) {
-        // CASE-insensitive removal after the "p" (or mapping of a UHD prefix).
-        final Matcher uhd = UHD_PREFIX_PATTERN.matcher(raw);
+        // Trimmed so " 720p" keys with "720p"; CASE-insensitive removal after
+        // the "p" (or mapping of a UHD prefix).
+        final String text = raw.trim();
+        final Matcher uhd = UHD_PREFIX_PATTERN.matcher(text);
         if (uhd.matches()) {
             return uhd.group(1).equalsIgnoreCase("4K") ? "2160p" : "4320p";
         }
-        return RESOLUTION_SUFFIX_PATTERN.matcher(raw).replaceAll("p");
+        return RESOLUTION_SUFFIX_PATTERN.matcher(text).replaceAll("p");
     }
 
     /**
@@ -228,24 +230,29 @@ public final class VideoStreamSelector {
      * (4K60 becomes 2160p60, 4K HFR becomes 2160p).
      */
     private static String normalizeResolutionVariantKey(@NonNull final String raw) {
-        // Lowercased so variant matching is case-insensitive (720P60 == 720p60).
-        final Matcher uhd = UHD_PREFIX_PATTERN.matcher(raw);
+        // Trimmed and lowercased so variant matching is case-insensitive
+        // (720P60 == 720p60) and whitespace-insensitive.
+        final String text = raw.trim();
+        final Matcher uhd = UHD_PREFIX_PATTERN.matcher(text);
         if (uhd.matches()) {
             final String base =
                     uhd.group(1).equalsIgnoreCase("4K") ? "2160p" : "4320p";
             final Matcher fps = FPS_NUMBER_PATTERN.matcher(uhd.group(2));
             return fps.find() ? base + fps.group(1) : base;
         }
-        return RESOLUTION_VARIANT_SUFFIX_PATTERN.matcher(raw).replaceAll("$1")
+        return RESOLUTION_VARIANT_SUFFIX_PATTERN.matcher(text).replaceAll("$1")
                 .toLowerCase(Locale.ROOT);
     }
 
     @Nullable
     static String codecFamilyOf(@Nullable final String codec) {
-        if (codec == null || codec.isEmpty()) {
+        if (codec == null) {
             return null;
         }
-        final String normalized = codec.toLowerCase(Locale.ROOT);
+        final String normalized = codec.trim().toLowerCase(Locale.ROOT);
+        if (normalized.isEmpty()) {
+            return null;
+        }
         // No hev1/hvc1 branch: YouTube serves no HEVC, so such codecs (if any)
         // intentionally fall through and score lowest via the default branch.
         if (normalized.startsWith("av01")) {
@@ -303,8 +310,10 @@ public final class VideoStreamSelector {
 
         // User picked the best resolution key -> simply return the highest actual stream
         if (bestResolutionKey.equals(targetRes)) {
-            return streams.indexOf(
-                    Collections.max(streams, VideoStreamSelector::compareVideoStreamResolution));
+            final VideoStream best = Collections.max(streams,
+                    VideoStreamSelector::compareVideoStreamResolution);
+            // All-null lists have no best stream.
+            return best == null ? -1 : streams.indexOf(best);
         }
 
         final String normalizedTarget = normalizeResolutionKey(targetRes);
@@ -434,6 +443,8 @@ public final class VideoStreamSelector {
                 // Ignore lists that are null
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
+                // Ignore null elements like every other helper in this file
+                .filter(Objects::nonNull)
                 // Keep only streams whose container/codec survives the user's
                 // advanced-format toggles.
                 .filter(stream -> {
@@ -459,6 +470,9 @@ public final class VideoStreamSelector {
         // menu bucketing merges variants later.
         final HashMap<String, VideoStream> hashMap = new HashMap<>();
         for (final VideoStream videoStream : allInitialStreams) {
+            if (videoStream == null) {
+                continue;
+            }
             final String family = codecFamilyOf(videoStream.getCodec());
             final String key = Objects.toString(family, "") + "|"
                     + Objects.toString(videoStream.getResolution(), "")
@@ -513,9 +527,9 @@ public final class VideoStreamSelector {
      */
     @NonNull
     public static String heightLabelOf(@Nullable final String resolution) {
-        // Trimmed so " 720p" buckets with "720p"; UHD mapping lives in
-        // normalizeResolutionKey so bucketing and selection stay unified.
-        return normalizeResolutionKey(Objects.toString(resolution, "").trim());
+        // Trimming and UHD mapping live in normalizeResolutionKey so bucketing
+        // and selection stay unified.
+        return normalizeResolutionKey(Objects.toString(resolution, ""));
     }
 
     /**
@@ -660,7 +674,10 @@ public final class VideoStreamSelector {
     /** {@code "|id"} for a present audio track id, empty for null/blank ids. */
     @NonNull
     private static String trackSuffixOf(@Nullable final String trackId) {
-        return trackId != null && !trackId.trim().isEmpty() ? "|" + trackId : "";
+        // Trimmed: " en " keys with "en"; blank counts as no track so it can
+        // neither fork a bucket nor dangle a separator into its label.
+        return trackId != null && !trackId.trim().isEmpty()
+                ? "|" + trackId.trim() : "";
     }
 
     /**
@@ -705,17 +722,22 @@ public final class VideoStreamSelector {
     public static List<VideoStream> dropVideoOnlyWhenMuxedExists(
             @NonNull final List<VideoStream> streams) {
         final Set<String> muxedHeights = new HashSet<>();
+        final List<VideoStream> nonNullStreams = new ArrayList<>(streams.size());
         for (final VideoStream stream : streams) {
-            if (stream != null && !stream.isVideoOnly()) {
+            if (stream == null) {
+                continue;
+            }
+            nonNullStreams.add(stream);
+            if (!stream.isVideoOnly()) {
                 muxedHeights.add(heightLabelOf(stream.getResolution()));
             }
         }
         if (muxedHeights.isEmpty()) {
-            return new ArrayList<>(streams);
+            return nonNullStreams;
         }
-        final List<VideoStream> result = new ArrayList<>(streams.size());
-        for (final VideoStream stream : streams) {
-            if (stream != null && stream.isVideoOnly()
+        final List<VideoStream> result = new ArrayList<>(nonNullStreams.size());
+        for (final VideoStream stream : nonNullStreams) {
+            if (stream.isVideoOnly()
                     && muxedHeights.contains(heightLabelOf(stream.getResolution()))) {
                 continue;
             }

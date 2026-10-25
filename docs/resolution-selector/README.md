@@ -203,7 +203,9 @@ the vocabulary in section 3:
    falling back to the adaptive menu.
 6. Preference migration: the removed HEVC toggle is purged from
    stored `advanced_formats` sets by `MIGRATION_8_9` (preferences version 8 →
-   9); stale `HEVC`/`H265` tokens would otherwise linger forever.
+   9, i.e. `PipePipeMigrations.VERSION` keyed by
+   `last_used_pipepipe_preferences_version`); stale `HEVC`/`H265` tokens
+   would otherwise linger forever.
 
 ## 6. Edge cases and trade-offs
 
@@ -304,15 +306,15 @@ external-player dialog shows no duplicate labels; check downloads
 
 ## References
 
-- Menu + click/dismiss:
-  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:177-204,433-479,481-494`,
-  button gating: live `:279-299`, VOD `.../player/PlayerLayoutController.kt:300-317`.
+- Menu + click/dismiss/clear:
+  `PipePipeClient/app/src/main/java/org/schabi/newpipe/player/PlayerMenuController.kt:185-217,448-505,507-525,527-533`,
+  button gating: live `.../player/PlayerLayoutController.kt:281-301`, VOD `.../player/PlayerLayoutController.kt:303-335`.
 - Sorting/selection:
   `.../util/VideoStreamSelector.java:25-33,148-180,198-240,246-320,343-395,421-560,580-640`.
 - Resolver: `.../player/resolver/VideoPlaybackResolver.java:101-127` (inline audio-track filter), `:135-142` (consume), `:261-263` (store),
   `.../player/resolver/PlayerQualityResolver.kt:20-34`.
 - External dialog:
-  `.../fragments/detail/VideoDetailFragment.java:1956-1963,2441-2462`.
+  `.../fragments/detail/VideoDetailFragment.java:1956-1963,2441-2500` (snapshotted activity/info/url).
 - Downloads (out of scope):
   `.../download/DownloadDialog.java:160-180` (`newInstance(context, info)`),
   `.../util/StreamItemAdapter.java` (codec + resolution + size rows).

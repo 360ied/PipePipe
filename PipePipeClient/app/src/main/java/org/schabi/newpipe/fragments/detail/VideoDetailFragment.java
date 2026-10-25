@@ -1526,10 +1526,10 @@ public final class VideoDetailFragment
     private void startOnExternalPlayer(@NonNull final Context context,
                                        @NonNull final StreamInfo info,
                                        @NonNull final Stream selectedStream) {
-        NavigationHelper.playOnExternalPlayer(context, currentInfo.getName(),
-                currentInfo.getSubChannelName(), selectedStream);
+        NavigationHelper.playOnExternalPlayer(context, info.getName(),
+                info.getSubChannelName(), selectedStream);
 
-        final HistoryRecordManager recordManager = new HistoryRecordManager(requireContext());
+        final HistoryRecordManager recordManager = new HistoryRecordManager(context);
         disposables.add(recordManager.onViewed(info).onErrorComplete()
                 .subscribe(
                         ignored -> { /* successful */ },
@@ -2443,9 +2443,12 @@ public final class VideoDetailFragment
             return;
         }
         // Null-checked above; snapshotted for the dialog lambdas below, since the
-        // fragment may detach between show() and the click (requireActivity()
-        // would then throw).
+        // fragment may detach or navigate between show() and the click
+        // (requireActivity()/requireContext() would then throw, and live fields
+        // would mix the old dialog's streams with the new video's info).
         final Activity dialogActivity = activity;
+        final StreamInfo dialogInfo = currentInfo;
+        final String dialogUrl = url;
         // One row per resolution bucket, after preferred-language filtering (mirrors the
         // download path): this list is built with preferVideoOnlyStreams=false and no
         // audio-track filtering (unlike the player's), so dubbed-track variants would
@@ -2455,7 +2458,7 @@ public final class VideoDetailFragment
         // a muxed stream at the same height are dropped (external players need audio).
         final List<VideoStream> languageFiltered =
                 StreamFilters.filterVideoStreamsByPreferredLanguage(
-                        activity, sortedVideoStreams, currentInfo.getAudioStreams());
+                        dialogActivity, sortedVideoStreams, currentInfo.getAudioStreams());
         final List<VideoStream> distinctStreams =
                 VideoStreamSelector.getDistinctResolutionStreams(
                         VideoStreamSelector.dropVideoOnlyWhenMuxedExists(
@@ -2479,18 +2482,17 @@ public final class VideoDetailFragment
                 }
             }
         }
-        final AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+        final AlertDialog.Builder builder = new AlertDialog.Builder(dialogActivity)
                 .setNegativeButton(R.string.cancel, null)
-                // Capture the null-checked activity: the fragment may detach between
-                // show() and the click, when requireActivity() would throw.
                 .setNeutralButton(R.string.open_in_browser, (dialog, i) ->
-                        ShareUtils.openUrlInBrowser(dialogActivity, url)
+                        ShareUtils.openUrlInBrowser(dialogActivity, dialogUrl)
                 );
         // Maybe there are no video streams available, show just `open in browser` button
         if (resolutions.length > 0) {
             builder.setSingleChoiceItems(resolutions, checkedIndex, (dialog, i) -> {
                         dialog.dismiss();
-                        startOnExternalPlayer(activity, currentInfo, distinctStreams.get(i));
+                        startOnExternalPlayer(dialogActivity, dialogInfo,
+                                distinctStreams.get(i));
                     }
             );
         }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
@@ -83,7 +84,8 @@ public final class StreamFilters {
     public static <S extends Stream> List<S> removeTorrentStreams(
             @NonNull final List<S> streamList) {
         if (streamList.isEmpty()) {
-            return Collections.emptyList();
+            // Mutable: callers may append fallbacks to the result.
+            return new ArrayList<>();
         }
 
         final Iterator<S> streamListIterator = streamList.iterator();
@@ -127,12 +129,11 @@ public final class StreamFilters {
             final List<VideoStream> videoStreams,
             final List<AudioStream> audioStreams) {
         if (videoStreams == null || videoStreams.isEmpty()) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
         final boolean hasAudioTracks = videoStreams.stream()
                 .filter(Objects::nonNull)
-                .anyMatch(s -> s.getAudioTrackId() != null
-                        && !s.getAudioTrackId().trim().isEmpty());
+                .anyMatch(s -> !isTrackless(s.getAudioTrackId()));
         if (!hasAudioTracks) {
             return videoStreams;
         }
@@ -148,14 +149,21 @@ public final class StreamFilters {
         final String trackId = defaultTrackId;
         final List<VideoStream> result = new ArrayList<>();
         for (final VideoStream s : videoStreams) {
+            // Blank track ids count as trackless, matching bucketKeyOf/labels:
+            // universal streams must survive track-aware filtering.
             if (s != null && (trackId.equals(s.getAudioTrackId())
-                    || s.getAudioTrackId() == null)) {
+                    || isTrackless(s.getAudioTrackId()))) {
                 result.add(s);
             }
         }
         return result.isEmpty()
                 ? collapseAudioTrackVariants(videoStreams)
                 : collapseAudioTrackVariants(result);
+    }
+
+    /** Null or blank audio track ids count as trackless (universal streams). */
+    private static boolean isTrackless(@Nullable final String trackId) {
+        return trackId == null || trackId.trim().isEmpty();
     }
 
     // Package-private for tests.
@@ -168,6 +176,9 @@ public final class StreamFilters {
             // Codec family (not raw prefix, so vp9/vp09 collide) and trimmed
             // resolution; fps-variant granularity is preserved so the download
             // path loses no rows — resolution bucketing merges variants later.
+            // MediaFormat deliberately stays in the key: distinct containers are
+            // distinct download choices, and null-format HLS twins survive as
+            // separate delivery options (bucketing still merges them for menus).
             final String key = stream.getFormat() + "|"
                     + Objects.toString(
                     VideoStreamSelector.codecFamilyOf(stream.getCodec()), "")

@@ -418,6 +418,33 @@ public class VideoStreamSelectorTest {
     }
 
     @Test
+    public void bestKeyWithAllNullListResolvesToMissing() {
+        assertEquals(-1, VideoStreamSelector.getDefaultResolutionIndex(
+                "Best", "Best", Arrays.asList((VideoStream) null)));
+    }
+
+    @Test
+    public void sortedListSkipsNullElements() {
+        final List<VideoStream> sorted = VideoStreamSelector.getSortedStreamVideosList(
+                new HashSet<>(),
+                Arrays.asList(null, stream("720p", "avc1.64001f", 4000000)),
+                null, true, false);
+        assertEquals(1, sorted.size());
+        assertEquals("720p", sorted.get(0).getResolution());
+    }
+
+    @Test
+    public void dropVideoOnlyFiltersNulls() {
+        final List<VideoStream> result =
+                VideoStreamSelector.dropVideoOnlyWhenMuxedExists(Arrays.asList(
+                        null,
+                        stream("720p", "avc1.64001f", 3000000, MediaFormat.MPEG_4,
+                                false)));
+        assertEquals(1, result.size());
+        assertEquals("720p", result.get(0).getResolution());
+    }
+
+    @Test
     public void nullStreamsCompareEqual() {
         assertEquals(0, VideoStreamSelector.compareVideoStreamResolution(
                 (VideoStream) null, (VideoStream) null));
