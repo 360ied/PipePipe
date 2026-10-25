@@ -20,11 +20,7 @@ public class MediaButtonReceiver extends BroadcastReceiver {
             Intent serviceIntent = new Intent(context, serviceClass);
             serviceIntent.putExtras(intent.getExtras());
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent);
-            } else {
-                context.startService(serviceIntent);
-            }
+            context.startForegroundService(serviceIntent);
         }
     }
 }

@@ -20,7 +20,6 @@
 <string name="settings">Settings</string>
 <string name="did_you_mean">Did you mean \"%1$s\"?</string>
 <string name="search_showing_result_for">Showing results for: %s</string>
-<string name="share_dialog_title">Share with</string>
 <string name="subscribe_button_title">Subscribe</string>
 <string name="subscribed_button_title">Subscribed</string>
 <string name="unsubscribe">Unsubscribe</string>
@@ -243,9 +242,6 @@
 <string name="video">Video</string>
 <string name="audio">Audio</string>
 <string name="retry">Retry</string>
-<string name="short_thousand">k</string>
-<string name="short_million">M</string>
-<string name="short_billion">B</string>
 <!--Zero don't get selected (in some languages) as it is not a "special case" for android-->
 <string name="no_subscribers">No subscribers</string>
 <plurals name="subscribers">
@@ -702,8 +698,6 @@
 <string name="show_thumbnail_summary">Use thumbnail for both lock screen background and notifications</string>
 <string name="chapters">Chapters</string>
 <string name="no_app_to_open_intent">No app on your device can open this</string>
-<string name="no_appropriate_file_manager_message">No appropriate file manager was found for this action.
-\nPlease install a file manager or try to disable \'%s\' in the download settings</string>
 <string name="no_appropriate_file_manager_message_android_10">No appropriate file manager was found for this action.
 \nPlease install a Storage Access Framework compatible file manager</string>
 <string name="georestricted_content">This content is not available in your country.</string>

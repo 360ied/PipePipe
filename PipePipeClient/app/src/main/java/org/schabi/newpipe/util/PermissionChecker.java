@@ -24,25 +24,14 @@ public class PermissionChecker {
     // Check if the notification is enabled for this package
     private static boolean isNotificationEnabled(Context context) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            return notificationManager.areNotificationsEnabled();
-        } else {
-            // For older versions, you might want to check specific settings using Settings.Secure
-            return true; // Assuming it is enabled by default as you can't check on older versions
-        }
+        return notificationManager.areNotificationsEnabled();
     }
 
     // Intent to open the notification settings for this app
     private static void openNotificationSettings(Context context) {
         Intent intent = new Intent();
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-            intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.getPackageName());
-        } else {
-            intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
-            intent.putExtra("app_package", context.getPackageName());
-            intent.putExtra("app_uid", context.getApplicationInfo().uid);
-        }
+        intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+        intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.getPackageName());
         context.startActivity(intent);
     }
 }

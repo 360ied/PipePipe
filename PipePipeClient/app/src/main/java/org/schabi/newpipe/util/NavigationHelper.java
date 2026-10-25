@@ -7,7 +7,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -620,11 +619,7 @@ public final class NavigationHelper {
     }
 
     public static Intent getPlayQueueActivityIntent(final Context context) {
-        final Intent intent = new Intent(context, PlayQueueActivity.class);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        }
-        return intent;
+        return new Intent(context, PlayQueueActivity.class);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

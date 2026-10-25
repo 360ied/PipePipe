@@ -19,12 +19,9 @@ package org.schabi.newpipe.views;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.FocusFinder;
 import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -129,58 +126,12 @@ public class NewPipeRecyclerView extends RecyclerView {
             return true;
         }
 
-        if (tryFocusFinder(direction)) {
-            return true;
-        }
-
         if (adapterResult != null) {
             adapterResult.requestFocus(direction);
             return true;
         }
 
         return super.dispatchUnhandledMove(focused, direction);
-    }
-
-    private boolean tryFocusFinder(final int direction) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            // Android 9 implemented bunch of handy changes to focus, that render code below less
-            // useful, and also broke findNextFocusFromRect in way, that render this hack useless
-            return false;
-        }
-
-        final FocusFinder finder = FocusFinder.getInstance();
-
-        // try to use FocusFinder instead of adapter
-        final ViewGroup root = (ViewGroup) getRootView();
-
-        tempFocus.set(focusRect);
-
-        root.offsetDescendantRectToMyCoords(this, tempFocus);
-
-        final View focusFinderResult = finder.findNextFocusFromRect(root, tempFocus, direction);
-        if (focusFinderResult != null && !isOutside(focusFinderResult)) {
-            focusFinderResult.requestFocus(direction);
-            return true;
-        }
-
-        // look for focus in our ancestors, increasing search scope with each failure
-        // this provides much better locality than using FocusFinder with root
-        ViewGroup parent = (ViewGroup) getParent();
-
-        while (parent != root) {
-            tempFocus.set(focusRect);
-
-            parent.offsetDescendantRectToMyCoords(this, tempFocus);
-
-            final View candidate = finder.findNextFocusFromRect(parent, tempFocus, direction);
-            if (candidate != null && candidate.requestFocus(direction)) {
-                return true;
-            }
-
-            parent = (ViewGroup) parent.getParent();
-        }
-
-        return false;
     }
 
     private boolean arrowScroll(final int direction) {

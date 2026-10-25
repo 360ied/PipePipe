@@ -5,7 +5,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -66,13 +65,8 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
         prefStorageAsk = findPreference(downloadStorageAsk);
 
         final SwitchPreferenceCompat prefUseSaf = findPreference(storageUseSafPreference);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            getPreferenceScreen().removePreference(prefUseSaf);
-            prefStorageAsk.setSummary(R.string.downloads_storage_ask_summary_no_saf_notice);
-        } else {
-            prefUseSaf.setDefaultValue(true);
-            prefUseSaf.setChecked(NewPipeSettings.useStorageAccessFramework(ctx));
-        }
+        getPreferenceScreen().removePreference(prefUseSaf);
+        prefStorageAsk.setSummary(R.string.downloads_storage_ask_summary_no_saf_notice);
 
         updatePreferencesSummary();
         updatePathPickers(!defaultPreferences.getBoolean(downloadStorageAsk, false));

@@ -151,8 +151,8 @@ public class ErrorActivity extends AppCompatActivity {
                         if (targetUrl != null) {
                             Intent intent = new Intent(Intent.ACTION_VIEW);
                             intent.setData(Uri.parse(targetUrl));
-                            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
-                                    PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT : FLAG_UPDATE_CURRENT);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
+                                    PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT);
 
                             String channelId = getString(R.string.notification_channel_id);
 
@@ -169,12 +169,9 @@ public class ErrorActivity extends AppCompatActivity {
 
                             // Show the notification
                             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                            ;
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                // Define the notification channel
-                                NotificationChannel channel = new NotificationChannel(channelId, getString(R.string.error_match_notification_title), NotificationManager.IMPORTANCE_DEFAULT);
-                                notificationManager.createNotificationChannel(channel);
-                            }
+                            // Define the notification channel
+                            NotificationChannel channel = new NotificationChannel(channelId, getString(R.string.error_match_notification_title), NotificationManager.IMPORTANCE_DEFAULT);
+                            notificationManager.createNotificationChannel(channel);
 
                             notificationManager.notify(0, builder.build());
 
@@ -384,8 +381,7 @@ public class ErrorActivity extends AppCompatActivity {
     }
 
     private String getOsString() {
-        final String osBase = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                ? Build.VERSION.BASE_OS : "Android";
+        final String osBase = Build.VERSION.BASE_OS;
         return System.getProperty("os.name")
                 + " " + (osBase.isEmpty() ? "Android" : osBase)
                 + " " + Build.VERSION.RELEASE

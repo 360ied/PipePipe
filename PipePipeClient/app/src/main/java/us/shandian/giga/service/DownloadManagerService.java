@@ -18,7 +18,6 @@ import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.IBinder;
@@ -155,8 +154,7 @@ public class DownloadManagerService extends Service {
 
         mOpenDownloadList = PendingIntent.getActivity(this, 0,
                 openDownloadListIntent,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M?
-                        PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT : FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT);
 
         icLauncher = BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher);
 
@@ -257,21 +255,6 @@ public class DownloadManagerService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        /*
-        int permissionCheck;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            permissionCheck = PermissionChecker.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-            if (permissionCheck == PermissionChecker.PERMISSION_DENIED) {
-                Toast.makeText(this, "Permission denied (read)", Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        permissionCheck = PermissionChecker.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (permissionCheck == PermissionChecker.PERMISSION_DENIED) {
-            Toast.makeText(this, "Permission denied (write)", Toast.LENGTH_SHORT).show();
-        }
-        */
-
         return mBinder;
     }
 
@@ -554,8 +537,8 @@ public class DownloadManagerService extends Service {
 
     private PendingIntent makePendingIntent(String action) {
         Intent intent = new Intent(this, DownloadManagerService.class).setAction(action);
-        return PendingIntent.getService(this, intent.hashCode(), intent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.M?
-                PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT : FLAG_UPDATE_CURRENT);
+        return PendingIntent.getService(this, intent.hashCode(), intent,
+                PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT);
     }
 
     private void manageLock(boolean acquire) {

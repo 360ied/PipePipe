@@ -21,7 +21,6 @@ package org.schabi.newpipe.local.subscription.services;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.widget.Toast;
@@ -138,13 +137,8 @@ public abstract class BaseImportExportService extends Service {
                 .setProgress(maxProgress.get(), currentProgress.get(), maxProgress.get() == -1);
 
         final String progressText = currentProgress + "/" + maxProgress;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            if (!TextUtils.isEmpty(text)) {
-                notificationBuilder.setContentText(text + "  (" + progressText + ")");
-            }
-        } else {
-            notificationBuilder.setContentInfo(progressText);
-            notificationBuilder.setContentText(text);
+        if (!TextUtils.isEmpty(text)) {
+            notificationBuilder.setContentText(text + "  (" + progressText + ")");
         }
 
         notificationManager.notify(getNotificationId(), notificationBuilder.build());

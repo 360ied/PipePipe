@@ -2,7 +2,6 @@ package org.schabi.newpipe;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -328,7 +327,7 @@ public final class SharedWebViewRuntime {
                 public void onReceivedError(final WebView view, final WebResourceRequest request,
                                             final WebResourceError webError) {
                     super.onReceivedError(view, request, webError);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && request.isForMainFrame()) {
+                    if (request.isForMainFrame()) {
                         retryOrFail(attempt, new IllegalStateException(
                                 "WebView runtime main frame error " + webError.getErrorCode()
                                         + ": " + webError.getDescription()));

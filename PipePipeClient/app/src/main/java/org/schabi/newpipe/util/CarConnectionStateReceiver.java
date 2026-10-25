@@ -1,6 +1,5 @@
 package org.schabi.newpipe.util;
 import android.content.*;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.car.app.connection.CarConnection;
@@ -15,7 +14,7 @@ public class CarConnectionStateReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && CarConnection.ACTION_CAR_CONNECTION_UPDATED.equals(intent.getAction())) {
+        if (CarConnection.ACTION_CAR_CONNECTION_UPDATED.equals(intent.getAction())) {
             int connectionState = intent.getIntExtra(CarConnection.CAR_CONNECTION_STATE, -1);
 
             boolean isConnected = (connectionState != CarConnection.CONNECTION_TYPE_NOT_CONNECTED);

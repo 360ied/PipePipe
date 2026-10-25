@@ -4,11 +4,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import org.schabi.newpipe.R
@@ -66,10 +63,7 @@ class NotificationHelper(val context: Context) {
                 NavigationHelper
                     .getChannelIntent(context, data.serviceId, data.url)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                    PendingIntent.FLAG_IMMUTABLE
-                else
-                    0
+                PendingIntent.FLAG_IMMUTABLE
             )
         )
 
@@ -95,18 +89,14 @@ class NotificationHelper(val context: Context) {
          * <code>false</code> otherwise
          */
         fun areNotificationsEnabledOnDevice(context: Context): Boolean {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channelId = context.getString(R.string.streams_notification_channel_id)
-                val manager = context.getSystemService(
-                    Context.NOTIFICATION_SERVICE
-                ) as NotificationManager
-                val enabled = manager.areNotificationsEnabled()
-                val channel = manager.getNotificationChannel(channelId)
-                val importance = channel?.importance
-                enabled && channel != null && importance != NotificationManager.IMPORTANCE_NONE
-            } else {
-                NotificationManagerCompat.from(context).areNotificationsEnabled()
-            }
+            val channelId = context.getString(R.string.streams_notification_channel_id)
+            val manager = context.getSystemService(
+                Context.NOTIFICATION_SERVICE
+            ) as NotificationManager
+            val enabled = manager.areNotificationsEnabled()
+            val channel = manager.getNotificationChannel(channelId)
+            val importance = channel?.importance
+            return enabled && channel != null && importance != NotificationManager.IMPORTANCE_NONE
         }
 
         /**
@@ -122,20 +112,13 @@ class NotificationHelper(val context: Context) {
         }
 
         /**
-         * Open the system's notification settings for NewPipe on Android Oreo (API 26) and later.
-         * Open the system's app settings for NewPipe on previous Android versions.
+         * Open the system's notification settings for NewPipe.
          */
         fun openNewPipeSystemNotificationSettings(context: Context) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-            } else {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                intent.data = Uri.parse("package:" + context.packageName)
-                context.startActivity(intent)
-            }
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
         }
     }
 }
