@@ -20,11 +20,11 @@ flowchart TD
     APK --> ARSC["resources.arsc — 2.56 MiB (17.9%, STORED)"]
     APK --> CP["classpath roots — 1.23 MiB (8.6%)"]
     APK --> RES["res/ (XML/PNG) — 0.87 MiB (6.1%)"]
-    APK --> REST["assets + lib + META-INF + overhead — 0.40 MiB (2.7%)"]
+    APK --> REST["assets + lib + META-INF + overhead — 0.41 MiB (2.8%)"]
 
     DEX --> EXO["ExoPlayer: 2,037 input classes"]
     DEX --> CMP["Compose: 1,827 input classes"]
-    DEX --> APP["App + Extractor: 1,246 input classes"]
+    DEX --> APP["App + Extractor + Giga: 1,334 input classes"]
     CP --> BC["BouncyCastle Picnic matrices: 1.16 MiB (94% of bucket)"]
     ARSC --> LANG["No language pruning, no shrinking"]
     REST --> GPATH["lib/: only graphics.path .so (37 KB total)"]
@@ -39,18 +39,18 @@ flowchart TD
 | **ZIP Content Payload (Compressed)** | `14,749,293 bytes` | **14.07 MiB** | Sum of compressed entry streams (excludes signing block) |
 | **APK Signing Block & ZIP Central Directory** | `238,889 bytes` | **233.3 KiB** (1.59%) | v2/v3 signatures plus archive index overhead |
 | **Installed / Unpacked Size (Uncompressed)** | `16,077,545 bytes` | **15.33 MiB** (~16.1 MB) | Sum of all internal uncompressed payload streams |
-| **Overall Compression Ratio** | `91.75%` | — | Ratio of compressed content to uncompressed contents |
+| **Overall Compression Ratio** | `91.74%` | — | Ratio of compressed content to uncompressed contents |
 | **Total Files Inside Archive** | `1,723 files` | — | Includes classes, shared objects, resources, metadata |
 | **Target Application ID** | `ca.bualy.pipepipefork` | — | Configured in [`PipePipeClient/app/build.gradle`](../../PipePipeClient/app/build.gradle#L50) |
 | **DEX Compilation Strategy** | Single DEX (`classes.dex`) | — | Single DEX **039** archive; no multidex split in release |
 | **Target ABIs** | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` | — | Multi-architecture universal APK (near-empty `lib/`) |
 | **Minimum / Target SDK** | `30` / `36` | Android 11+ | Configured in [`PipePipeClient/app/build.gradle`](../../PipePipeClient/app/build.gradle#L51-L53) |
 
-The 91.75% compression ratio looks anomalous next to mumla-oled's ~63% — it is the signature of **stored (uncompressed) DEX packaging**: `classes.dex` alone (9.23 MiB, 64.6% of the APK) is stored verbatim, so the APK barely compresses. Re-deflating just the DEX at zlib level 6 shrinks it from 9,678,680 to ~4,324,412 bytes (44.7%), which is optimization #1 in §7.
+The 91.74% compression ratio looks anomalous next to mumla-oled's ~63% — it is the signature of **stored (uncompressed) DEX packaging**: `classes.dex` alone (9.23 MiB, 64.6% of the APK) is stored verbatim, so the APK barely compresses. Re-deflating just the DEX at zlib level 6 shrinks it from 9,678,680 to ~4,324,412 bytes (44.7%), which is optimization #1 in §6.
 
 ### Delta vs Debug Build (`v0.1.0-20-g02d4a97-debug`)
 
-The sibling debug artifact (`NanoPipe_v0.1.0-20-g02d4a97-debug.apk`, 102,795,305 bytes) shows what R8 buys:
+The sibling debug artifact (`NanoPipe_v0.1.0-20-g02d4a97-debug.apk`, 102,795,305 bytes) shows what R8 buys. Debug is not a size baseline — it only isolates the minification delta (see paragraph below the table):
 
 | Metric | Debug | Release (v0.2.0) | Delta |
 | :--- | :--- | :--- | :--- |
@@ -82,6 +82,8 @@ The archive contents break down across seven functional categories (percentages 
 | **Other (bin, version, tooling)** | `1,121 B` | **0.01%** | `2,409 B` | **0.01%** | 4 |
 | **Total (on-disk APK)** | **`14,988,182 B`** | **100.00%** | **`16,077,545 B`** | **100.00%** | **1,723** |
 
+*Shares are rounded to two decimals (compressed column sums to 100.01%, uncompressed to 99.99%).*
+
 Two structural contrasts with mumla-oled stand out immediately: there is **no model-weights `assets/` payload** (no ML in this app — `assets/` is under 1%), and `lib/` is effectively vestigial at 0.25% (the ffmpeg-kit native blob was removed; see §5). The APK is a **bytecode + resource-table** package: DEX and `resources.arsc` together are 82.5% of every download.
 
 ### Breakdown by File Extension
@@ -99,7 +101,7 @@ Two structural contrasts with mumla-oled stand out immediately: there is **no mo
 | `.so` | `37,392 B` | 0.25% | `37,392 B` | 4 | `libandroidx.graphics.path.so` × 4 ABIs (STORED) |
 | `.txt` | `24,996 B` | 0.17% | `71,278 B` | 8 | 7× AndroidX `LICENSE.txt` + multidex version stamp |
 | `.kotlin_builtins` | `12,350 B` | 0.08% | `53,396 B` | 8 | Kotlin runtime reflection metadata |
-| Other (`.prof`, `.ttf`, `.bin`, `.md`, `.version`, services) | `12,976 B` | 0.09% | `95,625 B` | 118 | Baseline profile, font, coroutine probes, version markers |
+| Other (`.prof`, `.ttf`, `.bin`, `.md`, `.version`, services) | `12,976 B` | 0.09% | `16,829 B` | 118 | Baseline profile, font, coroutine probes, version markers |
 
 No `.SF` / `.MF` / `.RSA` — the APK is signed with v2/v3 signatures only (APK Signing Block magic present), so no v1 JAR-signing manifests bloat `META-INF/`.
 
@@ -112,12 +114,14 @@ No `.SF` / `.MF` / `.RSA` — the APK is signed with v2/v3 signatures only (APK 
 ```mermaid
 pie title classes.dex Input Class Census (10,176 R8 Input Classes)
     "ExoPlayer" : 2037
-    "Compose" : 1827
-    "App + Extractor" : 1246
     "AndroidX (non-Compose)" : 2188
-    "Google (non-Player)" : 510
-    "Networking & IO" : 569
-    "Other" : 799
+    "Compose" : 1827
+    "App + Extractor + Giga" : 1334
+    "Crypto, parsing & text" : 663
+    "Networking & IO" : 606
+    "Kotlin & coroutines" : 535
+    "Google (non-player)" : 510
+    "Other" : 476
 ```
 
 ### Low-Level DEX Header Metrics
@@ -138,33 +142,35 @@ Extracted directly from the binary DEX 039 header:
 
 ### Class Retention Census by Dependency Package
 
-R8 minification and tree shaking (`minifyEnabled = true`) records **10,176 input classes** (9,259 class definitions survive into the final DEX header) and 520,987 method-mapping entries in [`mapping.txt`](../../PipePipeClient/app/build/outputs/mapping/release/mapping.txt) (R8 9.2.14, `min_api: 30`). Note the build sets `-dontobfuscate` in [`proguard-rules.pro`](../../PipePipeClient/app/proguard-rules.pro), so names are kept readable — shrinking still applies, and the ~9:1 ratio of input method entries to retained references is the normal shape of a shaken commercial-size DEX:
+R8 minification and tree shaking (`minifyEnabled = true`) records **10,176 input classes** (9,259 class definitions survive into the final DEX header) and 520,987 method-mapping entries in [`mapping.txt`](../../PipePipeClient/app/build/outputs/mapping/release/mapping.txt) (R8 9.2.14, `min_api: 30`). Method mappings are counted as indented `->` entries carrying a method signature, excluding 5,019 field entries and R8 `#` diagnostic lines. Note the build sets `-dontobfuscate` in [`proguard-rules.pro`](../../PipePipeClient/app/proguard-rules.pro), so names are kept readable — shrinking still applies, and the ~9:1 ratio of input method entries to retained references is the normal shape of a shaken commercial-size DEX:
 
 | Package Prefix | Input Classes | Mapped Method Entries | Dominant Role / Purpose |
 | :--- | :--- | :--- | :--- |
-| **`com.google.android.exoplayer2.*`** | **2,037** | **61,380** | Media3/ExoPlayer playback core (wildcard-kept, see below) |
-| **`androidx.compose.*`** | **1,827** | **100,606** | Compose runtime, foundation, Material3, icons-extended |
-| **`org.schabi.newpipe.app.*`** | **934** | **72,487** | Activities, fragments, player UI, downloader, settings |
-| `androidx.car.*` | 384 | 4,916 | Android Auto / car-app API surface |
-| `io.reactivex.*` | 325 | 8,399 | RxJava3 reactive chains (Room + Work integrations) |
-| `com.google.android.material.*` | 321 | 30,979 | Material components (non-Compose widgets) |
-| **`org.bouncycastle.*`** | **312** | **12,153** | Crypto provider via extractor (`bcprov-jdk18on:1.85`) |
-| **`org.schabi.newpipe.extractor.*`** | **312** | **17,100** | YouTube/service extraction logic (in-tree build) |
-| `kotlinx.*` | 291 | 8,925 | Coroutines runtime |
-| `androidx.core.*` | 286 | 8,194 | Platform compatibility shims |
-| `androidx.appcompat.*` | 247 | 18,966 | AppCompat widgets and themes |
-| `kotlin.*` | 244 | 13,611 | Kotlin stdlib |
-| `androidx.work.*` | 204 | 12,406 | Background download workers |
-| `org.jsoup.*` | 200 | 11,640 | HTML parsing for extractors |
-| `com.google.common.*` | 188 | 4,257 | Guava (ExoPlayer transitive) |
-| `okhttp3.*` + `okio.*` | 245 | 25,493 | HTTP stack (182 + 63 classes, method-dense) |
-| `androidx.room.*` | 143 | 7,067 | Local database (subscriptions, history) |
-| `org.acra.*` | 117 | 6,509 | Crash reporting (ACRA 5.13.1) |
-| `androidx.fragment.*` | 113 | 9,075 | Fragment lifecycle |
-| `androidx.recyclerview.*` | 103 | 11,730 | Lists (search, channels, comments) |
-| `org.ocpsoft.prettytime.*` | 100 | 1,352 | Relative-time formatting (explicitly kept) |
-| `us.shandian.*` (Groupie) | 88 | 9,471 | Groupie list items (incl. in-repo `giga` downloader) |
-| Other AndroidX / misc | ~495 | ~97,140 | Lifecycle, sqlite, constraintlayout, emoji2, webkit, markwon, picasso |
+| **`com.google.android.exoplayer2.*`** | **2,037** | **61,123** | Media3/ExoPlayer playback core (wildcard-kept, see below) |
+| **`androidx.compose.*`** | **1,827** | **99,308** | Compose runtime, foundation, Material3, icons-extended |
+| **`org.schabi.newpipe.app.*`** | **934** | **71,500** | Activities, fragments, player UI, downloader, settings |
+| `androidx.car.*` | 389 | 5,530 | Android Auto / car-app API surface |
+| `io.reactivex.*` | 325 | 8,317 | RxJava3 reactive chains (Room + Work integrations) |
+| `com.google.android.material.*` | 321 | 30,785 | Material components (non-Compose widgets) |
+| **`org.bouncycastle.*`** | **312** | **11,998** | Crypto provider via extractor (`bcprov-jdk18on:1.85`) |
+| **`org.schabi.newpipe.extractor.*`** | **312** | **17,002** | YouTube/service extraction logic (in-tree build) |
+| `kotlinx.*` | 291 | 8,831 | Coroutines runtime |
+| `androidx.core.*` | 286 | 8,136 | Platform compatibility shims |
+| `androidx.appcompat.*` | 247 | 18,799 | AppCompat widgets and themes |
+| `kotlin.*` | 244 | 13,580 | Kotlin stdlib |
+| `androidx.work.*` | 204 | 12,255 | Background download workers |
+| `org.jsoup.*` | 200 | 11,506 | HTML parsing for extractors |
+| `com.google.common.*` | 188 | 4,189 | Guava (ExoPlayer transitive) |
+| `okhttp3.*` + `okio.*` | 245 | 25,305 | HTTP stack (182 + 63 classes, method-dense) |
+| `androidx.room.*` | 143 | 7,024 | Local database (subscriptions, history) |
+| `org.acra.*` | 117 | 6,468 | Crash reporting (ACRA 5.13.1) |
+| `androidx.fragment.*` | 113 | 8,987 | Fragment lifecycle |
+| `androidx.recyclerview.*` | 103 | 11,641 | Lists (search, channels, comments) |
+| `org.ocpsoft.prettytime.*` | 100 | 1,349 | Relative-time formatting (explicitly kept) |
+| `us.shandian.*` (Giga downloader, in-repo) | 88 | 9,395 | Download missions, `giga` service, HLS/postprocessing |
+| `io.noties.*` (Markwon) | 36 | 1,095 | Markdown rendering |
+| `com.xwray.groupie.*` (Groupie) | 18 | 586 | Groupie list items |
+| Other (lifecycle, sqlite, constraintlayout, …) | 1,096 | 66,278 | Long tail: 60+ small packages (leakcanary, webkit, brotli, …) |
 
 ### Why ExoPlayer Accounts for 20% of Input Classes
 
@@ -174,7 +180,7 @@ The direct analogue of mumla-oled's old BouncyCastle wildcard is in [`PipePipeCl
 -keep class com.google.android.exoplayer2.** { *; }
 ```
 
-All 2,037 ExoPlayer classes (pinned at 2.18.7 in [`build.gradle`](../../PipePipeClient/app/build.gradle#L236-L237), plus `extension-mediasession`) are retained unconditionally, including renderers, extractors for formats the app never plays, and upstream track-selection machinery. ExoPlayer resolves most components statically, so this wildcard is a far better stripping candidate than BouncyCastle's reflection-driven provider ever was — see optimization #4 in §7. Secondarily, `androidx.compose` (1,827 classes, 100 K method entries — the densest package per class) arrives via six Compose 1.11.3 artifacts including `material-icons-extended`, and `androidx.car.app` contributes 384 low-method-count API classes that deserve a keep-rule audit of their own.
+All 2,037 ExoPlayer classes (pinned at 2.18.7 in [`build.gradle`](../../PipePipeClient/app/build.gradle#L236-L237), plus `extension-mediasession`) are retained unconditionally, including renderers, extractors for formats the app never plays, and upstream track-selection machinery. ExoPlayer resolves most components statically, so this wildcard is a far better stripping candidate than BouncyCastle's reflection-driven provider ever was — see optimization #4 in §6. Secondarily, `androidx.compose` (1,827 classes, 99,308 method entries — the largest per-package entry total) arrives via six Compose artifacts (four at 1.11.3, plus material3 1.4.0 and material-icons-extended 1.7.8), and `androidx.car.app` contributes 389 low-method-count API classes that deserve a keep-rule audit of their own.
 
 BouncyCastle, by contrast, is a model citizen here: only **312 classes** are retained (the extractor's `bcprov-jdk18on:1.85` dependency in [`PipePipeExtractor/extractor/build.gradle`](../../PipePipeExtractor/extractor/build.gradle#L22), shaken normally with no wildcard keep). Its cost moved off-DEX into leaked data files — see §6.
 
@@ -208,7 +214,7 @@ flowchart LR
 | **`x86_64`** | `libandroidx.graphics.path.so` | `10,760 B` | Compose graphics-path native helper |
 | **Total Native (`lib/`)** | **4 files** | **`37,392 B` (36.5 KB)** | |
 
-There is **no app or extractor native code left**: per [`docs/ffmpeg-removal/README.md`](../../docs/ffmpeg-removal/README.md), the vendored `ffmpeg-kit` blob was deleted (its two `-c copy` remux call sites replaced by in-repo pure-Java muxers plus framework `MediaExtractor`/`MediaMuxer`), removing ~48 MB of binaries from git and ~15–19 MB of per-ABI native libraries from the APK. The per-ABI APK splits were dropped as follow-up because the per-ABI outputs were then identical apart from this ~10 KB transitive AndroidX `.so` — which is why per-ABI splitting is explicitly **not** an optimization lever for this project (§7).
+There is **no app or extractor native code left**: per [`docs/ffmpeg-removal/README.md`](../../docs/ffmpeg-removal/README.md), the vendored `ffmpeg-kit` blob was deleted (its two `-c copy` remux call sites replaced by in-repo pure-Java muxers plus framework `MediaExtractor`/`MediaMuxer`), removing ~48 MB of binaries from git and ~15–19 MB of per-ABI native libraries from the APK. The per-ABI APK splits were dropped as follow-up because the per-ABI outputs were then identical apart from this ~10 KB transitive AndroidX `.so` — which is why per-ABI splitting is explicitly **not** an optimization lever for this project (matrix §6).
 
 ---
 
@@ -216,7 +222,7 @@ There is **no app or extractor native code left**: per [`docs/ffmpeg-removal/REA
 
 ### Compiled Resource Table (`resources.arsc`)
 
-- **Size**: `2,680,776 bytes` (2.56 MiB), stored uncompressed ($17.89\%$ of total APK) — the **second-largest single entry** in the package.
+- **Size**: `2,680,776 bytes` (2.56 MiB), stored uncompressed (17.89% of total APK) — the **second-largest single entry** in the package.
 - Two compounding build choices inflate it: `shrinkResources false` ([`build.gradle`](../../PipePipeClient/app/build.gradle#L102), kept off to fix F-Droid's reproducible build) and **no `resourceConfigurations` language pruning**, so every upstream dependency's full string pool ships — AndroidX (AppCompat, Material, car-app, Work, Room), ExoPlayer (player-view strings in all locales), and ACRA each contribute hundreds of unreferenced localized strings. Mumla-oled's identical pruning (`["en", "fr", "zh-rCN"]`) is credited with an estimated 450–600 KB saving against the same dependency pool.
 
 ### Application Resource Files (`res/`)
@@ -257,7 +263,7 @@ Non-code files from upstream Java dependencies leak into the APK root, totaling 
 2. **BouncyCastle localization bundles** (`13,513 B` comp, ~96 KB uncomp): `CertPathReviewerMessages[.de].properties` — the exact files mumla-oled flagged, still present here.
 3. **Protobuf descriptor sources** (`39,963 B` comp, ~120 KB uncomp): 12 `google/protobuf/*.proto` files (`descriptor.proto` alone is 15,951 B comp / 58,877 B uncomp) shipped by protobuf-java.
 4. **Kotlin reflection metadata** (`12,350 B` comp, ~53 KB uncomp): 8 `kotlin/*.kotlin_builtins` files.
-5. **License & misc trivia**: 7 AndroidX `LICENSE.txt` files (`24,941 B` comp / ~71 KB uncomp), `META-INF/jsoup/LICENSE` (661 B), `org/commonmark/.../entities.properties` (10,865 B), 100 AndroidX `.version` markers, `DebugProbesKt.bin`, `car-app-api.level`, `kotlin-tooling-metadata.json`.
+5. **License & misc trivia**: 7 AndroidX `LICENSE.txt` files (`24,941 B` comp / ~71 KB uncomp), `META-INF/jsoup/LICENSE` (661 B), `org/commonmark/.../entities.properties` (10,865 B), 100 AndroidX `.version` markers, `DebugProbesKt.bin`, `car-app-api.level`, `kotlin-tooling-metadata.json` (together these 4 root files are §2's Other row: `1,121 B` / `2,409 B`).
 
 ---
 
@@ -271,7 +277,7 @@ Non-code files from upstream Java dependencies leak into the APK root, totaling 
 | **4. ExoPlayer keep-rule refinement** | `classes.dex` | **~200–500 KB (~1.3–3.3%)** | Medium | Moderate risk. Replace `-keep class com.google.android.exoplayer2.**` with granular rules for the renderers/extractors actually used. ExoPlayer wires components mostly statically (unlike the old BC provider pattern), so this is safer than it looks — but needs playback-matrix testing (DASH/HLS/SS, subtitles, MediaSession). |
 | **5. License/proto/builtins exclusion** | `META-INF/`, `google/`, `kotlin/` | **~70 KB (~0.5%)** + ~190 KB installed | Trivial | Zero risk. Exclude `META-INF/**/LICENSE.txt`, `google/protobuf/*.proto`, `kotlin/*.kotlin_builtins` via `packaging.resources.excludes`. Pure metadata, never loaded at runtime. |
 | **6. PNG vector migration** | `res/` | **~100–200 KB (~0.7–1.3%)** | Medium | Low risk. 407 PNGs ship byte-for-byte (408 KB stored); migrate icons/drawables to vector XML. Launcher art and photographic thumbnails stay PNG. |
-| **7. Compose retention audit** | `classes.dex` | **~100–300 KB (~0.7–2.0%)** | Medium | Moderate risk. 1,827 Compose classes (100 K method entries, densest package) partly via `material-icons-extended` — confirm R8 shakes unused icon composables, else scope the dependency down. |
+| **7. Compose retention audit** | `classes.dex` | **~100–300 KB (~0.7–2.0%)** | Medium | Moderate risk. 1,827 Compose classes (99,308 entries — largest per-package total) partly via `material-icons-extended` — confirm R8 shakes unused icon composables, else scope the dependency down. |
 | — **Per-ABI splitting** | `lib/` | **~28 KB (N/A)** | — | **Not applicable**: total native payload is 37 KB (one transitive AndroidX `.so` × 4 ABIs). The universal APK is already optimal; splitting would add release-engineering cost for zero gain. |
 
 ---
@@ -284,4 +290,4 @@ The NanoPipe v0.2.0 release package at **14.3 MiB** has a fundamentally differen
 \text{Dominant Payloads} = \underbrace{64.6\%}_{\text{Stored Dalvik Bytecode}} + \underbrace{17.9\%}_{\text{Unshrunk Resource Table}} = 82.5\% \text{ of Total APK}
 ```
 
-The bytecode itself is well-shaken (10,176 input classes → 9,259 definitions, single DEX) — the headline waste is **packaging geometry, not code**: the DEX is stored uncompressed (a ~5.35 MB deflatable premium, the same AGP-9 default mumla-oled measured and reverted in 0.26.1), the resource table is unpruned and unshrunk, and 1.2 MB of post-quantum Picnic matrices leak from an otherwise tightly-shaken BouncyCastle. The three trivial/low-risk packaging fixes alone (#1–#3, plus #2's excludes) recover roughly **7 MB — nearly half the download** — without touching a line of product code. The structural watch-item is DEX method-reference headroom: at 88.2% of the 64K limit, the next large dependency forces multidex, so ExoPlayer keep-rule refinement (#4) doubles as headroom insurance.
+The bytecode itself is well-shaken (10,176 input classes → 9,259 definitions, single DEX) — the headline waste is **packaging geometry, not code**: the DEX is stored uncompressed (a ~5.35 MB deflatable premium, the same AGP-9 default mumla-oled measured and reverted in 0.26.1), the resource table is unpruned and unshrunk, and 1.2 MB of post-quantum Picnic matrices leak from an otherwise tightly-shaken BouncyCastle. The three trivial/low-risk packaging fixes alone (#1–#3, plus #2's excludes) recover up to **~7 MB — nearly half the download** — without touching a line of product code, though only #1 and #2 are measured; #3–#7 are estimates, not committed savings. The structural watch-item is DEX method-reference headroom: at 88.2% of the 64K limit, the next large dependency forces multidex, so ExoPlayer keep-rule refinement (#4) doubles as headroom insurance.
