@@ -100,7 +100,7 @@ public final class CodecSupportDetector {
         private final int testedHeight;
         private final double testedFrameRate;
 
-        public DetectionResult(final Support support,
+        public DetectionResult(@NonNull final Support support,
                                @Nullable final String decoderName) {
             this.support = support;
             this.decoderName = decoderName;
@@ -136,6 +136,7 @@ public final class CodecSupportDetector {
      * Production instances wrap ExoPlayer / the framework list; tests inject fakes.
      */
     public interface DecoderQuerier {
+        @NonNull
         List<DecoderInfo> queryInfos(String mime) throws Exception;
     }
 
@@ -166,11 +167,19 @@ public final class CodecSupportDetector {
             if (softwareCandidate != null) {
                 return new DetectionResult(Support.SUPPORTED_SW_ONLY, softwareCandidate.name);
             }
-            if (!decoders.isEmpty() && decoders.get(0) != null) {
-                return new DetectionResult(Support.UNSUPPORTED, decoders.get(0).name);
-            }
+            return new DetectionResult(Support.UNSUPPORTED, firstDecoderName(decoders));
         }
         return new DetectionResult(Support.UNSUPPORTED, null);
+    }
+
+    @Nullable
+    private static String firstDecoderName(final List<DecoderInfo> decoders) {
+        for (final DecoderInfo decoder : decoders) {
+            if (decoder != null && decoder.name != null) {
+                return decoder.name;
+            }
+        }
+        return null;
     }
 
     /**
@@ -211,8 +220,8 @@ public final class CodecSupportDetector {
      */
     @NonNull
     public static Map<String, DetectionResult> detectSync(
-            final DecoderQuerier exoPlayerQuerier,
-            final DecoderQuerier frameworkQuerier) {
+            @NonNull final DecoderQuerier exoPlayerQuerier,
+            @NonNull final DecoderQuerier frameworkQuerier) {
         final Map<String, DetectionResult> results = new LinkedHashMap<>();
         results.put(TOGGLE_VP9, detectOne(MIME_VP9, exoPlayerQuerier, frameworkQuerier));
         results.put(TOGGLE_AV1, detectOne(MIME_AV1, exoPlayerQuerier, frameworkQuerier));
@@ -230,22 +239,24 @@ public final class CodecSupportDetector {
     }
 
     @NonNull
-    private static DetectionResult detectOne(final String mime,
-                                             final DecoderQuerier exoPlayerQuerier,
-                                             final DecoderQuerier frameworkQuerier) {
+    private static DetectionResult detectOne(@NonNull final String mime,
+                                             @NonNull final DecoderQuerier exoPlayerQuerier,
+                                             @NonNull final DecoderQuerier frameworkQuerier) {
         try {
             final List<DecoderInfo> exoInfos = exoPlayerQuerier.queryInfos(mime);
             if (exoInfos != null && !exoInfos.isEmpty()) {
                 return evaluate(exoInfos);
             }
         } catch (final Exception ignored) {
-            // Fall through to the framework list below.
+            // Fall through to the framework list below. No logging here: this path
+            // is JVM-tested (android.util.Log stubs throw on unit tests).
         }
         try {
             final List<DecoderInfo> frameworkInfos = frameworkQuerier.queryInfos(mime);
             return evaluate(frameworkInfos != null ? frameworkInfos
                     : Collections.emptyList());
         } catch (final Exception ignored) {
+            // Same testability note as above: no android.util.Log on this path.
             return new DetectionResult(Support.UNSUPPORTED, null);
         }
     }

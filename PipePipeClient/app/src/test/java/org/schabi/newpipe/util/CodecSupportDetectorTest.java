@@ -73,15 +73,20 @@ public class CodecSupportDetectorTest {
 
     @Test
     public void exoPreferredOverFrameworkOnDisagreement() {
+        // Framework-only truth (HW for both MIMEs) must not leak in: a non-empty
+        // ExoPlayer answer wins per MIME, even when it gate-fails.
         final Map<String, CodecSupportDetector.DetectionResult> results =
                 CodecSupportDetector.detectSync(
-                        mime -> Collections.singletonList(hw("c2.av1.dec")),
-                        mime -> Collections.emptyList());
+                        mime -> Collections.singletonList(
+                                decoder("c2.dec", true, false, false)),
+                        mime -> Collections.singletonList(hw("c2.fw.dec")));
 
-        assertEquals(CodecSupportDetector.Support.SUPPORTED_HW,
+        assertEquals(CodecSupportDetector.Support.UNSUPPORTED,
                 results.get(CodecSupportDetector.TOGGLE_VP9).getSupport());
-        assertEquals(CodecSupportDetector.Support.SUPPORTED_HW,
+        assertEquals(CodecSupportDetector.Support.UNSUPPORTED,
                 results.get(CodecSupportDetector.TOGGLE_AV1).getSupport());
+        assertFalse(CodecSupportDetector.isChecked(
+                results.get(CodecSupportDetector.TOGGLE_VP9)));
     }
 
     @Test
@@ -97,6 +102,8 @@ public class CodecSupportDetectorTest {
                 results.get(CodecSupportDetector.TOGGLE_VP9).getSupport());
         assertEquals(CodecSupportDetector.Support.SUPPORTED_HW,
                 results.get(CodecSupportDetector.TOGGLE_AV1).getSupport());
+        assertEquals("c2.av1.dec", results.get(
+                CodecSupportDetector.TOGGLE_AV1).getDecoderName());
     }
 
     @Test
@@ -122,6 +129,42 @@ public class CodecSupportDetectorTest {
         assertFalse(CodecSupportDetector.isChecked(result));
         // The backing decoder is still recorded for dialog/debug use.
         assertEquals("c2.vp9.dec", result.getDecoderName());
+    }
+
+    @Test
+    public void nullAndNullEntriesAreUnsupported() {
+        assertEquals(CodecSupportDetector.Support.UNSUPPORTED,
+                CodecSupportDetector.evaluate(null).getSupport());
+        assertFalse(CodecSupportDetector.isChecked(null));
+        assertFalse(CodecSupportDetector.isChecked(
+                CodecSupportDetector.evaluate(null)));
+
+        final List<CodecSupportDetector.DecoderInfo> holes =
+                Arrays.asList(null, decoder(null, false, false, false));
+        final CodecSupportDetector.DetectionResult result =
+                CodecSupportDetector.evaluate(holes);
+        assertEquals(CodecSupportDetector.Support.UNSUPPORTED, result.getSupport());
+        assertNull(result.getDecoderName());
+    }
+
+    @Test
+    public void unknownNatureDecoderStaysUnchecked() {
+        // Neither hardware nor software flagged: safe bucket, unchecked.
+        final CodecSupportDetector.DetectionResult result =
+                CodecSupportDetector.evaluate(Collections.singletonList(
+                        decoder("c2.mystery.dec", false, false, true)));
+        assertEquals(CodecSupportDetector.Support.SUPPORTED_SW_ONLY, result.getSupport());
+        assertFalse(CodecSupportDetector.isChecked(result));
+    }
+
+    @Test
+    public void detectionResultRecordsTestedSize() {
+        final CodecSupportDetector.DetectionResult result =
+                CodecSupportDetector.evaluate(
+                        Collections.singletonList(hw("c2.vp9.dec")));
+        assertEquals(CodecSupportDetector.PROBE_WIDTH, result.getTestedWidth());
+        assertEquals(CodecSupportDetector.PROBE_HEIGHT, result.getTestedHeight());
+        assertEquals(CodecSupportDetector.PROBE_FPS, result.getTestedFrameRate(), 0.0);
     }
 
     @Test

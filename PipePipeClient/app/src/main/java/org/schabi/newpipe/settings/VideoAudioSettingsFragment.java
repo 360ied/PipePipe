@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -27,6 +28,10 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class VideoAudioSettingsFragment extends BasePreferenceFragment {
+    /** Dialog row indices: keep label, result, and checked state in lockstep. */
+    private static final int IDX_VP9 = 0;
+    private static final int IDX_AV1 = 1;
+
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
     private final CompositeDisposable disposables = new CompositeDisposable();
 
@@ -52,6 +57,8 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
             }
         };
 
+        // Defensive null-guard instead of requirePreference: a missing key (overlay
+        // or search-index skew) should no-op, not crash Settings.
         final Preference detectPreference = findPreference(getString(R.string.detect_codecs_key));
         if (detectPreference != null) {
             detectPreference.setOnPreferenceClickListener(preference -> {
@@ -85,6 +92,7 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
                     }
                     detectPreference.setEnabled(true);
                     detectPreference.setSummary(R.string.detect_codecs_summary);
+                    Log.w(TAG, "Codec detection failed", error);
                     Toast.makeText(requireContext(), R.string.general_error,
                             Toast.LENGTH_SHORT).show();
                 }));
@@ -92,16 +100,16 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
 
     private void showDetectResultDialog(
             final Map<String, CodecSupportDetector.DetectionResult> results) {
-        final CharSequence[] items = {
-                rowLabel(CodecSupportDetector.TOGGLE_VP9,
-                        results.get(CodecSupportDetector.TOGGLE_VP9)),
-                rowLabel(CodecSupportDetector.TOGGLE_AV1,
-                        results.get(CodecSupportDetector.TOGGLE_AV1))
-        };
-        final boolean[] checked = {
-                CodecSupportDetector.isChecked(results.get(CodecSupportDetector.TOGGLE_VP9)),
-                CodecSupportDetector.isChecked(results.get(CodecSupportDetector.TOGGLE_AV1))
-        };
+        final CharSequence[] items = new CharSequence[2];
+        items[IDX_VP9] = rowLabel(CodecSupportDetector.TOGGLE_VP9,
+                results.get(CodecSupportDetector.TOGGLE_VP9));
+        items[IDX_AV1] = rowLabel(CodecSupportDetector.TOGGLE_AV1,
+                results.get(CodecSupportDetector.TOGGLE_AV1));
+        final boolean[] checked = new boolean[2];
+        checked[IDX_VP9] = CodecSupportDetector.isChecked(
+                results.get(CodecSupportDetector.TOGGLE_VP9));
+        checked[IDX_AV1] = CodecSupportDetector.isChecked(
+                results.get(CodecSupportDetector.TOGGLE_AV1));
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.codec_detect_dialog_title)
                 .setMultiChoiceItems(items, checked,
@@ -112,9 +120,13 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
                             .getDefaultSharedPreferences(requireContext());
                     final String formatsKey = getString(R.string.advanced_formats_key);
                     final Set<String> stored = prefs.getStringSet(formatsKey, null);
-                    prefs.edit().putStringSet(formatsKey,
-                            CodecSupportDetector.applyToStoredSet(
-                                    stored, checked[0], checked[1])).apply();
+                    prefs.edit()
+                            .putStringSet(formatsKey, CodecSupportDetector.applyToStoredSet(
+                                    stored, checked[IDX_VP9], checked[IDX_AV1]))
+                            // An explicit Apply retires the first-run seed, so a late
+                            // probe can never overwrite this choice afterwards.
+                            .putBoolean(getString(R.string.codec_seed_done_key), true)
+                            .apply();
                     Toast.makeText(requireContext(), R.string.codec_detect_applied,
                             Toast.LENGTH_SHORT).show();
                 })

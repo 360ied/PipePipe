@@ -106,18 +106,23 @@ public final class NewPipeSettings {
      * the safe value until the probe lands; playback menus rebuild per video, so the
      * window is self-healing.
      *
-     * <p>Three guards protect manual choices, all required:
+     * <p>Three best-effort guards protect manual choices, all required.</p>
      * <ol>
      * <li>Launch guard: the probe only starts from a pristine stored set (a fresh
-     * install still holding the static default, or an untouched upgrade). A customized
-     * set is never probed; it is just marked done.</li>
+     * install still holding the static default, or an untouched upgrade). A set equal
+     * to the static default — explicit same-as-default choices included, they are
+     * indistinguishable — is treated as pristine. A customized set is never probed;
+     * it is just marked done. An absent key (backup-restore, partial clear) defers
+     * without marking done, so the next launch retries.</li>
      * <li>Completion guard: at write time the current set must still equal the launch
-     * snapshot, so a toggle made during the async probe window is never clobbered.</li>
+     * snapshot, so a toggle made during the async probe window aborts the write.
+     * Best-effort: {@code SharedPreferences} offers no compare-and-set, so a write
+     * racing the final {@code apply()} itself can still win; the window is that call,
+     * after a multi-hundred-ms probe.</li>
      * <li>Durability: {@code codec_seed_done} is written only on completion. The prefs
-     * already exist by the second launch (so {@code isFirstRun} is false), therefore a
-     * kill inside the probe window retries whenever the flag is absent.</li>
+     * already exist by the second launch, therefore a kill inside the probe window
+     * retries whenever the flag is absent.</li>
      * </ol>
-     * </p>
      */
     private static void maybeSeedCodecSupport(final Context context) {
         final SharedPreferences prefs =
@@ -127,11 +132,16 @@ public final class NewPipeSettings {
             return;
         }
         final String formatsKey = context.getString(R.string.advanced_formats_key);
+        if (!prefs.contains(formatsKey)) {
+            // Absent key (backup-restore, partial clear): retry next launch,
+            // do not mark done.
+            return;
+        }
         final Set<String> staticDefault = new HashSet<>(Arrays.asList(
                 context.getResources()
                         .getStringArray(R.array.default_advanced_formats_values)));
         final Set<String> launchSnapshot = copyStringSet(prefs.getStringSet(formatsKey, null));
-        if (!launchSnapshot.equals(staticDefault)) {
+        if (!shouldStartProbe(launchSnapshot, staticDefault)) {
             // Customized set (upgraded install, or a choice made before seeding):
             // never overwrite it, just record that seeding is done.
             prefs.edit().putBoolean(seedDoneKey, true).apply();
@@ -153,17 +163,46 @@ public final class NewPipeSettings {
                 CodecSupportDetector.detectSync();
         final SharedPreferences prefs =
                 PreferenceManager.getDefaultSharedPreferences(context);
+        if (!prefs.contains(formatsKey)) {
+            // Key vanished mid-probe: do not mark done, retry next launch.
+            return;
+        }
         final Set<String> current = copyStringSet(prefs.getStringSet(formatsKey, null));
         final SharedPreferences.Editor editor = prefs.edit();
-        if (current.equals(launchSnapshot)) {
-            editor.putStringSet(formatsKey, CodecSupportDetector.applyToStoredSet(current,
+        if (shouldWriteSeed(current, launchSnapshot)) {
+            final Set<String> seeded = CodecSupportDetector.applyToStoredSet(current,
                     CodecSupportDetector.isChecked(
                             results.get(CodecSupportDetector.TOGGLE_VP9)),
                     CodecSupportDetector.isChecked(
-                            results.get(CodecSupportDetector.TOGGLE_AV1))));
+                            results.get(CodecSupportDetector.TOGGLE_AV1)));
+            editor.putStringSet(formatsKey, seeded);
+            // Field triage lives here (Android-only caller), not in the JVM-tested
+            // detector: log the outcome, never the probe internals.
+            Log.i(TAG, "Codec seed wrote advanced formats: " + seeded);
+        } else {
+            Log.i(TAG, "Codec seed skipped: stored set changed during probe");
         }
         editor.putBoolean(seedDoneKey, true);
         editor.apply();
+    }
+
+    /**
+     * Pure launch decision for {@link #maybeSeedCodecSupport}: probe only from a stored
+     * set equal to the static default. A {@code null} stored set (absent key) defers
+     * without marking done. Package-visible for JVM tests.
+     */
+    static boolean shouldStartProbe(@Nullable final Set<String> stored,
+                                    final Set<String> staticDefault) {
+        return stored != null && stored.equals(staticDefault);
+    }
+
+    /**
+     * Pure write decision for {@link #seedCodecSupportSync}: write only when the
+     * current set still equals the launch snapshot. Package-visible for JVM tests.
+     */
+    static boolean shouldWriteSeed(@Nullable final Set<String> current,
+                                   final Set<String> launchSnapshot) {
+        return current != null && current.equals(launchSnapshot);
     }
 
     private static Set<String> copyStringSet(@Nullable final Set<String> value) {
