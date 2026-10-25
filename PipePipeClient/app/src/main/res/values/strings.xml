@@ -823,6 +823,15 @@
 <string name="anti_bot_youtube_hint">Your IP is blocked by YouTube. Try using a VPN or logging in through Settings to continue.</string>
 <string name="advanced_formats_summary">If your device has support, enabling advanced formats can reduce data consumption and provide higher resolutions. \nWEBM or AV1 must be enabled to show 2k/4k contents on YouTube. \nUse a format that your device doesn\'t support will result in a black screen or crash.</string>
 <string name="advanced_formats_title">Enable advanced formats</string>
+<string name="detect_codecs_title">Detect supported formats</string>
+<string name="detect_codecs_summary">Check which advanced formats this device can decode</string>
+<string name="detect_codecs_running">Detecting supported formats…</string>
+<string name="codec_detect_dialog_title">Detected formats</string>
+<string name="codec_detect_row_hw">%1$s: hardware decoding, tested 2160p30</string>
+<string name="codec_detect_row_sw_only">%1$s: software decoding only, left off (tested 2160p30)</string>
+<string name="codec_detect_row_unsupported">%1$s: no decoder, left off</string>
+<string name="codec_detect_apply">Apply</string>
+<string name="codec_detect_applied">Advanced formats updated</string>
 <string name="preferred_audio_language_title">Preferred audio language</string>
 <string name="ip_blocked_summary">Your IP has been temporarily blocked by YouTube. For a period of time, you will experience issues when playing certain videos. If the error persists, please log in through Settings to continue.</string>
 <string name="settings_category_filter_title">Content Filter</string>

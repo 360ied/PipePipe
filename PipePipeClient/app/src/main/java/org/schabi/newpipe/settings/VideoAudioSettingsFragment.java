@@ -5,18 +5,36 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceManager;
 
 import com.google.android.material.snackbar.Snackbar;
 
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.error.ErrorUtil;
+import org.schabi.newpipe.util.CodecSupportDetector;
 import org.schabi.newpipe.util.PermissionHelper;
 
+import java.util.Map;
+import java.util.Set;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class VideoAudioSettingsFragment extends BasePreferenceFragment {
+    /** Dialog row indices: keep label, result, and checked state in lockstep. */
+    private static final int IDX_VP9 = 0;
+    private static final int IDX_AV1 = 1;
+
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     @Override
     public void onCreatePreferences(@Nullable final Bundle savedInstanceState,
@@ -39,6 +57,96 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
                 }
             }
         };
+
+        // The registry maps this fragment to exactly one static XML, so a missing key
+        // can only be a wiring typo: fail fast via the codebase baseline.
+        final Preference detectPreference =
+                requirePreference(R.string.detect_codecs_key);
+        if (detectPreference != null) {
+            detectPreference.setOnPreferenceClickListener(preference -> {
+                runDetection(preference);
+                return true;
+            });
+        }
+    }
+
+    /**
+     * Runs the codec probe off the UI thread and presents the outcome in a confirm dialog.
+     * Nothing is written until the user presses Apply; re-running never modifies the
+     * stored set by itself.
+     */
+    private void runDetection(final Preference detectPreference) {
+        detectPreference.setEnabled(false);
+        detectPreference.setSummary(R.string.detect_codecs_running);
+        disposables.add(Single.fromCallable(CodecSupportDetector::detectSync)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(results -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    detectPreference.setEnabled(true);
+                    detectPreference.setSummary(R.string.detect_codecs_summary);
+                    showDetectResultDialog(results);
+                }, error -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    detectPreference.setEnabled(true);
+                    detectPreference.setSummary(R.string.detect_codecs_summary);
+                    Log.w(TAG, "Codec detection failed", error);
+                    ErrorUtil.showUiErrorSnackbar(this, "Detecting codecs", error);
+                }));
+    }
+
+    private void showDetectResultDialog(
+            final Map<String, CodecSupportDetector.DetectionResult> results) {
+        final CharSequence[] items = new CharSequence[IDX_AV1 + 1];
+        items[IDX_VP9] = rowLabel(CodecSupportDetector.TOGGLE_VP9,
+                results.get(CodecSupportDetector.TOGGLE_VP9));
+        items[IDX_AV1] = rowLabel(CodecSupportDetector.TOGGLE_AV1,
+                results.get(CodecSupportDetector.TOGGLE_AV1));
+        final boolean[] checked = new boolean[IDX_AV1 + 1];
+        checked[IDX_VP9] = CodecSupportDetector.isChecked(
+                results.get(CodecSupportDetector.TOGGLE_VP9));
+        checked[IDX_AV1] = CodecSupportDetector.isChecked(
+                results.get(CodecSupportDetector.TOGGLE_AV1));
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.codec_detect_dialog_title)
+                .setMultiChoiceItems(items, checked,
+                        (dialog, which, isChecked) -> checked[which] = isChecked)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.codec_detect_apply, (dialog, which) -> {
+                    final SharedPreferences prefs = PreferenceManager
+                            .getDefaultSharedPreferences(requireContext());
+                    final String formatsKey = getString(R.string.advanced_formats_key);
+                    final Set<String> stored = prefs.getStringSet(formatsKey, null);
+                    final Set<String> applied = CodecSupportDetector.applyToStoredSet(
+                            stored, checked[IDX_VP9], checked[IDX_AV1]);
+                    prefs.edit()
+                            .putStringSet(formatsKey, applied)
+                            // An explicit Apply retires the first-run seed, so a late
+                            // probe can never overwrite this choice afterwards.
+                            .putBoolean(getString(R.string.codec_seed_done_key), true)
+                            .apply();
+                    Log.i(TAG, "Codec detection applied advanced formats: " + applied);
+                    Toast.makeText(requireContext(), R.string.codec_detect_applied,
+                            Toast.LENGTH_SHORT).show();
+                })
+                .show();
+    }
+
+    private String rowLabel(final String toggle,
+                            final CodecSupportDetector.DetectionResult result) {
+        if (result != null
+                && result.getSupport() == CodecSupportDetector.Support.SUPPORTED_HW) {
+            return getString(R.string.codec_detect_row_hw, toggle);
+        }
+        if (result != null
+                && result.getSupport() == CodecSupportDetector.Support.SUPPORTED_SW_ONLY) {
+            return getString(R.string.codec_detect_row_sw_only, toggle);
+        }
+        return getString(R.string.codec_detect_row_unsupported, toggle);
     }
 
     @Override
@@ -66,5 +174,11 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
         super.onPause();
         getPreferenceManager().getSharedPreferences()
                 .unregisterOnSharedPreferenceChangeListener(listener);
+    }
+
+    @Override
+    public void onDestroy() {
+        disposables.clear();
+        super.onDestroy();
     }
 }

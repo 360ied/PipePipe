@@ -9,7 +9,7 @@ EC-3 is out of scope (decided, see 8).
   detector helper + stream filtering call sites, unchanged).
 - Audited: 2026-10-25, `main` (revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **proposal** (not implemented).
+- Status: **implementation complete** (`feat/codec-detect`; §6 manual device matrix pending).
 
 ## 1. Summary
 
@@ -28,8 +28,9 @@ device decoders (ExoPlayer's `MediaCodecUtil` as source of truth,
 framework `MediaCodecList` as fallback) and map the result onto the
 VP9/AV01 toggles. The button presents the outcome in a confirm
 dialog — the user reviews and applies, nothing is overwritten
-silently; the first-run seed writes once when no stored set exists
-and never touches it again. The filtering call sites stay untouched;
+silently; the first-run seed runs on every launch until `codec_seed_done`
+and, only from a pristine stored set equal to the static default, writes its
+VP9/AV01 result over that default. The filtering call sites stay untouched;
 only the stored set changes. EC-3 is left exactly as-is.
 
 ## 2. Current behavior (evidence)
@@ -129,15 +130,21 @@ guards; keep one for any future `MediaCapabilities` use.
    auto-modifies the stored set — a user who manually forced AV1
    off (battery) or on (knows better than the probe) keeps their
    choice until they press `Apply`.
-4. **First-run auto-seed (decided, see 8).** On first run
-   (`NewPipeSettings.initSettings`, `isFirstRun` path, after the
-   `setDefaultValues` seeding), run the detector once off the UI
+4. **First-run auto-seed (decided, see 8).** After the
+   `setDefaultValues` seeding in `NewPipeSettings.initSettings` (on every
+   launch until `codec_seed_done`, not only when `isFirstRun`), run the
+   detector once off the UI
    thread and write its VP9/AV01 result over the static `[VP9]`
    default, preserving any EC-3 value. Three guards, all required:
-   (a) the launch guard is the `isFirstRun` local
-   (`NewPipeSettings.java:47-60`, derived from prefs-emptiness
-   before seeding — a post-seed `prefs.contains(...)` check would
-   be vacuous, since `setDefaultValues` guarantees the key exists);
+   (a) the launch guard is a pristine-set check — the probe only
+   starts when the stored set still equals the static default
+   (an explicit user choice equal to the default is indistinguishable
+   and treated as pristine; true for fresh installs, where the
+   `isFirstRun` path just seeded it, and harmless for untouched
+   upgrades holding the same default; a post-seed `prefs.contains(...)` check would be
+   vacuous, since `setDefaultValues` guarantees the key exists).
+   A customized set is never probed, only marked done, so the
+   retry in (c) cannot clobber an upgraded install's manual choice;
    (b) a completion guard re-checks at write time and aborts if
    the value changed since launch, so a user fast enough to toggle
    during the probe window is never clobbered; (c) durability via
@@ -196,11 +203,12 @@ high resolutions only as VP9/AV1), so the gate is
   take hundreds of ms; run on a background thread with a small
   progress indicator on the preference row, cache nothing
   (decoders don't change without an OS update; re-probe per tap).
-- **First-run seed ordering and races.** The seed launches in the
-  `isFirstRun` path after `setDefaultValues`, overwriting the
-  static `[VP9]` default it just seeded — guarded to first run
-  only, so the `readAgain=true` backfill on later runs can never
-  clobber a manual choice. Two races are handled, not hoped away:
+- **First-run seed ordering and races.** The seed launches after
+  `setDefaultValues`, overwriting the static `[VP9]` default it
+  just seeded — but only from a pristine stored set, so the
+  `readAgain=true` backfill on later runs and upgraded installs'
+  manual choices can never be clobbered. Two races are narrowed to a
+  single-`apply()` window (best-effort, see §9 and §4c), not hoped away:
   a toggle made during the async probe window aborts the write
   (completion guard, see 4b), and a kill before the write leaves
   `codec_seed_done` unset so the next launch retries (see 4c).
@@ -228,9 +236,13 @@ high resolutions only as VP9/AV1), so the gate is
 
 - Toggles + default: `.../res/values/settings_keys.xml:1269-1276`,
   `.../res/xml/video_audio_settings.xml:36-44`.
-- Seeding + first-run derivation:
-  `.../settings/NewPipeSettings.java:45-60,74-84`
-  (`isFirstRun` from prefs-emptiness; `setDefaultValues` seeding).
+- Seeding + seed guards:
+  `.../settings/NewPipeSettings.java:97` (call site),
+  `.../settings/NewPipeSettings.java:127-187` (guards),
+  `.../settings/NewPipeSettings.java:196-213` (pure helpers)
+  (pristine-set launch check, not the `isFirstRun`-from-prefs-emptiness
+  derivation — a post-seed `prefs.contains(...)` check would be
+  vacuous, since `setDefaultValues` guarantees the key exists).
 - Gates: `.../util/VideoStreamSelector.java:424-461`,
   `.../util/StreamFilters.java:103-127`.
 - Renderer (no bundled AV1 extension):
@@ -256,3 +268,49 @@ high resolutions only as VP9/AV1), so the gate is
 - **Button-only vs. first-run auto-seed: both.** Button for
   re-detection plus a one-time seed on first run (guarded so
   manual choices are never overwritten afterwards).
+
+## 9. Implementation notes (`feat/codec-detect`)
+
+Deviations from §4, recorded so the design stays truthful:
+
+- **Seed launch guard is a pristine-set check, not the
+  `isFirstRun` flag.** `maybeSeedCodecSupport` probes only when
+  the stored set still equals the static default — an explicit choice
+  equal to the default is indistinguishable and treated as pristine —
+  (fresh installs
+  after seeding, or untouched upgrades holding the same default);
+  anything else is marked done without probing. A pure
+  `isFirstRun` guard would clobber an upgraded install's
+  customized set on the kill-retry path from §4.3(c), where
+  `isFirstRun` is already false but the flag is still absent.
+  An absent formats key (backup-restore, partial clear) defers
+  without marking done, so the next launch retries. The completion
+  guard is best-effort — `SharedPreferences` offers no
+  compare-and-set, so a write racing the final `apply()` itself
+  can still win; `shouldStartProbe` / `shouldWriteSeed` capture the
+  pure decisions and are JVM-tested (`NewPipeSettingsSeedTest`).
+- **Detector API is fixed to the two video toggles.** Implemented
+  as `detectSync()` / `detectSync(exoQuerier, frameworkQuerier)`
+  rather than `detect(Set<String> mimes)`: only VP9/AV01 exist
+  and EC-3 is out of scope, so a mime parameter buys generality
+  with no caller. The `DecoderQuerier` functional interface is
+  the inject-a-fake-codec-list seam from §3; the detector itself
+  is synchronous, threading lives at the call sites (RxJava
+  `Single`/`Completable` on `Schedulers.io()`, project
+  convention).
+- **Dialog rows are plain text, no ✓/⚠ glyphs.** Rows read
+  e.g. `VP9: hardware decoding, tested 2160p30` /
+  `AV1: software decoding only, left off (tested 2160p30)` /
+  `…: no decoder, left off`. Same three tiers and EC-3
+  preservation as §4.3, translator-friendly wording.
+- **Dialog `Apply` retires the seed.** An explicit `Apply` sets
+  `codec_seed_done` alongside the format write, so a late probe can
+  never overwrite the user's choice; the reverse order is already
+  covered by the completion guard. Either order resolves in the
+  user's favor.
+- **Verification status.** Unit tests, `lintDebug`, and
+  `assembleDebug` pass (`./scripts/check.sh --full` from the
+  worktree, 7/7 new tests green). The §6 manual matrix
+  (VP9-only vs. AV1 device dialogs, fresh-install seed) has not
+  been run — no device in this environment — and should precede
+  merge.
