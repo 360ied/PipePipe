@@ -2,7 +2,6 @@ package org.schabi.newpipe.streams.io;
 
 import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.os.Build;
 import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -28,15 +27,9 @@ public final class NoFileManagerSafeGuard {
                     "Unable to open no file manager alert dialog: Context is null");
         }
 
-        final String message;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10+ only allows SAF
-            message = context.getString(R.string.no_appropriate_file_manager_message_android_10);
-        } else {
-            message = context.getString(
-                    R.string.no_appropriate_file_manager_message,
-                    context.getString(R.string.downloads_storage_use_saf_title));
-        }
+        // Only SAF is allowed, so no non-SAF fallback message is needed.
+        final String message =
+                context.getString(R.string.no_appropriate_file_manager_message_android_10);
 
 
         new AlertDialog.Builder(context)

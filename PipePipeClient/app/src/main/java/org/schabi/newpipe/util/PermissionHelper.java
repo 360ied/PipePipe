@@ -7,13 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -37,7 +35,6 @@ public final class PermissionHelper {
         return checkWriteStoragePermissions(activity, requestCode);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public static boolean checkReadStoragePermissions(final Activity activity,
                                                       final int requestCode) {
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -87,12 +84,8 @@ public final class PermissionHelper {
 
     /**
      * In order to be able to draw over other apps,
-     * the permission android.permission.SYSTEM_ALERT_WINDOW have to be granted.
-     * <p>
-     * On < API 23 (MarshMallow) the permission was granted
-     * when the user installed the application (via AndroidManifest),
-     * on > 23, however, it have to start a activity asking the user if he agrees.
-     * </p>
+     * the permission android.permission.SYSTEM_ALERT_WINDOW have to be granted
+     * via a system activity asking the user if he agrees.
      * <p>
      * This method just return if the app has permission to draw over other apps,
      * and if it doesn't, it will try to get the permission.
@@ -101,7 +94,6 @@ public final class PermissionHelper {
      * @param context {@link Context}
      * @return {@link Settings#canDrawOverlays(Context)}
      **/
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean checkSystemAlertWindowPermission(final Context context) {
         if (!Settings.canDrawOverlays(context)) {
             final Intent i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -118,8 +110,7 @@ public final class PermissionHelper {
     }
 
     public static boolean isPopupEnabled(final Context context) {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || checkSystemAlertWindowPermission(context);
+        return checkSystemAlertWindowPermission(context);
     }
 
     public static void showPopupEnablementToast(final Context context) {

@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.icu.text.CompactDecimalFormat;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
@@ -21,8 +20,6 @@ import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -159,24 +156,8 @@ public final class Localization {
     }
 
     public static String shortCount(final Context context, final long count) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return CompactDecimalFormat.getInstance(getAppLocale(context),
-                    CompactDecimalFormat.CompactStyle.SHORT).format(count);
-        }
-
-        final double value = (double) count;
-        if (count >= 1000000000) {
-            return localizeNumber(context, round(value / 1000000000, 1))
-                    + context.getString(R.string.short_billion);
-        } else if (count >= 1000000) {
-            return localizeNumber(context, round(value / 1000000, 1))
-                    + context.getString(R.string.short_million);
-        } else if (count >= 1000) {
-            return localizeNumber(context, round(value / 1000, 1))
-                    + context.getString(R.string.short_thousand);
-        } else {
-            return localizeNumber(context, value);
-        }
+        return CompactDecimalFormat.getInstance(getAppLocale(context),
+                CompactDecimalFormat.CompactStyle.SHORT).format(count);
     }
 
     public static String listeningCount(final Context context, final long listeningCount) {
@@ -348,10 +329,6 @@ public final class Localization {
 
     public static void assureCorrectAppLanguage(final Context c) {
         changeAppLanguage(getAppLocale(c), c.getResources());
-    }
-
-    private static double round(final double value, final int places) {
-        return new BigDecimal(value).setScale(places, RoundingMode.HALF_UP).doubleValue();
     }
 
     /**

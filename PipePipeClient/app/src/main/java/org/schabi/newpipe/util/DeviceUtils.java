@@ -40,51 +40,10 @@ public final class DeviceUtils {
 
     // region: devices not supporting media tunneling / media tunneling blacklist
     /**
-     * <p>Formuler Z8 Pro, Z8, CC, Z Alpha, Z+ Neo.</p>
-     * <p>Blacklist reason: black screen</p>
-     * <p>Board: HiSilicon Hi3798MV200</p>
-     */
-    private static final boolean HI3798MV200 = Build.VERSION.SDK_INT == 24
-            && Build.DEVICE.equals("Hi3798MV200");
-    /**
-     * <p>Zephir TS43UHD-2.</p>
-     * <p>Blacklist reason: black screen</p>
-     */
-    private static final boolean CVT_MT5886_EU_1G = Build.VERSION.SDK_INT == 24
-            && Build.DEVICE.equals("cvt_mt5886_eu_1g");
-    /**
-     * Hilife TV.
-     * <p>Blacklist reason: black screen</p>
-     */
-    private static final boolean REALTEKATV = Build.VERSION.SDK_INT == 25
-            && Build.DEVICE.equals("RealtekATV");
-    /**
      * <p>Phillips 4K (O)LED TV.</p>
      * Supports custom ROMs with different API levels
      */
-    private static final boolean PH7M_EU_5596 = Build.VERSION.SDK_INT >= 26
-            && Build.DEVICE.equals("PH7M_EU_5596");
-    /**
-     * <p>Philips QM16XE.</p>
-     * <p>Blacklist reason: black screen</p>
-     */
-    private static final boolean QM16XE_U = Build.VERSION.SDK_INT == 23
-            && Build.DEVICE.equals("QM16XE_U");
-    /**
-     * <p>Sony Bravia VH1.</p>
-     * <p>Processor: MT5895</p>
-     * <p>Blacklist reason: fullscreen crash / stuttering</p>
-     */
-    private static final boolean BRAVIA_VH1 = Build.VERSION.SDK_INT == 29
-            && Build.DEVICE.equals("BRAVIA_VH1");
-    /**
-     * <p>Sony Bravia VH2.</p>
-     * <p>Blacklist reason: fullscreen crash; this includes model A90J as reported in
-     * <a href="https://github.com/TeamNewPipe/NewPipe/issues/9023#issuecomment-1387106242">
-     * #9023</a></p>
-     */
-    private static final boolean BRAVIA_VH2 = Build.VERSION.SDK_INT == 29
-            && Build.DEVICE.equals("BRAVIA_VH2");
+    private static final boolean PH7M_EU_5596 = Build.DEVICE.equals("PH7M_EU_5596");
     /**
      * <p>Sony Bravia Android TV platform 2.</p>
      * Uses a MediaTek MT5891 (MT5596) SoC.
@@ -140,7 +99,7 @@ public final class DeviceUtils {
                 || pm.hasSystemFeature(PackageManager.FEATURE_TELEVISION);
 
         // from https://stackoverflow.com/a/58932366
-        if (!isTv && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (!isTv) {
             final BatteryManager batteryManager = context.getSystemService(BatteryManager.class);
             if (batteryManager != null) {
                 final boolean isBatteryAbsent = batteryManager.getIntProperty(
@@ -202,11 +161,6 @@ public final class DeviceUtils {
     }
 
     /**
-     * Some devices have broken tunneled video playback but claim to support it.
-     * See https://github.com/TeamNewPipe/NewPipe/issues/5911
-     * @return false if Kitkat (does not support tunneling) or affected device
-     */
-    /**
      * <p>Some devices have broken tunneled video playback but claim to support it.</p>
      * <p>This can cause a black video player surface while attempting to play a video or
      * crashes while entering or exiting the full screen player.
@@ -219,13 +173,7 @@ public final class DeviceUtils {
      */
     public static boolean shouldSupportMediaTunneling() {
         // Maintainers note: update MEDIA_TUNNELING_DEVICES_UPDATE_APP_VERSION_CODE
-        return !HI3798MV200
-                && !CVT_MT5886_EU_1G
-                && !REALTEKATV
-                && !QM16XE_U
-                && !BRAVIA_VH1
-                && !BRAVIA_VH2
-                && !BRAVIA_ATV2
+        return !BRAVIA_ATV2
                 && !BRAVIA_ATV3_4K
                 && !PH7M_EU_5596
                 && !TX_50JXW834
@@ -238,7 +186,7 @@ public final class DeviceUtils {
     }
 
     public static boolean isInMultiWindow(final AppCompatActivity activity) {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && activity.isInMultiWindowMode();
+        return activity.isInMultiWindowMode();
     }
 
     public static boolean hasAnimationsAnimatorDurationEnabled(final Context context) {

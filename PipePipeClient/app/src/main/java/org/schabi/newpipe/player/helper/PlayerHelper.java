@@ -765,9 +765,7 @@ public final class PlayerHelper {
     }
 
     public static int popupLayoutParamType() {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.O
-                ? WindowManager.LayoutParams.TYPE_PHONE
-                : WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        return WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
     }
 
     public static int retrieveSeekDurationFromPreferences(final Player player) {

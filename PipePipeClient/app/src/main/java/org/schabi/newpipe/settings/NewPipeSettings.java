@@ -2,7 +2,6 @@ package org.schabi.newpipe.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Environment;
 
 import androidx.annotation.NonNull;
@@ -128,14 +127,8 @@ public final class NewPipeSettings {
         // remote (see #6455).
         if (DeviceUtils.isFireTv()) {
             return false;
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return true;
         }
-
-        final String key = context.getString(R.string.storage_use_saf);
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        return prefs.getBoolean(key, true);
+        return true;
     }
 
     private static boolean showSearchSuggestions(final Context context,

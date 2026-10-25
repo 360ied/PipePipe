@@ -3,7 +3,6 @@ package org.schabi.newpipe.settings;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Toast;
@@ -25,8 +24,7 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
         addPreferencesFromResourceRegistry();
 
         listener = (sharedPreferences, s) -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                    && s.equals(getString(R.string.minimize_on_exit_key))) {
+            if (s.equals(getString(R.string.minimize_on_exit_key))) {
                 final String newSetting = sharedPreferences.getString(s, null);
                 if (newSetting != null
                         && newSetting.equals(getString(R.string.minimize_on_exit_popup_key))

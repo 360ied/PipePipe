@@ -3,7 +3,6 @@ package org.schabi.newpipe.sleep;
 import android.annotation.SuppressLint;
 import android.app.*;
 import android.content.Intent;
-import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
@@ -96,16 +95,14 @@ public class SleepTimerService extends Service {
     }
 
     private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Sleep Timer Service Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
+        NotificationChannel serviceChannel = new NotificationChannel(
+                CHANNEL_ID,
+                "Sleep Timer Service Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
 
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(serviceChannel);
-        }
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(serviceChannel);
     }
 
     private String getFormattedTime(long millis) {
