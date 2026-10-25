@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- YouTube -->
-    <style name="LightTheme.YouTube" parent="LightTheme" tools:keep="@style/LightTheme_YouTube" />
+    <style name="LightTheme.YouTube" parent="LightTheme" />
 
-    <style name="DarkTheme.YouTube" parent="DarkTheme" tools:keep="@style/DarkTheme_YouTube" />
+    <style name="DarkTheme.YouTube" parent="DarkTheme" />
 
-    <style name="BlackTheme.YouTube" parent="BlackTheme" tools:keep="@style/BlackTheme_YouTube" />
+    <style name="BlackTheme.YouTube" parent="BlackTheme" />
 
     <!-- SoundCloud styles removed: YouTube is the only supported service -->
 

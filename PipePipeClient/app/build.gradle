@@ -125,11 +125,12 @@ android {
                     // dead weight, nothing instantiates Picnic keys.
                     'org/bouncycastle/pqc/**',
                     '**/CertPathReviewerMessages*.properties',
-                    // APK size report §6 #5: pure metadata, never loaded
-                    // at runtime.
+                    // APK size report §6 #5: data-only files observed in the
+                    // v0.2.0 APK, never loaded at runtime (no kotlin-reflect;
+                    // protobuf descriptors are compiled into generated code).
                     'META-INF/**/LICENSE.txt',
                     'META-INF/**/LICENSE',
-                    'google/protobuf/**',
+                    'google/protobuf/*.proto',
                     '**/*.kotlin_builtins'
             ]
         }
