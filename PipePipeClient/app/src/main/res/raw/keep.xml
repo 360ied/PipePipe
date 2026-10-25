@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@style/LightTheme.*,@style/DarkTheme.*,@style/BlackTheme.*">
+    <!-- Service themes resolved dynamically in ThemeHelper.getThemeStyleForService()
+         via Resources.getIdentifier() with runtime-built names ("<Base>.<Service>",
+         e.g. "DarkTheme.YouTube"). The resource shrinker cannot trace those strings,
+         so the styles are kept explicitly here (one entry covers all qualifiers).
+         NOTE: exact-name keeps do NOT match these entries — verified by aapt2 dump
+         that both @style/LightTheme.YouTube and @style/LightTheme_YouTube kept
+         nothing (all six themes stripped, silent fallback to the base theme).
+         The per-base wildcards above are verified working and cover any future
+         service suffix on these bases without further keep changes. -->
+</resources>
