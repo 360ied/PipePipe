@@ -140,6 +140,9 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
                             final CodecSupportDetector.DetectionResult result) {
         if (result != null
                 && result.getSupport() == CodecSupportDetector.Support.SUPPORTED_HW) {
+            if (!result.getSupports2160p60()) {
+                return getString(R.string.codec_detect_row_hw_limited, toggle);
+            }
             return getString(R.string.codec_detect_row_hw, toggle);
         }
         if (result != null

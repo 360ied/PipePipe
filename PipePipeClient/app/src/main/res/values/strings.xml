@@ -828,6 +828,7 @@
 <string name="detect_codecs_running">Detecting supported formats…</string>
 <string name="codec_detect_dialog_title">Detected formats</string>
 <string name="codec_detect_row_hw">%1$s: hardware decoding, tested 2160p30</string>
+<string name="codec_detect_row_hw_limited">%1$s: hardware decoding, tested 2160p30 (4K60 may stutter)</string>
 <string name="codec_detect_row_sw_only">%1$s: software decoding only, left off (tested 2160p30)</string>
 <string name="codec_detect_row_unsupported">%1$s: no decoder, left off</string>
 <string name="codec_detect_apply">Apply</string>

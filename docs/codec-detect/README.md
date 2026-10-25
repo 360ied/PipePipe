@@ -9,7 +9,7 @@ EC-3 is out of scope (decided, see 8).
   detector helper + stream filtering call sites, unchanged).
 - Audited: 2026-10-25, `main` (revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **implementation complete** (`feat/codec-detect`; §6 manual matrix and §10 advisory pending).
+- Status: **implementation complete** (`feat/codec-detect` + `feat/codec-detect-60fps-advisory`; §6 manual matrix pending).
 
 ## 1. Summary
 
@@ -316,12 +316,12 @@ Deviations from §4, recorded so the design stays truthful:
   user's favor.
 - **Verification status.** Unit tests, `lintDebug`, and
   `assembleDebug` pass (`./scripts/check.sh --full` from the
-  worktree, 17/17 tests green). The §6 manual matrix
+  worktree, 20/20 tests green). The §6 manual matrix
   (VP9-only vs. AV1 device dialogs, fresh-install seed) has not
   been run — no device in this environment — and should precede
   merge.
 
-## 10. Follow-up: 2160p60 advisory (proposed, not implemented)
+## 10. Follow-up: 2160p60 advisory (implemented in `feat/codec-detect-60fps-advisory`)
 
 Gate on 30, report 60 as advisory:
 
@@ -336,5 +336,6 @@ Gate on 30, report 60 as advisory:
   conservative on some SoCs and optimistic on lying ones, and
   bitrate/10-bit/HDR can still break a blessed stream. Never a
   second gate.
-- Tests: advisory flag set/unset mapping, suffix present/absent,
-  gate behavior unchanged (a 4K60-fail with 4K30 HW still enables).
+- Tests: advisory flag set/unset mapping, `shows60FpsAdvisory`
+  only-on-checked-hardware, gate behavior unchanged (a 4K60-fail
+  with 4K30 HW still enables).
