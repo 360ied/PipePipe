@@ -57,8 +57,13 @@ public final class CodecSupportDetector {
     public static final int PROBE_WIDTH = 3840;
     /** Probe height: 2160p. */
     public static final int PROBE_HEIGHT = 2160;
-    /** Probe frame rate. Profiles, 60 fps and HDR are intentionally not probed. */
+    /** Probe frame rate for the enable gate. 10-bit profiles and HDR are not probed. */
     public static final double PROBE_FPS = 30.0;
+    /**
+     * Advisory probe frame rate: reported as a dialog hint when it fails,
+     * never as an enable gate (see §10 of the design doc).
+     */
+    public static final double PROBE_FPS_60 = 60.0;
 
     /** Detection outcome for one toggle. */
     public enum Support {
@@ -80,15 +85,18 @@ public final class CodecSupportDetector {
         public final boolean hardwareAccelerated;
         public final boolean softwareOnly;
         public final boolean supports2160p;
+        public final boolean supports2160p60;
 
         public DecoderInfo(@Nullable final String name,
                            final boolean hardwareAccelerated,
                            final boolean softwareOnly,
-                           final boolean supports2160p) {
+                           final boolean supports2160p,
+                           final boolean supports2160p60) {
             this.name = name;
             this.hardwareAccelerated = hardwareAccelerated;
             this.softwareOnly = softwareOnly;
             this.supports2160p = supports2160p;
+            this.supports2160p60 = supports2160p60;
         }
     }
 
@@ -100,14 +108,17 @@ public final class CodecSupportDetector {
         private final int testedWidth;
         private final int testedHeight;
         private final double testedFrameRate;
+        private final boolean supports2160p60;
 
         public DetectionResult(@NonNull final Support support,
-                               @Nullable final String decoderName) {
+                               @Nullable final String decoderName,
+                               final boolean supports2160p60) {
             this.support = support;
             this.decoderName = decoderName;
             this.testedWidth = PROBE_WIDTH;
             this.testedHeight = PROBE_HEIGHT;
             this.testedFrameRate = PROBE_FPS;
+            this.supports2160p60 = supports2160p60;
         }
 
         @NonNull
@@ -131,6 +142,15 @@ public final class CodecSupportDetector {
         public double getTestedFrameRate() {
             return testedFrameRate;
         }
+
+        /**
+         * Whether the backing decoder passes the advisory 2160p60 probe.
+         * Meaningful only when {@code getSupport() == SUPPORTED_HW} (always
+         * {@code false} otherwise); the enable gate uses 2160p30.
+         */
+        public boolean getSupports2160p60() {
+            return supports2160p60;
+        }
     }
 
     /**
@@ -149,7 +169,8 @@ public final class CodecSupportDetector {
 
     /**
      * Pure mapping from queried decoders to a result. First hardware decoder passing the
-     * size gate wins; otherwise the first passing software/unknown decoder is reported as
+     * 2160p30 size gate wins (carrying its advisory 2160p60 flag); otherwise the first
+     * passing software/unknown decoder is reported as
      * {@link Support#SUPPORTED_SW_ONLY}; otherwise {@link Support#UNSUPPORTED} (keeping the
      * first decoder name for debugging when any decoder exists at all).
      */
@@ -162,18 +183,21 @@ public final class CodecSupportDetector {
                     continue;
                 }
                 if (decoder.hardwareAccelerated) {
-                    return new DetectionResult(Support.SUPPORTED_HW, decoder.name);
+                    return new DetectionResult(Support.SUPPORTED_HW, decoder.name,
+                            decoder.supports2160p60);
                 }
                 if (softwareCandidate == null) {
                     softwareCandidate = decoder;
                 }
             }
             if (softwareCandidate != null) {
-                return new DetectionResult(Support.SUPPORTED_SW_ONLY, softwareCandidate.name);
+                return new DetectionResult(Support.SUPPORTED_SW_ONLY,
+                        softwareCandidate.name, false);
             }
-            return new DetectionResult(Support.UNSUPPORTED, firstDecoderName(decoders));
+            return new DetectionResult(Support.UNSUPPORTED,
+                    firstDecoderName(decoders), false);
         }
-        return new DetectionResult(Support.UNSUPPORTED, null);
+        return new DetectionResult(Support.UNSUPPORTED, null, false);
     }
 
     @Nullable
@@ -192,6 +216,14 @@ public final class CodecSupportDetector {
      */
     public static boolean isChecked(@Nullable final DetectionResult result) {
         return result != null && result.getSupport() == Support.SUPPORTED_HW;
+    }
+
+    /**
+     * Whether the dialog should show the 4K60 advisory hint: hardware-enabled but the
+     * backing decoder fails the 2160p60 probe. Pure and JVM-testable.
+     */
+    public static boolean shows60FpsAdvisory(@Nullable final DetectionResult result) {
+        return isChecked(result) && !result.getSupports2160p60();
     }
 
     /**
@@ -261,7 +293,7 @@ public final class CodecSupportDetector {
                     : Collections.emptyList());
         } catch (final Exception ignored) {
             // Same testability note as above: no android.util.Log on this path.
-            return new DetectionResult(Support.UNSUPPORTED, null);
+            return new DetectionResult(Support.UNSUPPORTED, null, false);
         }
     }
 
@@ -276,7 +308,9 @@ public final class CodecSupportDetector {
         final List<DecoderInfo> result = new ArrayList<>(infos.size());
         for (final MediaCodecInfo info : infos) {
             result.add(new DecoderInfo(info.name, info.hardwareAccelerated, info.softwareOnly,
-                    info.isVideoSizeAndRateSupportedV21(PROBE_WIDTH, PROBE_HEIGHT, PROBE_FPS)));
+                    info.isVideoSizeAndRateSupportedV21(PROBE_WIDTH, PROBE_HEIGHT, PROBE_FPS),
+                    info.isVideoSizeAndRateSupportedV21(
+                            PROBE_WIDTH, PROBE_HEIGHT, PROBE_FPS_60)));
         }
         return result;
     }
@@ -294,7 +328,8 @@ public final class CodecSupportDetector {
                 continue;
             }
             result.add(new DecoderInfo(info.getName(), info.isHardwareAccelerated(),
-                    info.isSoftwareOnly(), supportsSize(info, mime)));
+                    info.isSoftwareOnly(), supportsSize(info, mime, PROBE_FPS),
+                    supportsSize(info, mime, PROBE_FPS_60)));
         }
         return result;
     }
@@ -310,10 +345,11 @@ public final class CodecSupportDetector {
     }
 
     private static boolean supportsSize(final android.media.MediaCodecInfo info,
-                                        @NonNull final String mime) {
+                                        @NonNull final String mime,
+                                        final double frameRate) {
         try {
             return info.getCapabilitiesForType(mime).getVideoCapabilities()
-                    .areSizeAndRateSupported(PROBE_WIDTH, PROBE_HEIGHT, PROBE_FPS);
+                    .areSizeAndRateSupported(PROBE_WIDTH, PROBE_HEIGHT, frameRate);
         } catch (final RuntimeException e) {
             return false;
         }

@@ -24,17 +24,22 @@ public class CodecSupportDetectorTest {
     private static CodecSupportDetector.DecoderInfo decoder(final String name,
                                                            final boolean hardwareAccelerated,
                                                            final boolean softwareOnly,
-                                                           final boolean supports2160p) {
+                                                           final boolean supports2160p,
+                                                           final boolean supports2160p60) {
         return new CodecSupportDetector.DecoderInfo(
-                name, hardwareAccelerated, softwareOnly, supports2160p);
+                name, hardwareAccelerated, softwareOnly, supports2160p, supports2160p60);
     }
 
     private static CodecSupportDetector.DecoderInfo hw(final String name) {
-        return decoder(name, true, false, true);
+        return decoder(name, true, false, true, true);
+    }
+
+    private static CodecSupportDetector.DecoderInfo hwNo60(final String name) {
+        return decoder(name, true, false, true, false);
     }
 
     private static CodecSupportDetector.DecoderInfo sw(final String name) {
-        return decoder(name, false, true, true);
+        return decoder(name, false, true, true, true);
     }
 
     @Test
@@ -80,7 +85,7 @@ public class CodecSupportDetectorTest {
         final Map<String, CodecSupportDetector.DetectionResult> results =
                 CodecSupportDetector.detectSync(
                         mime -> Collections.singletonList(
-                                decoder("c2.dec", true, false, false)),
+                                decoder("c2.dec", true, false, false, false)),
                         mime -> Collections.singletonList(hw("c2.fw.dec")));
 
         assertEquals(CodecSupportDetector.Support.UNSUPPORTED,
@@ -124,7 +129,7 @@ public class CodecSupportDetectorTest {
     @Test
     public void hardwareWithout2160pStaysUnchecked() {
         final List<CodecSupportDetector.DecoderInfo> decoders =
-                Collections.singletonList(decoder("c2.vp9.dec", true, false, false));
+                Collections.singletonList(decoder("c2.vp9.dec", true, false, false, false));
         final CodecSupportDetector.DetectionResult result =
                 CodecSupportDetector.evaluate(decoders);
         assertEquals(CodecSupportDetector.Support.UNSUPPORTED, result.getSupport());
@@ -142,7 +147,7 @@ public class CodecSupportDetectorTest {
                 CodecSupportDetector.evaluate(null)));
 
         final List<CodecSupportDetector.DecoderInfo> holes =
-                Arrays.asList(null, decoder(null, false, false, false));
+                Arrays.asList(null, decoder(null, false, false, false, false));
         final CodecSupportDetector.DetectionResult result =
                 CodecSupportDetector.evaluate(holes);
         assertEquals(CodecSupportDetector.Support.UNSUPPORTED, result.getSupport());
@@ -154,9 +159,56 @@ public class CodecSupportDetectorTest {
         // Neither hardware nor software flagged: safe bucket, unchecked.
         final CodecSupportDetector.DetectionResult result =
                 CodecSupportDetector.evaluate(Collections.singletonList(
-                        decoder("c2.mystery.dec", false, false, true)));
+                        decoder("c2.mystery.dec", false, false, true, true)));
         assertEquals(CodecSupportDetector.Support.SUPPORTED_SW_ONLY, result.getSupport());
         assertFalse(CodecSupportDetector.isChecked(result));
+    }
+
+    @Test
+    public void hardwareWithout60FpsStillCheckedWithAdvisory() {
+        final CodecSupportDetector.DetectionResult result =
+                CodecSupportDetector.evaluate(
+                        Collections.singletonList(hwNo60("c2.av1.dec")));
+        assertEquals(CodecSupportDetector.Support.SUPPORTED_HW, result.getSupport());
+        assertTrue(CodecSupportDetector.isChecked(result));
+        assertFalse(result.getSupports2160p60());
+        assertTrue(CodecSupportDetector.shows60FpsAdvisory(result));
+    }
+
+    @Test
+    public void hardwareWith60FpsHasNoAdvisory() {
+        final CodecSupportDetector.DetectionResult result =
+                CodecSupportDetector.evaluate(
+                        Collections.singletonList(hw("c2.av1.dec")));
+        assertTrue(result.getSupports2160p60());
+        assertTrue(CodecSupportDetector.isChecked(result));
+        assertFalse(CodecSupportDetector.shows60FpsAdvisory(result));
+    }
+
+    @Test
+    public void advisoryOnlyOnCheckedHardware() {
+        assertFalse(CodecSupportDetector.shows60FpsAdvisory(null));
+        assertFalse(CodecSupportDetector.shows60FpsAdvisory(
+                CodecSupportDetector.evaluate(Collections.emptyList())));
+        assertFalse(CodecSupportDetector.shows60FpsAdvisory(
+                CodecSupportDetector.evaluate(
+                        Collections.singletonList(sw("c2.av1.sw.dec")))));
+    }
+
+    @Test
+    public void detectSyncCarries60FpsAdvisory() {
+        final Map<String, CodecSupportDetector.DetectionResult> results =
+                CodecSupportDetector.detectSync(
+                        mime -> Collections.singletonList(hwNo60("c2.vp9.dec")),
+                        mime -> {
+                            throw new AssertionError("framework must not be queried");
+                        });
+        assertTrue(CodecSupportDetector.isChecked(
+                results.get(CodecSupportDetector.TOGGLE_VP9)));
+        assertTrue(CodecSupportDetector.shows60FpsAdvisory(
+                results.get(CodecSupportDetector.TOGGLE_VP9)));
+        assertEquals("c2.vp9.dec", results.get(
+                CodecSupportDetector.TOGGLE_VP9).getDecoderName());
     }
 
     @Test

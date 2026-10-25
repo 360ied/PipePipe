@@ -60,14 +60,11 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
 
         // The registry maps this fragment to exactly one static XML, so a missing key
         // can only be a wiring typo: fail fast via the codebase baseline.
-        final Preference detectPreference =
-                requirePreference(R.string.detect_codecs_key);
-        if (detectPreference != null) {
-            detectPreference.setOnPreferenceClickListener(preference -> {
-                runDetection(preference);
-                return true;
-            });
-        }
+        requirePreference(R.string.detect_codecs_key)
+                .setOnPreferenceClickListener(preference -> {
+                    runDetection(preference);
+                    return true;
+                });
     }
 
     /**
@@ -138,6 +135,9 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
 
     private String rowLabel(final String toggle,
                             final CodecSupportDetector.DetectionResult result) {
+        if (CodecSupportDetector.shows60FpsAdvisory(result)) {
+            return getString(R.string.codec_detect_row_hw_limited, toggle);
+        }
         if (result != null
                 && result.getSupport() == CodecSupportDetector.Support.SUPPORTED_HW) {
             return getString(R.string.codec_detect_row_hw, toggle);
