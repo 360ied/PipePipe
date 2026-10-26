@@ -4,7 +4,7 @@ Audited: 2026-10-26, `main` at `79e69bd`.
 Status: **investigated, unfixed** — every SABR audio-only `WEBMA_OPUS`
 download fails closed in `SabrJavaMuxer`.
 Scope: `PipePipeClient/app/src/main/java/us/shandian/giga/get/`,
-`org/schabi/newpipe/download/DownloadDialog.java`.
+`PipePipeClient/app/src/main/java/org/schabi/newpipe/download/DownloadDialog.java`.
 
 ## 1. Symptom
 
@@ -37,30 +37,31 @@ matching (same rule as `YoutubeSabrFormatTimeline`): `contains("mp4")`
 `opus` (lowercased once in `remuxAndCopy()`). The family table is:
 
 ```kotlin
-MP4_FAMILY  = setOf("mp4", "m4a", "m4v", "mov")
-WEBM_FAMILY = setOf("webm", "weba", "mkv", "mka") // .opus excluded
+MP4_FAMILY_EXTENSIONS  = setOf("mp4", "m4a", "m4v", "mov")
+WEBM_FAMILY_EXTENSIONS = setOf("webm", "weba", "mkv", "mka") // .opus excluded
 ```
 
 `WEBM → opus` disagrees, so the muxer throws `MUXING` before opening
-any source. The `canCopySingleInputDirectly()` fast path (`:616`)
+any source. The `canCopySingleInputDirectly()` fast path (`:606`,
+decision `:620`)
 already returns `false` for `.opus`, so there is no verbatim bypass.
 
 ## 3. Root-cause chain
 
 1. Extractor container is WebM. `WEBMA_OPUS("webm", "audio/webm")`
    (`PipePipeExtractor/extractor/.../MediaFormat.java:46`, itags
-   249/250/251) and the SABR format reports
+   249/250/251 in `ItagItem.java:56-58`) and the SABR format reports
    `audio/webm; codecs="opus"`. Nothing upstream is Ogg yet.
 2. Download UI renames that format to `.opus` with `audio/ogg` mime,
    because the legacy progressive/DASH path converts it afterwards:
    `DownloadDialog.java:781` and `DirectDownloader.java:130`
-   (`WEBMA_OPUS → "opus"`), plus `DownloadDialog.java:1049` /
-   `DirectDownloader.java:204`
+   (`WEBMA_OPUS → "opus"`), plus `DownloadDialog.java:1049–1050` /
+   `DirectDownloader.java:204–205`
    (`psName = ALGORITHM_OGG_FROM_WEBM_DEMUXER`, i.e.
    `OggFromWebmDemuxer` → `OggFromWebMWriter`: WebM → Ogg Opus).
 3. Both call sites then clear postprocessing for SABR/HLS:
    `if (containsHlsResource(...) || containsSabrStream(...)) psName = null`
-   (`DownloadDialog.java:1116`, `DirectDownloader.java:260`). So SABR
+   (`DownloadDialog.java:1134–1138`, `DirectDownloader.java:261–265`). So SABR
    missions own muxing end to end and never get the Ogg conversion.
 4. `SabrDownloader` downloads init + media segments to temp files, then
    calls `SabrJavaMuxer.remuxAndCopy()` with storage name `*.opus`.
@@ -91,15 +92,22 @@ fails".
 Add an `.opus` branch to `SabrJavaMuxer`, mirroring legacy
 `OggFromWebmDemuxer`, instead of widening `WEBM_FAMILY`:
 
-- Gate: `extension == "opus" && inputs.size == 1 && target.isAudio`
-  `&& mime.contains("webm")`. Multi-input, video, or mp4 inputs keep
-  failing closed.
-- Track pick: reuse `pickWebmTrack(wantVideo=false)` to keep the
-  fake-video-cover-track protection (enumerate by `TrackKind`, never
-  assume index 0).
-- Remux: `OggFromWebMWriter(FileStream(input, readOnly=true),
+- Gate: `extension == "opus" && inputs.size == 1 && targets.size == 1`
+  `&& targets.first().format.isAudio &&`
+  `targets.first().format.mimeType.orEmpty().contains("webm")`.
+  Multi-input, video, or mp4 inputs keep failing closed.
+- Track pick: extract the enumerate-by-`TrackKind` logic from
+  `pickWebmTrack(wantVideo=false)` (or widen it to accept
+  `OggFromWebMWriter.getTracksFromSource()`) to keep the
+  fake-video-cover-track protection (never assume index 0 — legacy
+  `OggFromWebmDemuxer` uses `selectTrack(0)`).
+- Remux: `OggFromWebMWriter(FileStream(input, true),
   FileStream(output))` → `parseSource()`, `selectTrack(audioIdx)`,
-  `build()`. `FileStream extends SharpStream` already satisfies the
+  `build()`. Mirror the existing fresh-output block (delete-first,
+  `FileStream(output)`, `setLength(0)`), wrap writer + streams in
+  `try/finally` with `close()`/`deleteQuietly(output)` on failure,
+  and map interrupts to the existing pause taxonomy.
+  `FileStream extends SharpStream` already satisfies the
   `canRead/canRewind` + `canWrite/canRewind` constructor checks, and
   the temp shape (init + concatenated clusters) is what `WebMReader`
   already parses on the `WebMWriter` path.
