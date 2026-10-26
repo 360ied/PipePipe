@@ -220,7 +220,7 @@ internal class SabrJavaMuxer(
         // check below — otherwise `WEBM → opus` always throws MUXING.
         // Anything the gate rejects (multi-input, video, mp4) falls
         // through to the agreement check and still fails closed.
-        if (isSingleOpusRemux(targets, inputs, extension)) {
+        if (isSingleOpusRemux(inputs, targets, extension)) {
             logDebug("remux opus inputs=${inputs.size} output=${output.name}")
             remuxOpus(inputs, targets, output)
             return
@@ -457,8 +457,9 @@ internal class SabrJavaMuxer(
 
     @Throws(IOException::class, InterruptedException::class)
     private fun remuxOpus(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
-        // Gate guarantees a single audio target, but recheck cheaply: sources
-        // indexing below must never run on an unexpected multi-input call.
+        // The gate guarantees a single input pair; recheck sizes cheaply so
+        // indexing below never runs on an unexpected multi-input call
+        // (audio-ness is enforced downstream by the track and codec guards).
         if (inputs.size != 1 || targets.size != 1) {
             throw SabrDownloadException(
                 SabrDownloadException.Reason.MUXING,
@@ -522,12 +523,10 @@ internal class SabrJavaMuxer(
             } catch (error: ClosedByInterruptException) {
                 Thread.currentThread().interrupt()
                 throw InterruptedException(error.message)
-            } catch (error: Exception) {
-                // No verbatim fallback for `.opus`: the single input holds
-                // WebM bytes, which must never be served under an Ogg-Opus
-                // suffix. Propagate so remux() maps it to MUXING.
-                throw error
             }
+            // No verbatim fallback for `.opus`: the single input holds WebM
+            // bytes, which must never be served under an Ogg-Opus suffix —
+            // any build failure propagates so remux() maps it to MUXING.
             completed = true
         } finally {
             // OggFromWebMWriter.close() closes both its source and output;
@@ -554,8 +553,8 @@ internal class SabrJavaMuxer(
     }
 
     private fun isSingleOpusRemux(
-        targets: List<SabrDownloadTarget>,
         inputs: List<File>,
+        targets: List<SabrDownloadTarget>,
         extension: String,
     ): Boolean {
         if (extension != "opus" || inputs.size != 1 || targets.size != 1) {
