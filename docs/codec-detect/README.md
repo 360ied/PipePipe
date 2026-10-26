@@ -3,13 +3,13 @@
 Why `Enable advanced formats` is manual today, what a `Detect`
 button would query, and how to add it without silently overriding
 the user's choices. Covers the VP9/AV01 video toggles only (the former
-`EC-3` audio toggle was removed, see 11).
+`EC-3` audio toggle was removed, see §11).
 
 - Scope: `PipePipeClient/app/src/main` (settings screen + a new
   detector helper + stream filtering call sites, unchanged).
 - Audited: 2026-10-25, `main` (revalidate refs at implementation time).
 - All paths below are relative to the repository root.
-- Status: **implementation complete** (`feat/codec-detect` + `feat/codec-detect-60fps-advisory`; §6 manual matrix pending; EC-3 removed, see 11).
+- Status: **implementation complete** (`feat/codec-detect` + `feat/codec-detect-60fps-advisory`; §6 manual matrix pending; EC-3 removed, see §11).
 
 ## 1. Summary
 
@@ -18,7 +18,7 @@ the user's choices. Covers the VP9/AV01 video toggles only (the former
 default `[VP9]`. At playback/download-list time the app does a pure
 preference check — `formats.contains(...)` — with no hardware query
 of any kind (`VideoStreamSelector.java` for video;
-`StreamFilters.java` hard-rejects `ec-3`/`flac` audio). Tick something the device
+`StreamFilters.java` hard-rejects `ec-3`/`flac` audio). Tick a *video* toggle the device
 can't decode and ExoPlayer fails at render time, which is exactly
 what the preference summary warns about.
 
@@ -36,7 +36,7 @@ only the stored set changes.
 ## 2. Current behavior (evidence)
 
 - Values + default,
-  `PipePipeClient/app/src/main/res/values/settings_keys.xml:1269-1276`:
+  `PipePipeClient/app/src/main/res/values/settings_keys.xml:1271-1277`:
   `advanced_formats_values = [VP9, AV01]`,
   `default_advanced_formats_values = [VP9]`.
 - Preference,
@@ -44,7 +44,7 @@ only the stored set changes.
   `MultiSelectListPreference`, `defaultValue =
   @array/default_advanced_formats_values`.
 - Defaults seeding,
-  `PipePipeClient/app/src/main/java/org/schabi/newpipe/settings/NewPipeSettings.java:74-75`:
+  `PipePipeClient/app/src/main/java/org/schabi/newpipe/settings/NewPipeSettings.java:85-86`:
   `setDefaultValues(..., R.xml.video_audio_settings, true)` on startup
   (`readAgain=true`, so new defaults backfill). Static, not per-device.
 - Video gate,
@@ -74,7 +74,7 @@ without new dependencies or version guards:
 | `AV01` | `video/av01` | Framework software decoder exists from Android 10, hardware varies. Presence ≠ usable 4K. |
 
 Out of scope for probing: audio. The detector maps onto the video toggles
-only; there is no audio toggle (the `EC-3` entry was removed, see 11).
+only; there is no audio toggle (the `EC-3` entry was removed, see §11).
 
 Query vocabulary, verified against the exoplayer-core 2.18.7 AAR
 in the Gradle cache — note the field-vs-method split:
@@ -151,8 +151,9 @@ guards; keep one for any future `MediaCapabilities` use.
    even when `isFirstRun` is false. Until the probe completes,
    readers see the static default, which is the safe subset anyway.
 5. **Explicitly unchanged:** the `contains()` gates in
-   `VideoStreamSelector` / `StreamFilters`, the `[VP9]` XML default, and the `MIGRATION_8_9`
-   HEVC cleanup (plus the `MIGRATION_9_10` EC-3 cleanup, see 11). The button + seed only produce a
+   `VideoStreamSelector`, and the unconditional reject in `StreamFilters`,
+   the `[VP9]` XML default, and the `MIGRATION_8_9`
+   HEVC cleanup (plus the `MIGRATION_9_10` EC-3 cleanup, see §11). The button + seed only produce a
    better-informed stored set.
 
 ## 5. Edge cases and trade-offs
@@ -170,7 +171,7 @@ high resolutions only as VP9/AV1), so the gate is
   that handles 1080p but not 2160p leaves its toggle off — safe
   direction (fewer streams offered, never a broken one). The tested
   size is recorded in the result and shown in the dialog.
-- **EC-3 removed (see 11).** The `EC-3` toggle is gone: `ec-3` streams are
+- **EC-3 removed (see §11).** The `EC-3` toggle is gone: `ec-3` streams are
 hard-rejected in `StreamFilters`, and `MIGRATION_9_10` drops the stale token.
 - **Accepted limitations (stated, not solved).** The 2160p30 gate
   probes size/rate only — 10-bit/VP9-P2/AV1-Main10
@@ -223,7 +224,7 @@ hard-rejected in `StreamFilters`, and `MIGRATION_9_10` drops the stale token.
 
 ## 7. References
 
-- Toggles + default: `.../res/values/settings_keys.xml:1269-1276`,
+- Toggles + default: `.../res/values/settings_keys.xml:1271-1277`,
   `.../res/xml/video_audio_settings.xml:36-44`.
 - Seeding + seed guards:
   `.../settings/NewPipeSettings.java:97` (call site),
@@ -252,7 +253,7 @@ hard-rejected in `StreamFilters`, and `MIGRATION_9_10` drops the stale token.
   (`4K60 may stutter`); the checkbox follows the 2160p30 result
   only. Gating on 60 would hide 4K30/1080p60-capable formats that
   play fine.
-- **EC-3: out of scope (superseded — removed, see 11).** Detector never read nor wrote the
+- **EC-3: out of scope (superseded — removed, see §11).** Pre-removal, the detector never read nor wrote the
   `EC-3` entry; dialog `Apply` and first-run seed both preserved
   the stored value. Unused feature, not worth probing.
 - **ExoPlayer vs. framework as primary: ExoPlayer.**
@@ -336,12 +337,15 @@ Gate on 30, report 60 as advisory:
 - `CodecSupportDetector.applyToStoredSet(vp9Checked, av1Checked)` no longer
   takes (or preserves) a stored set; dialog `Apply` and the first-run seed
   write exactly the two video toggles.
-- `StreamFilters.filterUnsupportedFormats` hard-rejects `ec-3` (as `flac`),
-  with no preference read; the `Context` parameter stays for the caller.
+- `StreamFilters.filterUnsupportedFormats` hard-rejects `ec-3` (as `flac`)
+  with no preference read; the now-unused `Context` parameter was dropped
+  alongside (sole caller `AudioPlaybackResolver` updated).
 - `MIGRATION_9_10` (→ `VERSION 10`) drops a stale `EC-3` token from upgraded
   installs' stored sets, mirroring the `MIGRATION_8_9` HEVC cleanup.
 - Untouched: `YoutubeStreamExtractor` HLS parsing still excludes `ac-3`/`ec-3`
   from video-codec sniffing — manifest parsing, not a playback toggle.
-- Rationale: YouTube serves `ec-3` only on 5.1 tracks exposed to TV clients,
-  never to the clients the app uses (the extractor's `ItagItem` list has no
-  256/258/328/380 entries), so the toggle gated nothing in practice.
+- Rationale: YouTube serves `ec-3` only on 5.1 tracks exposed to TV clients.
+  The extractor's `ItagItem` list (the clients the app uses) has no
+  256/258/328/380 entries, so there is no separate EC-3 audio track to offer;
+  HLS `CODECS` strings can still mention `ec-3` and are skipped at parse time
+  (see the `YoutubeStreamExtractor` sniffing note above). The toggle gated nothing in practice.

@@ -57,7 +57,7 @@ and delete the multi-service branches this exposes as dead
 
 `PipePipeClient/app/src/main/java/org/schabi/newpipe/util/VideoStreamSelector.java:324-360`
 (`getSortedStreamVideosList`): merges progressive + video-only, filters
-by `advanced_formats` toggles (VP9/AV01/HEVC), then dedups via
+by `advanced_formats` toggles (VP9/AV01), then dedups via
 `HashMap` keyed `codec-prefix + resolution + audioTrackId`. One codec per
 resolution survives, but every codec with that resolution still gets its
 own entry.

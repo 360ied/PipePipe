@@ -34,7 +34,7 @@ public final class StreamFilters {
                     .filter(stream -> {
                         final String trackName = stream.getAudioTrackName();
                         if (trackName == null) return true;
-                        final String nameLower = trackName.toLowerCase();
+                        final String nameLower = trackName.toLowerCase(Locale.ROOT);
                         return nameLower.contains("original") || nameLower.contains("default");
                     })
                     .collect(Collectors.toList());
@@ -94,8 +94,7 @@ public final class StreamFilters {
         return streamList;
     }
 
-    public static List<AudioStream> filterUnsupportedFormats(@NonNull final List<AudioStream> streamList,
-                                                             @NonNull final Context context) {
+    public static List<AudioStream> filterUnsupportedFormats(@NonNull final List<AudioStream> streamList) {
         return streamList.stream()
                 .filter(stream -> {
                     if (stream.getCodec() == null) {
