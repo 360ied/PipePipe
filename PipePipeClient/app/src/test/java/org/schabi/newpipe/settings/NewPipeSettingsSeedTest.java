@@ -33,7 +33,7 @@ public class NewPipeSettingsSeedTest {
         assertFalse(NewPipeSettings.shouldStartProbe(
                 new HashSet<>(Collections.singletonList("AV01")), STATIC_DEFAULT));
         assertFalse(NewPipeSettings.shouldStartProbe(
-                new HashSet<>(Collections.singletonList("EC-3")), STATIC_DEFAULT));
+                new HashSet<>(), STATIC_DEFAULT));
     }
 
     @Test

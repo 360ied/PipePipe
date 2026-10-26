@@ -146,8 +146,8 @@ the vocabulary in section 3:
   impossible for same-codec/same-height pairs; either way handle
   `null` format explicitly.
 - Audio-side, for awareness: `StreamFilters.filterUnsupportedFormats`
-  `flac` branch is non-YouTube (YouTube audio is opus/mp4a, plus ec-3
-  for 5.1 where the EC-3 toggle still applies). Not in the dedup path;
+  hard-rejects `flac` and `ec-3` (YouTube audio is opus/mp4a; `ec-3`
+  5.1 tracks never reach the app). Not in the dedup path;
   listed so a later cleanup pass doesn't miss it.
 
 ## 5. Proposal (UI-layer dedup)

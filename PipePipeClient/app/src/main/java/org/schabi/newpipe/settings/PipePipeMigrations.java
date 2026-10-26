@@ -105,6 +105,21 @@ public final class PipePipeMigrations {
         }
     };
 
+    public static final Migration MIGRATION_9_10 = new Migration(9, 10) {
+        @Override
+        protected void migrate(final Context context, final SharedPreferences preferences) {
+            // EC-3 advanced-format toggle removed; drop the stale token so it
+            // does not linger in the stored set forever.
+            final String key = context.getString(R.string.advanced_formats_key);
+            final Set<String> formats = preferences.getStringSet(key, null);
+            if (formats != null && formats.contains("EC-3")) {
+                final Set<String> cleaned = new HashSet<>(formats);
+                cleaned.remove("EC-3");
+                preferences.edit().putStringSet(key, cleaned).apply();
+            }
+        }
+    };
+
     // Sign-in support was removed along with its string resources, so the
     // deleted keys are referenced by literal value here.
     private static void removeYoutubeAuthKeys(final SharedPreferences preferences) {
@@ -124,9 +139,10 @@ public final class PipePipeMigrations {
             MIGRATION_6_7,
             MIGRATION_7_8,
             MIGRATION_8_9,
+            MIGRATION_9_10,
     };
 
-    public static final int VERSION = 9;
+    public static final int VERSION = 10;
 
     public static void initMigrations(final Context context, final boolean isFirstRun) {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);

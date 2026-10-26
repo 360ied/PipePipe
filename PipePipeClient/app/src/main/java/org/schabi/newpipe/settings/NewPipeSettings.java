@@ -170,7 +170,7 @@ public final class NewPipeSettings {
         final Set<String> current = copyStringSet(prefs.getStringSet(formatsKey, null));
         final SharedPreferences.Editor editor = prefs.edit();
         if (shouldWriteSeed(current, launchSnapshot)) {
-            final Set<String> seeded = CodecSupportDetector.applyToStoredSet(current,
+            final Set<String> seeded = CodecSupportDetector.applyToStoredSet(
                     CodecSupportDetector.isChecked(
                             results.get(CodecSupportDetector.TOGGLE_VP9)),
                     CodecSupportDetector.isChecked(

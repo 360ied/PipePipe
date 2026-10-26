@@ -12,12 +12,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Mapping of queried decoders onto the VP9/AV01 toggles: only hardware decoders passing
  * the 2160p gate check the box, software-only is reported distinctly but unchecked,
- * EC-3 is always preserved, and ExoPlayer wins disagreements with the framework list.
+ * and ExoPlayer wins disagreements with the framework list.
  */
 public class CodecSupportDetectorTest {
 
@@ -64,18 +63,15 @@ public class CodecSupportDetectorTest {
     }
 
     @Test
-    public void emptyListIsUnsupportedAndEc3Preserved() {
+    public void emptyListIsUnsupported() {
         final CodecSupportDetector.DetectionResult result =
                 CodecSupportDetector.evaluate(Collections.emptyList());
         assertEquals(CodecSupportDetector.Support.UNSUPPORTED, result.getSupport());
         assertNull(result.getDecoderName());
         assertFalse(CodecSupportDetector.isChecked(result));
 
-        final Set<String> stored = new HashSet<>(Arrays.asList(
-                CodecSupportDetector.TOGGLE_VP9, CodecSupportDetector.TOGGLE_EC3));
-        assertEquals(new HashSet<>(Collections.singletonList(
-                CodecSupportDetector.TOGGLE_EC3)),
-                CodecSupportDetector.applyToStoredSet(stored, false, false));
+        assertEquals(Collections.emptySet(),
+                CodecSupportDetector.applyToStoredSet(false, false));
     }
 
     @Test
@@ -249,19 +245,16 @@ public class CodecSupportDetectorTest {
     }
 
     @Test
-    public void applySetsTogglesAndPreservesEc3() {
+    public void applySetsToggles() {
         assertEquals(new HashSet<>(Arrays.asList(
                         CodecSupportDetector.TOGGLE_VP9,
-                        CodecSupportDetector.TOGGLE_AV1,
-                        CodecSupportDetector.TOGGLE_EC3)),
-                CodecSupportDetector.applyToStoredSet(
-                        new HashSet<>(Collections.singletonList(
-                                CodecSupportDetector.TOGGLE_EC3)), true, true));
+                        CodecSupportDetector.TOGGLE_AV1)),
+                CodecSupportDetector.applyToStoredSet(true, true));
         assertEquals(new HashSet<>(Collections.singletonList(
                         CodecSupportDetector.TOGGLE_VP9)),
-                CodecSupportDetector.applyToStoredSet(null, true, false));
+                CodecSupportDetector.applyToStoredSet(true, false));
         assertEquals(new HashSet<>(Collections.singletonList(
                         CodecSupportDetector.TOGGLE_AV1)),
-                CodecSupportDetector.applyToStoredSet(Collections.emptySet(), false, true));
+                CodecSupportDetector.applyToStoredSet(false, true));
     }
 }

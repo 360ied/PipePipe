@@ -117,9 +117,8 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
                     final SharedPreferences prefs = PreferenceManager
                             .getDefaultSharedPreferences(requireContext());
                     final String formatsKey = getString(R.string.advanced_formats_key);
-                    final Set<String> stored = prefs.getStringSet(formatsKey, null);
                     final Set<String> applied = CodecSupportDetector.applyToStoredSet(
-                            stored, checked[IDX_VP9], checked[IDX_AV1]);
+                            checked[IDX_VP9], checked[IDX_AV1]);
                     prefs.edit()
                             .putStringSet(formatsKey, applied)
                             // An explicit Apply retires the first-run seed, so a late
