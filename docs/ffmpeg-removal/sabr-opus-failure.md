@@ -49,8 +49,8 @@ already returns `false` for `.opus`, so there is no verbatim bypass.
 ## 3. Root-cause chain
 
 1. Extractor container is WebM. `WEBMA_OPUS("webm", "audio/webm")`
-   (`PipePipeExtractor/extractor/.../MediaFormat.java:46`, itags
-   249/250/251 in `ItagItem.java:56-58`) and the SABR format reports
+   (`PipePipeExtractor/extractor/src/main/java/org/schabi/newpipe/extractor/MediaFormat.java:46`, itags
+   249/250/251 in `services/youtube/ItagItem.java:56-58`) and the SABR format reports
    `audio/webm; codecs="opus"`. Nothing upstream is Ogg yet.
 2. Download UI renames that format to `.opus` with `audio/ogg` mime,
    because the legacy progressive/DASH path converts it afterwards:
@@ -85,32 +85,51 @@ fails".
   YouTube opus-audio case). MP4/M4A and `.webm`/`.weba` are unaffected.
 - HLS has the same latent gap (`HlsFrameworkMuxer` accepts only
   `mp4/m4a/webm` + mp3-concat, no `.opus`), but YouTube-audio-via-HLS
-  rarely hits it.
+  rarely hits it. HLS is explicitly out of scope for this fix.
 
 ## 6. Fix proposal
 
 Add an `.opus` branch to `SabrJavaMuxer`, mirroring legacy
-`OggFromWebmDemuxer`, instead of widening `WEBM_FAMILY`:
+`OggFromWebmDemuxer`, instead of widening `WEBM_FAMILY`.
 
+- Insertion point: handle `.opus` inside `dispatchRemux()` after the
+  `UNKNOWN`/mixed-container guards but *before* the family `agrees`
+  check, then dispatch to a new `remuxOpus()` function. Placing the
+  branch after the `agrees` check would still throw `MUXING` for
+  `WEBM → opus` and must not be done.
 - Gate: `extension == "opus" && inputs.size == 1 && targets.size == 1`
   `&& targets.first().format.isAudio &&`
   `targets.first().format.mimeType.orEmpty().contains("webm")`.
-  Multi-input, video, or mp4 inputs keep failing closed.
-- Track pick: extract the enumerate-by-`TrackKind` logic from
-  `pickWebmTrack(wantVideo=false)` (or widen it to accept
-  `OggFromWebMWriter.getTracksFromSource()`) to keep the
-  fake-video-cover-track protection (never assume index 0 — legacy
-  `OggFromWebmDemuxer` uses `selectTrack(0)`).
+  Multi-input, video, or mp4 inputs keep failing closed. `extension`
+  arrives lowercased from `remuxAndCopy()`.
+- Track pick: reuse `pickWebmTrack(tracks, wantVideo=false,
+  sourceIndex=0)` unchanged — `OggFromWebMWriter.getTracksFromSource()`
+  returns `Array<WebMReader.WebMTrack>`, the same type the `WebMWriter`
+  path picks from. Enumerate via `TrackKind` and fail `MUXING` when no
+  `Audio` kind exists. This keeps the fake-video-cover-track protection
+  (never assume index 0 — legacy `OggFromWebmDemuxer` uses
+  `selectTrack(0)`).
+- Codec guard: after `parseSource()` + track pick, assert the selected
+  track's `codecId == "A_OPUS"`, else throw `MUXING`. This covers a
+  Vorbis `WEBMA` misrouted to `.opus` (`makeMetadata()` returns `null`
+  for unknown codecs and must not silently emit a degenerate Ogg).
 - Remux: `OggFromWebMWriter(FileStream(input, true),
   FileStream(output))` → `parseSource()`, `selectTrack(audioIdx)`,
   `build()`. Mirror the existing fresh-output block (delete-first,
-  `FileStream(output)`, `setLength(0)`), wrap writer + streams in
-  `try/finally` with `close()`/`deleteQuietly(output)` on failure,
-  and map interrupts to the existing pause taxonomy.
+  `FileStream(output)`, `setLength(0)`; work-dir I/O failures are
+  `STORAGE`), call `ensureRunning()` before parse/select/build, and
+  mirror the `remuxWebm()` interrupt mapping: `InterruptedException` →
+  rethrow, `InterruptedIOException` → `InterruptedException` (pause),
+  `ClosedByInterruptException` → re-interrupt + `InterruptedException`.
   `FileStream extends SharpStream` already satisfies the
   `canRead/canRewind` + `canWrite/canRewind` constructor checks, and
   the temp shape (init + concatenated clusters) is what `WebMReader`
   already parses on the `WebMWriter` path.
+- Cleanup ownership: `OggFromWebMWriter.close()` closes both source and
+  output streams, so the `finally` block's `muxer?.close()` +
+  per-source `closeQuietly()` + `out?.close()` double-closes by design
+  (`FileStream.close()` is idempotent). Delete via
+  `deleteQuietly(output)` when `!completed`, same as `remuxWebm()`.
 - No verbatim fallback for `.opus`: a failed Ogg build must stay a
   `MUXING` error, or the family exclusion is bypassed by the back
   door. Keep the existing interrupt taxonomy (pause, not failure).
@@ -121,9 +140,10 @@ libraries and expectations).
 
 ## 7. Verification
 
-- Repro: SABR audio-only `WEBMA_OPUS` mission named `*.opus` → today
-  fails with the section-1 message; after the fix completes and the
-  output probes as Ogg (`OggS` magic, not EBML `0x1A45DFA3`).
+- Repro (manual device test — no JVM unit harness exists for
+  `SabrJavaMuxer`): SABR audio-only `WEBMA_OPUS` mission named `*.opus`
+  → today fails with the section-1 message; after the fix completes and
+  the output probes as Ogg (`OggS` magic, not EBML `0x1A45DFA3`).
 - Regression: existing `.webm`/`.weba`/`.m4a` SABR audio missions
   unchanged; mixed mp4+webm still `MUXING`; truncated input still
   clean-fails with no partial kept.
