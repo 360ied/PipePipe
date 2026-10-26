@@ -32,7 +32,7 @@ import java.util.Set;
  * The mapping is deliberately conservative: only hardware decoders passing the 2160p30
  * size/rate gate recommend enabling a toggle. Software-only decoders are reported
  * distinctly ({@link Support#SUPPORTED_SW_ONLY}) but map to unchecked, since the bundled
- * software AV1 decoder cannot render 4K smoothly. EC-3 is out of scope and never touched.
+ * software AV1 decoder cannot render 4K smoothly.
  * </p>
  *
  * <p>
@@ -50,8 +50,6 @@ public final class CodecSupportDetector {
     public static final String TOGGLE_VP9 = "VP9";
     /** Stored-set token for the AV1 family (see {@code VideoStreamSelector}). */
     public static final String TOGGLE_AV1 = "AV01";
-    /** Stored-set token preserved but never probed. */
-    public static final String TOGGLE_EC3 = "EC-3";
 
     /** Probe width: 2160p, since advanced formats exist largely to unlock 2K/4K. */
     public static final int PROBE_WIDTH = 3840;
@@ -228,12 +226,10 @@ public final class CodecSupportDetector {
 
     /**
      * Builds the stored set for the confirm-dialog Apply action / first-run seed:
-     * VP9/AV01 follow the passed (recommended or user-confirmed) states, any stored EC-3
-     * value is preserved.
+     * VP9/AV01 follow the passed (recommended or user-confirmed) states.
      */
     @NonNull
-    public static Set<String> applyToStoredSet(@Nullable final Set<String> stored,
-                                               final boolean vp9Checked,
+    public static Set<String> applyToStoredSet(final boolean vp9Checked,
                                                final boolean av1Checked) {
         final Set<String> result = new HashSet<>();
         if (vp9Checked) {
@@ -241,9 +237,6 @@ public final class CodecSupportDetector {
         }
         if (av1Checked) {
             result.add(TOGGLE_AV1);
-        }
-        if (stored != null && stored.contains(TOGGLE_EC3)) {
-            result.add(TOGGLE_EC3);
         }
         return result;
     }

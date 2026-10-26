@@ -1,13 +1,10 @@
 package org.schabi.newpipe.util;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.preference.PreferenceManager;
 
-import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.DeliveryMethod;
 import org.schabi.newpipe.extractor.stream.Stream;
@@ -15,14 +12,12 @@ import org.schabi.newpipe.extractor.stream.VideoStream;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class StreamFilters {
@@ -39,7 +34,7 @@ public final class StreamFilters {
                     .filter(stream -> {
                         final String trackName = stream.getAudioTrackName();
                         if (trackName == null) return true;
-                        final String nameLower = trackName.toLowerCase();
+                        final String nameLower = trackName.toLowerCase(Locale.ROOT);
                         return nameLower.contains("original") || nameLower.contains("default");
                     })
                     .collect(Collectors.toList());
@@ -99,28 +94,16 @@ public final class StreamFilters {
         return streamList;
     }
 
-    public static List<AudioStream> filterUnsupportedFormats(@NonNull final List<AudioStream> streamList,
-                                                             @NonNull final Context context) {
-        final SharedPreferences sharedPreferences = PreferenceManager
-                .getDefaultSharedPreferences(context);
-        Set<String> advancedFormats = sharedPreferences.getStringSet(
-                context.getString(R.string.advanced_formats_key), new HashSet<>());
-        if (advancedFormats == null) {
-            advancedFormats = Collections.emptySet();
-        }
-        final boolean useDolbyAudio = advancedFormats.contains("EC-3");
+    public static List<AudioStream> filterUnsupportedFormats(@NonNull final List<AudioStream> streamList) {
         return streamList.stream()
                 .filter(stream -> {
                     if (stream.getCodec() == null) {
                         return true;
                     }
-                    if (stream.getCodec().toLowerCase(Locale.ROOT).equals("flac")) {
-                        return false; // flac support has issue: InsufficientCapacityException
-                    } else if (stream.getCodec().equals("ec-3")) {
-                        return useDolbyAudio;
-                    } else {
-                        return true;
-                    }
+                    final String codec = stream.getCodec().toLowerCase(Locale.ROOT);
+                    // flac support has issue: InsufficientCapacityException. ec-3 (Dolby
+                    // Digital Plus 5.1) has no toggle anymore, so it is never offered.
+                    return !codec.equals("flac") && !codec.equals("ec-3");
                 }).collect(Collectors.toList());
     }
 

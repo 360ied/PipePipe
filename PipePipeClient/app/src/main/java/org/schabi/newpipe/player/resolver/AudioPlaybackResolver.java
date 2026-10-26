@@ -52,7 +52,7 @@ public class AudioPlaybackResolver implements PlaybackResolver {
         List<AudioStream> audioStreams = info.getAudioStreams()
                 .stream().filter(s -> !blacklistUrls.contains(s.getContent())).collect(Collectors.toList());
         removeTorrentStreams(audioStreams);
-        audioStreams = filterUnsupportedFormats(audioStreams, context);
+        audioStreams = filterUnsupportedFormats(audioStreams);
 
         final int index = AudioStreamSelector.getAudioFormatIndex(context, audioStreams, audioTrack);
         if (index < 0 || index >= audioStreams.size()) {

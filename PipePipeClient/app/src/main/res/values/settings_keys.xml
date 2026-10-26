@@ -1271,7 +1271,6 @@
     <string-array name="advanced_formats_values">
         <item>VP9</item>
         <item>AV01</item>
-        <item>EC-3</item>
     </string-array>
     <string-array name="default_advanced_formats_values">
         <item>VP9</item>

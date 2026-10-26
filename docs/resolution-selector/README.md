@@ -57,7 +57,7 @@ and delete the multi-service branches this exposes as dead
 
 `PipePipeClient/app/src/main/java/org/schabi/newpipe/util/VideoStreamSelector.java:324-360`
 (`getSortedStreamVideosList`): merges progressive + video-only, filters
-by `advanced_formats` toggles (VP9/AV01/HEVC), then dedups via
+by `advanced_formats` toggles (VP9/AV01), then dedups via
 `HashMap` keyed `codec-prefix + resolution + audioTrackId`. One codec per
 resolution survives, but every codec with that resolution still gets its
 own entry.
@@ -146,8 +146,8 @@ the vocabulary in section 3:
   impossible for same-codec/same-height pairs; either way handle
   `null` format explicitly.
 - Audio-side, for awareness: `StreamFilters.filterUnsupportedFormats`
-  `flac` branch is non-YouTube (YouTube audio is opus/mp4a, plus ec-3
-  for 5.1 where the EC-3 toggle still applies). Not in the dedup path;
+  hard-rejects `flac` and `ec-3` (YouTube audio is opus/mp4a; `ec-3`
+  5.1 tracks never reach the app). Not in the dedup path;
   listed so a later cleanup pass doesn't miss it.
 
 ## 5. Proposal (UI-layer dedup)
