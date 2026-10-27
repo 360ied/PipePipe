@@ -1,8 +1,10 @@
 # SABR `.opus` download fails: WebM input vs `.opus` output
 
 Audited: 2026-10-26, `main` at `79e69bd`.
-Status: **investigated, unfixed** — every SABR audio-only `WEBMA_OPUS`
-download fails closed in `SabrJavaMuxer`.
+Status: **fixed — landed on `main` (`757c08a`)** via branch
+`fix/sabr-opus-ogg` (worktree removed after merge): SABR audio-only
+`WEBMA_OPUS` downloads now convert WebM → Ogg Opus in
+`SabrJavaMuxer.remuxOpus()` instead of failing closed.
 Scope: `PipePipeClient/app/src/main/java/us/shandian/giga/get/`,
 `PipePipeClient/app/src/main/java/org/schabi/newpipe/download/DownloadDialog.java`.
 
