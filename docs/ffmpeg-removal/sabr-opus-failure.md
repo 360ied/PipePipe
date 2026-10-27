@@ -144,8 +144,9 @@ libraries and expectations).
 
 - Repro (manual device test — no JVM unit harness exists for
   `SabrJavaMuxer`): SABR audio-only `WEBMA_OPUS` mission named `*.opus`
-  → today fails with the section-1 message; after the fix completes and
-  the output probes as Ogg (`OggS` magic, not EBML `0x1A45DFA3`).
+  → failed with the section-1 message before the fix. Confirmed fixed
+  end to end on-device (`NanoPipe_v0.3.2-5-gd0f0801-debug.apk`): the opus
+  download completes and plays as Ogg Opus.
 - Regression: existing `.webm`/`.weba`/`.m4a` SABR audio missions
   unchanged; mixed mp4+webm still `MUXING`; truncated input still
   clean-fails with no partial kept.
