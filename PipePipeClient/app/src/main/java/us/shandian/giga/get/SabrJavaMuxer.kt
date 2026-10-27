@@ -4,6 +4,7 @@ import android.util.Log
 import org.schabi.newpipe.BuildConfig
 import org.schabi.newpipe.streams.Mp4DashReader
 import org.schabi.newpipe.streams.Mp4FromDashWriter
+import org.schabi.newpipe.streams.OggFromWebMWriter
 import org.schabi.newpipe.streams.WebMReader
 import org.schabi.newpipe.streams.WebMWriter
 import us.shandian.giga.io.FileStream
@@ -22,6 +23,10 @@ import java.util.Locale
  * YoutubeSabrFormatTimeline):
  * - mp4+mp4 -> [Mp4FromDashWriter], track picked by audio/video kind
  * - webm+webm -> [WebMWriter] (video track from video source, audio from audio)
+ * - single WebM audio input with `.opus` storage -> [OggFromWebMWriter]
+ *   (WebM → Ogg Opus conversion, legacy OggFromWebmDemuxer precedent;
+ *   `.opus` is excluded from the WebM family so WebM bytes are never
+ *   mislabeled)
  * - single input -> direct copy for webm/webm (legacy fast path), otherwise
  *   single-track Java mux with verbatim-copy fallback for very short clips
  *   ([Mp4FromDashWriter] needs >= 8 samples per track)
@@ -207,6 +212,18 @@ internal class SabrJavaMuxer(
                     "$containers, itags=${targets.map { it.format.itag }}, " +
                     "mimes=${targets.map { it.format.mimeType }})",
             )
+        }
+
+        // `.opus` storage carries Ogg-Opus bytes converted from the WebM
+        // input (legacy OggFromWebmDemuxer precedent: WebM → Ogg Opus); it
+        // never belongs to WEBM_FAMILY, so handle it before the agreement
+        // check below — otherwise `WEBM → opus` always throws MUXING.
+        // Anything the gate rejects (multi-input, video, mp4) falls
+        // through to the agreement check and still fails closed.
+        if (isSingleOpusRemux(inputs, targets, extension)) {
+            logDebug("remux opus inputs=${inputs.size} output=${output.name}")
+            remuxOpus(inputs, targets, output)
+            return
         }
 
         // The output filename selects the container; never write bytes the
@@ -438,6 +455,115 @@ internal class SabrJavaMuxer(
         }
     }
 
+    @Throws(IOException::class, InterruptedException::class)
+    private fun remuxOpus(inputs: List<File>, targets: List<SabrDownloadTarget>, output: File) {
+        // The gate guarantees a single input pair; recheck sizes cheaply so
+        // indexing below never runs on an unexpected multi-input call
+        // (audio-ness is enforced downstream by the track and codec guards).
+        if (inputs.size != 1 || targets.size != 1) {
+            throw SabrDownloadException(
+                SabrDownloadException.Reason.MUXING,
+                "SABR download failed: java mux failed (.opus needs single input, " +
+                    "inputs=${inputs.size} targets=${targets.size})",
+            )
+        }
+        var sources: List<FileStream> = emptyList()
+        var muxer: OggFromWebMWriter? = null
+        var out: FileStream? = null
+        var completed = false
+        try {
+            sources = openSources(inputs)
+            ensureRunning()
+            // Fresh output: same STORAGE taxonomy as remuxWebm. Created
+            // before the Ogg writer because its constructor requires both
+            // the source and the target streams upfront.
+            val fileOut: FileStream
+            try {
+                if (output.exists() && !output.delete()) {
+                    throw IOException("Could not reset java mux output ${output.name}")
+                }
+                val created = FileStream(output)
+                created.setLength(0)
+                fileOut = created
+                out = created
+            } catch (error: InterruptedException) {
+                throw error
+            } catch (error: Exception) {
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.STORAGE,
+                    "SABR download failed: could not write temporary media (${error.message.orEmpty()})",
+                    error,
+                )
+            }
+            ensureRunning()
+            muxer = OggFromWebMWriter(sources.first(), fileOut)
+            muxer.parseSource()
+            ensureRunning()
+            // Same fake-video-cover-track protection as the WebM path:
+            // enumerate via kind, never assume index 0 (legacy
+            // OggFromWebmDemuxer used selectTrack(0)).
+            val tracks = muxer.getTracksFromSource()
+            val trackIndex = pickWebmTrack(tracks, wantVideo = false, sourceIndex = 0)
+            if (tracks[trackIndex].codecId != OPUS_CODEC_ID) {
+                throw SabrDownloadException(
+                    SabrDownloadException.Reason.MUXING,
+                    "SABR download failed: java mux failed (expected Opus track " +
+                        "for .opus output, codec=${tracks[trackIndex].codecId})",
+                )
+            }
+            muxer.selectTrack(trackIndex)
+            ensureRunning()
+            try {
+                muxer.build()
+            } catch (error: InterruptedException) {
+                throw error
+            } catch (error: InterruptedIOException) {
+                // Interrupt surfacing as I/O is a pause, not a mux failure.
+                throw InterruptedException(error.message)
+            } catch (error: ClosedByInterruptException) {
+                Thread.currentThread().interrupt()
+                throw InterruptedException(error.message)
+            }
+            // No verbatim fallback for `.opus`: the single input holds WebM
+            // bytes, which must never be served under an Ogg-Opus suffix —
+            // any build failure propagates so remux() maps it to MUXING.
+            completed = true
+        } finally {
+            // OggFromWebMWriter.close() closes both its source and output;
+            // the per-stream closes below are idempotent by design
+            // (FileStream.close() never throws), same as the WebM path.
+            try {
+                muxer?.close()
+            } catch (ignored: Exception) {
+            }
+            sources.forEach {
+                try {
+                    it.close()
+                } catch (ignored: Exception) {
+                }
+            }
+            try {
+                out?.close()
+            } catch (ignored: Exception) {
+            }
+            if (!completed) {
+                deleteQuietly(output)
+            }
+        }
+    }
+
+    private fun isSingleOpusRemux(
+        inputs: List<File>,
+        targets: List<SabrDownloadTarget>,
+        extension: String,
+    ): Boolean {
+        if (extension != "opus" || inputs.size != 1 || targets.size != 1) {
+            return false
+        }
+        val format = targets.first().format
+        return format.isAudio && format.mimeType.orEmpty().contains("webm")
+    }
+
     @Throws(IOException::class)
     private fun openSources(inputs: List<File>): List<FileStream> {
         // Opened streams are tracked incrementally so a throwing Nth
@@ -642,6 +768,7 @@ internal class SabrJavaMuxer(
     private companion object {
         private const val TAG = "SabrJavaMuxer"
         private const val M4A_BRAND = 0x4D344120
+        private const val OPUS_CODEC_ID = "A_OPUS"
         private val MP4_FAMILY_EXTENSIONS = setOf("mp4", "m4a", "m4v", "mov")
         // weba/mkv/mka carry WebM-compatible bytes; .opus is excluded on
         // purpose (conventionally Ogg-Opus, which strict players reject).
