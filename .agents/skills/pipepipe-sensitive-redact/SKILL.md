@@ -127,7 +127,11 @@ per §4, report, and stop without pushing.
 The user has acknowledged the forward-only violation. Work in the root
 repository (this is a `main`-history operation, not feature work):
 
-1. Back up: `git branch backup/main-pre-redact-<yyyymmdd> main`.
+1. Back up: `git branch backup/main-pre-redact-<yyyymmdd> main`. Also
+   save the old mapping basis: `git log origin/main..HEAD
+   --format='%H %h %s' > /tmp/pre-redact-log.txt` — the rewrite
+   changes every hash in the range, so stale pins are mapped by subject
+   afterwards.
 2. Write a temp redaction script outside the repo that applies the
    scope table to the affected file only (plain `str.replace` pairs;
    warn on any pattern not found). Test it on a copy first and inspect
@@ -151,6 +155,32 @@ repository (this is a `main`-history operation, not feature work):
 
    After this point recovery is impossible — confirm the user
    understands before purging.
+
+6. Fix stale commit pins (forward commit, default). The rewrite changes
+   every hash in the range, so short-hash pins (`79e69bd`-style)
+   and `git describe`-based artifact names
+   (e.g. `NanoPipe_v0.3.2-5-gd0f0801-debug.apk`) that point inside the
+   old range now dangle. Collect candidates and sort by whether they
+   still resolve:
+
+   ```bash
+   grep -rn -E '[0-9a-f]{7,}' <affected-files>
+   for h in <each-candidate>; do git log --oneline -1 "$h" || echo "$h STALE"; done
+   ```
+
+   Pins at or before `origin/main` (e.g. the audit base) and older
+   history still resolve — leave them. For stale pins, map old→new by
+   subject using `/tmp/pre-redact-log.txt` and the new
+   `git log origin/main..HEAD --oneline`, then fix with a **forward
+   docs-only commit** (never another rewrite for this): update the
+   status/landing pin to the new hash and recompute artifact names via
+   `git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --match
+   "[0-9]*.[0-9]*.[0-9]*" --always <new-commit>` instead of hand-editing
+   the hash inside the filename. Caution: an artifact filename records
+   the binary actually tested — if the tree changed beyond docs-only,
+   generalize the filename (e.g. `<test-build>.apk`) rather than
+   silently swapping the hash. Verify all pins resolve and the removed
+   literals are still gone (§4), then report; do not push.
 
 ## 4. Verify and report — nothing automatic after this
 
