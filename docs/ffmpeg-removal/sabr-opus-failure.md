@@ -1,7 +1,7 @@
 # SABR `.opus` download fails: WebM input vs `.opus` output
 
 Audited: 2026-10-26, `main` at `79e69bd`.
-Status: **fixed — landed on `main` (`757c08a`)** via branch
+Status: **fixed — landed on `main` (`d1cd39e`)** via branch
 `fix/sabr-opus-ogg` (worktree removed after merge): SABR audio-only
 `WEBMA_OPUS` downloads now convert WebM → Ogg Opus in
 `SabrJavaMuxer.remuxOpus()` instead of failing closed.
@@ -145,7 +145,7 @@ libraries and expectations).
 - Repro (manual device test — no JVM unit harness exists for
   `SabrJavaMuxer`): SABR audio-only `WEBMA_OPUS` mission named `*.opus`
   → failed with the section-1 message before the fix. Confirmed fixed
-  end to end on-device (`NanoPipe_v0.3.2-5-gd0f0801-debug.apk`): the opus
+  end to end on-device (`NanoPipe_v0.3.2-5-g33363df-debug.apk`): the opus
   download completes and plays as Ogg Opus.
 - Regression: existing `.webm`/`.weba`/`.m4a` SABR audio missions
   unchanged; mixed mp4+webm still `MUXING`; truncated input still
